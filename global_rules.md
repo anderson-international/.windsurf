@@ -53,3 +53,7 @@ These documents serve as conversation history to maintain context across session
    - When rules are modified, update both copies immediately
    - Verify contents match exactly between both files
    - Remind the user to commit the changes to GitHub when appropriate
+
+## Fundamental User Preferences
+
+User is a sole hobbyist coder who values simplicity, brevity, and performance. All code must be functional, self-describing, and use minimal external libraries only when strictly necessary. Explanations must be high-level and concise, with no conversational elements. Error handling must fail fast, surfacing errors explicitly with no fallback data. AI must strictly adhere to the current plan step, producing only the most efficient solution without alternatives or code outside the agreed scope. Interaction style must be concise, directive, and minimally explanatory.
