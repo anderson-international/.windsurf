@@ -2,6 +2,11 @@
 description: Perform a lint review and iterate until clean
 ---
 
+**CRITICAL***
+User requires all terminal commands to use Windows command console (cmd) syntax with the cmd /c prefix. Do not use PowerShell commands. Always format commands as "cmd /c [command]" for compatibility with the Windows environment.
+
+## Workflow
+// turbo
 1. Perform a lint review:
    - Run the linting tool over the entire codebase.
    - Identify and list all linting errors and warnings.
