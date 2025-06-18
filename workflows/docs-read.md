@@ -30,39 +30,85 @@ description: Read all the docs following optimized AI ingestion workflow
 - [ ] **Identify AI_NAVIGATION and AI_SUMMARY blocks** in all documents
 - [ ] **Catalog standardized cross-references**
 
-## Phase 2: AI-Accelerated Content Analysis
+## Phase 2: CRITICAL Priority Documents (⚠️ CRITICAL - Est. 60 minutes)
+*Essential documents for all code reviews - Read these for every task*
 
-### 2.1 Critical Documents First (⚠️ CRITICAL)
-Process in priority order using AI enhancements:
+**Checkpoint**: Confirm you understand AI navigation before proceeding to critical documents.
+
+Process these 5 documents in exact order using AI enhancements:
+1. **[AI Coding Handbook](guides/ai-coding-handbook.md)** (7 min) - Mandatory coding standards and validation patterns
+2. **[Best Practices](guides/best-practices.md)** (10 min) - File size limits, component organization, simplicity principles  
+3. **[Business Context](project/business-context.md)** (8 min) - Project scope, user roles, authentication strategy
+4. **[Feature Requirements](project/feature-requirements.md)** (12 min) - Detailed specifications and validation rules
+5. **[Technical Stack](project/technical-stack.md)** (12 min) - Next.js, Prisma ORM, CSS Modules, deployment strategy
+
+**For each document:**
 - [ ] **Read AI_NAVIGATION blocks** for rapid context understanding
-- [ ] **Extract key compliance patterns** from AI_VALIDATION blocks
+- [ ] **Extract key compliance patterns** from AI_VALIDATION blocks  
 - [ ] **Follow cross-reference guidance** efficiently
 - [ ] **Document interconnections** between critical files
 
-### 2.2 High Priority Documents (🔥 HIGH)
+**Checkpoint**: Confirm understanding of critical documents before proceeding to high priority.
+
+## Phase 3: HIGH Priority Documents (🔥 HIGH - Est. 90 minutes)
+*Key implementation patterns and strategies*
+
+Process these 8 documents using established context:
+6. **[Code Quality Standards](guides/code-quality-standards.md)** (8 min) - ESLint, TypeScript, and Prettier configuration
+7. **[React Patterns](guides/react-patterns.md)** (12 min) - Hook usage, performance optimization, memo patterns
+8. **[Architectural Guidelines](guides/architectural-guidelines.md)** (15 min) - Component structure, single responsibility
+9. **[Database-Form Integration](guides/database-form-integration.md)** (22 min) - Schema-driven form development patterns
+10. **[API Design](concerns/api-design.md)** (18 min) - RESTful patterns, error handling, Shopify integration
+11. **[Authentication](concerns/authentication.md)** (8 min) - Magic link auth, role-based access control
+12. **[Database](concerns/database.md)** (10 min) - Prisma ORM patterns, transaction handling
+13. **[UI/UX Design](project/ui-ux-design.md)** (15 min) - Mobile-first design, dark theme, wizard patterns
+
+**For each document:**
 - [ ] **Leverage navigation context** from previous readings
 - [ ] **Use cross-reference maps** to connect related information
 - [ ] **Identify pattern relationships** across documents
 - [ ] **Build comprehensive understanding** of high-priority areas
 
-### 2.3 Systematic Coverage (⚙️ MEDIUM → 📝 LOW)
+**Checkpoint**: Confirm comprehensive understanding of high-priority patterns before proceeding to medium priority.
+
+## Phase 4: MEDIUM Priority Documents (⚙️ MEDIUM - Est. 70 minutes)
+*Specialized guidance and implementation details*
+
+Process these 6 documents using established context:
+14. **[Form Management](concerns/form-management.md)** (15 min) - React Hook Form + Zod validation strategies
+15. **[Prevent React Effect Loops](pitfalls/prevent-react-effect-loops.md)** (15 min) - useEffect anti-patterns and fixes
+16. **[Prevent Lint Issues](pitfalls/prevent-lint-issues.md)** (12 min) - Common ESLint/TypeScript error prevention
+17. **[UI/UX Patterns](concerns/ui-ux-patterns.md)** (10 min) - Component implementation and accessibility patterns
+18. **[Performance Optimization](concerns/performance-optimization.md)** (8 min) - Frontend/backend optimization strategies  
+19. **[Testing Strategy](concerns/testing-strategy.md)** (10 min) - Testing approaches and coverage patterns
+
+**For each document:**
 - [ ] **Process remaining files** using established context
 - [ ] **Complete cross-reference network** understanding
 - [ ] **Validate comprehensive coverage** of all documentation
 
-## Phase 3: AI-Enhanced Synthesis
+**Checkpoint**: Validate comprehensive understanding of medium priority areas before proceeding to final phase.
 
-### 3.1 Pattern Integration
+## Phase 5: LOW Priority Documents (📝 LOW - Est. 15 minutes)
+*Infrastructure and deployment context*
+
+20. **[Deployment Environment](concerns/deployment-environment.md)** (15 min) - PaaS deployment and environment configuration
+
+## Phase 6: AI-Enhanced Synthesis (Est. 30 minutes)
+
+### 6.1 Pattern Integration
 - [ ] **Synthesize AI_VALIDATION patterns** across documents
 - [ ] **Map compliance requirements** to implementation areas
 - [ ] **Identify potential conflicts** or inconsistencies
 - [ ] **Document automated validation opportunities**
 
-### 3.2 Cross-Reference Network Analysis
+### 6.2 Cross-Reference Network Analysis
 - [ ] **Verify all cross-references followed**
 - [ ] **Map interconnected documentation areas**
 - [ ] **Identify missing links** or documentation gaps
 - [ ] **Confirm holistic understanding**
+
+**Final Checkpoint**: Confirm complete documentation mastery before proceeding with development tasks.
 
 ## AI-Enhanced Efficiency Tips
 
