@@ -10,28 +10,16 @@ When building API routes, database queries, or backend logic.
 ## Load Sequence
 
 // turbo
-1. Load business context for user roles
+1. Load API development documents with dependencies using graph intelligence
 ```
-Load: docs/project/business-context.md
-```
-
-// turbo
-2. Load API design patterns
-```
-Load: docs/concerns/api-design.md
+cmd /c node scripts/smart-context-loader.js --workflow=docs-api
 ```
 
-// turbo
-3. Load authentication strategies
-```
-Load: docs/concerns/authentication.md
-```
-
-// turbo
-4. Load database patterns
-```
-Load: docs/concerns/database.md
-```
+**Graph-based loading includes:**
+- Business Context + feature requirements dependencies
+- API Design patterns + authentication relationships
+- Authentication strategies + role-based access patterns
+- Database patterns + query optimization context
 
 ## Key Context Gained
 - **Business context**: User roles (Admin vs Reviewer), scale requirements (20 users, 600 products)
@@ -49,5 +37,14 @@ Load: docs/concerns/database.md
 ✅ Prisma query patterns
 ✅ Role-based access control
 ✅ Input validation with Zod
+
+## Validation Check
+
+// turbo
+```bash
+cmd /c node scripts/graph-analytics.js --health
+```
+
+Quick health check to ensure API-related documentation is properly linked and accessible.
 
 **Ready for API development tasks**

@@ -10,28 +10,16 @@ When styling components, implementing design patterns, or building layouts.
 ## Load Sequence
 
 // turbo
-1. Load technical stack decisions
+1. Load UI development documents with dependencies using graph intelligence
 ```
-Load: docs/project/technical-stack.md
-```
-
-// turbo
-2. Load UI/UX design specifications
-```
-Load: docs/project/ui-ux-design.md
+cmd /c node scripts/smart-context-loader.js --workflow=docs-ui
 ```
 
-// turbo
-3. Load UI/UX implementation patterns
-```
-Load: docs/concerns/ui-ux-patterns.md
-```
-
-// turbo
-4. Load React patterns for UI optimization
-```
-Load: docs/guides/react-patterns.md
-```
+**Graph-based loading includes:**
+- Technical Stack + implementation dependencies
+- UI/UX Design specifications + pattern relationships
+- UI/UX Implementation patterns + design system context
+- React patterns + performance optimization context
 
 ## Key Context Gained
 - **Technical stack**: Next.js App Router, CSS Modules, component boundaries
@@ -49,5 +37,16 @@ Load: docs/guides/react-patterns.md
 ✅ Touch-friendly component sizes
 ✅ CSS Modules organization
 ✅ Accessibility patterns
+
+This step loads relevant documents based on the document graph for UI workflow.
+
+## Validation Check
+
+// turbo
+```bash
+cmd /c node scripts/graph-analytics.js --health
+```
+
+Quick health check to ensure UI-related documentation is properly linked and accessible.
 
 **Ready for UI/UX development tasks**

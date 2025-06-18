@@ -10,22 +10,15 @@ When fixing bugs, performance issues, or linting errors.
 ## Load Sequence
 
 // turbo
-1. Load React effect loop prevention
+1. Load debugging documents with dependencies using graph intelligence
 ```
-Load: docs/pitfalls/prevent-react-effect-loops.md
-```
-
-// turbo
-2. Load lint issue prevention
-```
-Load: docs/pitfalls/prevent-lint-issues.md
+cmd /c node scripts/smart-context-loader.js --workflow=docs-debug
 ```
 
-// turbo
-3. Load code quality standards
-```
-Load: docs/guides/code-quality-standards.md
-```
+**Graph-based loading includes:**
+- React Effect Loop Prevention + common patterns
+- Lint Issue Prevention + resolution strategies  
+- Code Quality Standards + enforcement patterns
 
 ## Key Context Gained
 - **Effect loops**: Common causes and prevention patterns
@@ -43,3 +36,14 @@ Load: docs/guides/code-quality-standards.md
 ✅ Memory leak prevention
 
 **Ready for debugging and optimization tasks**
+
+This step loads relevant documents based on the document graph for debug workflow.
+
+## Validation Check
+
+// turbo
+```bash
+cmd /c node scripts/graph-analytics.js --health
+```
+
+Quick health check to ensure debug-related documentation is properly linked and accessible.

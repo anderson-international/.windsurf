@@ -10,15 +10,9 @@ Restore critical AI context after Windsurf continuations in 30 seconds.
 ## Core Context Loading
 
 // turbo
-1. Read the AI Coding Handbook for essential standards
+1. Load core documents with dependencies using graph intelligence
 ```
-Load: docs/ai/ingestion/ai-coding-handbook.md
-```
-
-// turbo
-2. Read essential business context for user roles
-```
-Load: docs/project/business-context.md
+cmd /c node scripts/smart-context-loader.js --core-context
 ```
 
 This provides 90% coverage for:
@@ -28,6 +22,29 @@ This provides 90% coverage for:
 - 🎯 Code generation checklist
 - 👥 User roles and access control (Admin vs Reviewer)
 - 🔐 Authentication strategy (magic link vs dropdown)
+
+**Graph-based loading includes:**
+- AI Coding Handbook + validation registry dependencies
+- Business Context + feature requirements dependencies  
+- Code quality standards + React patterns relationships
+
+## Smart Context Loading
+
+// turbo
+```bash
+cmd /c node scripts/smart-context-loader.js --core-context
+```
+
+This step loads relevant documents based on the document graph for core AI context restoration.
+
+## Validation Check
+
+// turbo
+```bash
+cmd /c node scripts/graph-maintainer.js --validate
+```
+
+Quick validation to ensure document graph consistency before proceeding.
 
 ## Memory Refresh
 After loading, I should remember:

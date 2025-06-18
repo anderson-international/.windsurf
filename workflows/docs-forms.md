@@ -10,28 +10,16 @@ When building forms, validation, or data input components.
 ## Load Sequence
 
 // turbo
-1. Load form management patterns
+1. Load form development documents with dependencies using graph intelligence
 ```
-Load: docs/concerns/form-management.md
-```
-
-// turbo  
-2. Load database integration patterns
-```
-Load: docs/guides/database-form-integration.md
+cmd /c node scripts/smart-context-loader.js --workflow=docs-forms
 ```
 
-// turbo
-3. Load field validation requirements
-```
-Load: docs/project/feature-requirements.md
-```
-
-// turbo
-4. Load validation registry
-```
-Load: docs/ai/ingestion/ai-validation-registry.md (Form Management section)
-```
+**Graph-based loading includes:**
+- Form Management patterns + database integration dependencies
+- Database-Form Integration + schema relationships  
+- Feature Requirements + business validation context
+- AI Validation Registry + form-specific validation patterns
 
 ## Key Context Gained
 - **React Hook Form + Zod**: Schema-based validation patterns
@@ -48,5 +36,14 @@ Load: docs/ai/ingestion/ai-validation-registry.md (Form Management section)
 ✅ Multi-step wizard patterns
 ✅ Error boundary integration
 ✅ Optimistic updates
+
+## Validation Check
+
+// turbo
+```bash
+cmd /c node scripts/graph-analytics.js --health
+```
+
+Quick health check to ensure form-related documentation is properly linked and accessible.
 
 **Ready for form development tasks**
