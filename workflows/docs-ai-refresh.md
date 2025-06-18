@@ -2,7 +2,7 @@
 description: Quick AI context restoration after continuations (30 seconds)
 ---
 
-# AI Context Reboot - Essential Standards
+# AI Context Refresh - Essential Standards
 
 ## Purpose
 Restore critical AI context after Windsurf continuations in 30 seconds.
@@ -10,10 +10,13 @@ Restore critical AI context after Windsurf continuations in 30 seconds.
 ## Core Context Loading
 
 // turbo
-1. Load core documents with dependencies using graph intelligence
-```
-cmd /c node scripts/smart-context-loader.js --core-context
-```
+1. Load essential context with dependencies using graph intelligence
+cmd /c node scripts/smart-context-loader.js --workflow=core-context
+
+**Graph-based loading includes:**
+- AI Coding Handbook + validation registry dependencies
+- Business Context + feature requirements dependencies
+- Code quality standards + React patterns relationships
 
 This provides 90% coverage for:
 - ⚠️ File size limits (150/200/100 lines)
@@ -23,25 +26,11 @@ This provides 90% coverage for:
 - 👥 User roles and access control (Admin vs Reviewer)
 - 🔐 Authentication strategy (magic link vs dropdown)
 
-**Graph-based loading includes:**
-- AI Coding Handbook + validation registry dependencies
-- Business Context + feature requirements dependencies  
-- Code quality standards + React patterns relationships
-
-## Smart Context Loading
-
-// turbo
-```bash
-cmd /c node scripts/smart-context-loader.js --core-context
-```
-
-This step loads relevant documents based on the document graph for core AI context restoration.
-
 ## Validation Check
 
 // turbo
 ```bash
-cmd /c node scripts/graph-maintainer.js --validate
+cmd /c node docs/ai/maintenance/scripts/cog-load-graph-maintainer.js
 ```
 
 Quick validation to ensure document graph consistency before proceeding.

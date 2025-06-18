@@ -8,13 +8,26 @@ description: Bootstrap workflow - Initialize AI with document graph system knowl
 
 ## What This Does
 
-This workflow initializes the AI with knowledge of your intelligent document graph system, enabling it to:
+This workflow provides comprehensive AI initialization with your intelligent document graph system, enabling it to:
 - Proactively suggest relevant documentation workflows
 - Analyze files and recommend appropriate context loading
 - Understand your project-specific patterns and anti-patterns
 - Provide contextually-aware development assistance
+- Navigate the documentation priority framework for code review
 
 ## System Initialization
+
+### Load AI Navigation Framework
+
+```
+Load: docs/ai/ingestion/ai-index.md
+```
+
+**Key Context Gained:**
+- Document priority framework (Critical/High/Medium/Low)
+- File type detection workflow for smart context loading
+- AI review workflow steps and compliance checklist
+- Navigation pathways for all documentation
 
 ### Load Core AI Context
 
@@ -37,48 +50,36 @@ Load: docs/project/business-context.md
 - Project objectives (Snuff Specification Builder)
 - Target users and use cases
 - Business constraints and requirements
+- User roles (Admin vs Reviewer)
+- Scale requirements (20 users, 600+ products)
 
-### Load Document Graph System
+## Success Indicators
 
-```
-Load: .windsurf/workflows/getting-started.md
-```
-
-**Key Context Gained:**
-- How the document graph system works
-- Available workflows and their purposes
-- Real-world usage scenarios and examples
-
-## Smart Context Loading Capabilities
-
-// turbo
-```bash
-cmd /c node scripts/smart-context-loader.js --core-context
-```
-
-This loads the intelligent context loading system, giving the AI access to:
-- Document dependency mapping
-- Workflow-specific document collections
-- File-type based context suggestions
+After running this workflow, the AI should be able to:
+- ✅ Suggest appropriate `docs-*` workflows based on your file editing patterns
+- ✅ Understand your project's technical stack and business requirements  
+- ✅ Navigate documentation using the priority framework
+- ✅ Provide contextually-aware coding assistance
+- ✅ Detect violations using the compliance checklist
 
 ## Available Workflows After Bootstrap
 
 Once bootstrapped, the AI can proactively suggest these workflows:
 
 ### **Development Workflows**
-- `/docs-forms` - Form development (React Hook Form, validation, database integration)
-- `/docs-api` - API development (authentication, error handling, Shopify integration)
-- `/docs-ui` - UI/UX development (component patterns, styling, accessibility)
-- `/docs-debug` - Debugging and optimization (React effects, performance, linting)
+- `docs-forms` - Form development (React Hook Form, validation, database integration)
+- `docs-api` - API development (authentication, error handling, Shopify integration)
+- `docs-ui` - UI/UX development (component patterns, styling, accessibility)
+- `docs-debug` - Debugging and optimization (React effects, performance, linting)
 
 ### **AI Workflows**
-- `/docs-ai-reboot` - Quick AI context restoration (30 seconds)
-- `/docs-bootstrap` - Full system initialization (this workflow)
+- `docs-ai-refresh` - Quick AI context restoration (30 seconds)
+- `docs-ai-initialise` - Full system initialization (this workflow)
+- `docs-ai-health-check` - System validation and health monitoring
 
 ### **Quality Workflows**
-- `/clean-lint` - Code quality review with iterative fixes
-- `/clean-build` - Build review with iterative fixes
-- `/system-health-check` - Comprehensive system validation
+- `clean-lint` - Code quality review with iterative fixes
+- `clean-build` - Build review with iterative fixes
 
 ## AI Behavioral Changes After Bootstrap
 
@@ -92,7 +93,7 @@ AI: "I can help with forms. What do you need?"
 ```
 You: "I'm working on a form component"
 AI: "Perfect! Let me load your form development context:"
-    /docs-forms
+    docs-forms
 AI: "✅ Form context loaded. I now understand your:
     - React Hook Form patterns
     - Validation strategies  
@@ -102,45 +103,18 @@ AI: "✅ Form context loaded. I now understand your:
     What specific aspect of the form are you working on?"
 ```
 
-## File Analysis Capabilities
-
-After bootstrap, the AI can analyze your files and suggest appropriate context:
-
-```
-You: "Here's my ProductCard.tsx component..."
-AI: "I see you're working on a React component. Let me analyze what context would be helpful:"
-    
-    // AI runs: cmd /c node scripts/context-preloader.js --analyze src/components/ProductCard.tsx
-    
-AI: "Based on your file, I recommend loading UI development context:"
-    /docs-ui
-    
-    "This will give me access to your component patterns, styling strategies, and performance optimization techniques."
-```
-
-## Proactive Health Monitoring
-
-The AI can now proactively maintain system health:
-
-```
-AI: "Before we start complex development, let me run a quick system health check:"
-    /system-health-check
-    
-AI: "✅ All systems healthy. Documentation is consistent and workflows are operational."
-```
-
 ## Usage Instructions
 
 ### **For Every New AI Conversation:**
 
-1. **First message:** Run `/docs-bootstrap`
+1. **First message:** Run `docs-ai-initialise`
 2. **Wait for confirmation:** AI will confirm bootstrap completion
 3. **Begin normal development:** AI will now proactively suggest appropriate workflows
 
 ### **Example Bootstrap Session:**
 
 ```
-🧑‍💻 You: "/docs-bootstrap"
+🧑‍💻 You: "docs-ai-initialise"
 
 🤖 AI: "🚀 Bootstrapping document graph system..."
       [Loads core context, business context, and system knowledge]
@@ -148,10 +122,10 @@ AI: "✅ All systems healthy. Documentation is consistent and workflows are oper
 🤖 AI: "✅ Bootstrap complete! I'm now context-aware and ready to help with:
       
       📋 **Available Workflows:**
-      - /docs-forms (Form development)  
-      - /docs-api (API development)
-      - /docs-ui (UI/UX development)
-      - /docs-debug (Debugging & optimization)
+      - docs-forms (Form development)  
+      - docs-api (API development)
+      - docs-ui (UI/UX development)
+      - docs-debug (Debugging & optimization)
       
       🔍 **Smart Capabilities:**
       - File analysis and context suggestions
@@ -164,19 +138,10 @@ AI: "✅ All systems healthy. Documentation is consistent and workflows are oper
 🧑‍💻 You: "I need to build a product registration form"
 
 🤖 AI: "Perfect! This involves form development. Let me load the appropriate context:"
-      /docs-forms
+      docs-forms
       
 🤖 AI: "✅ Form context loaded. I now understand your React Hook Form patterns, validation strategies, and database integration approach. Let's build that registration form!"
 ```
-
-## System Health Validation
-
-// turbo
-```bash
-cmd /c node scripts/graph-analytics.js --health
-```
-
-Ensures the document graph system is operational and ready for proactive suggestions.
 
 ## Key Benefits After Bootstrap
 
@@ -188,4 +153,6 @@ Ensures the document graph system is operational and ready for proactive suggest
 
 ---
 
-**🎯 Remember: Run `/docs-bootstrap` at the start of every new AI conversation to unlock the full power of your intelligent document graph system!**
+**🎯 Remember: Run `docs-ai-initialise` at the start of every new AI conversation to unlock the full power of your intelligent document graph system!**
+
+**📊 Comprehensive context coverage for all development scenarios**
