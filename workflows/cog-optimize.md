@@ -2,50 +2,38 @@
 description: Complete cognitive load optimization cycle for all documents
 ---
 
-# Complete Cognitive Load Optimization Cycle
+# Cognitive Load Optimization Workflow
 
-This workflow performs a complete optimization cycle for all documents exceeding the 58 CLS threshold.
+This workflow runs the complete AI-powered optimization cycle to reduce cognitive load scores across all documentation files.
 
-## Steps
+## Single Command Optimization
 
-1. **Analyze current project cognitive load status**
 // turbo
-```bash
-cmd /c node docs/ai/maintenance/scripts/cog-load-measure.js --all
-```
+cmd /c node docs\ai\maintenance\scripts\cog-optimize.js
 
-2. **Generate improvement recommendations for all high CLS documents**
-// turbo  
-```bash
-cmd /c node docs/ai/maintenance/scripts/cog-load-improve.js --batch-high-cls
-```
+## What This Does
 
-3. **Apply improvement recommendations to prioritized documents**
-Based on the stdout output from step 2, apply the specific improvement strategies to documents with CLS >58, prioritizing:
-- Critical documents (>65 CLS) first
-- Primary driver improvements (readability, lexical, coherence)
-- Sentence simplification and structure improvements
-- Stop optimization when documents reach 55-58 CLS target range
+1. **Scans all docs files** - Finds every markdown file in the docs directory
+2. **Measures cognitive load** - Calculates CLS scores for all documents  
+3. **Identifies high-CLS files** - Shows documents with CLS > 58 that need optimization
+4. **Interactive optimization** - For each high-CLS document:
+   - Displays current scores (readability, lexical, coherence)
+   - Shows specific AI improvement recommendations
+   - Asks permission: "Apply AI improvements? (y/n/skip)"
+   - Automatically implements improvements using AI text processing
+   - Re-measures and shows before/after scores
+5. **Reports results** - Shows final optimization results and improvements
 
-4. **Update document graph with optimized CLS values**
-// turbo
-```bash
-cmd /c node docs/ai/maintenance/scripts/cog-load-measure.js --update-graph
-```
+## AI Improvements Applied
 
-5. **Verify optimization results**
-// turbo
-```bash
-cmd /c node docs/ai/maintenance/scripts/cog-load-measure.js --all
-```
+- **Sentence Structure**: Breaks down complex sentences, converts passive to active voice
+- **Vocabulary**: Replaces technical jargon with simpler alternatives where appropriate  
+- **Document Flow**: Improves structure, adds transitions, optimizes lists and headings
 
-## Usage
+## Target Goals
 
-Run this workflow to execute a complete cognitive load optimization cycle. The workflow will:
-- Assess current CLS scores for all documents
-- Generate detailed improvement strategies for documents >58 CLS
-- **Apply the recommended improvements to the actual documents**  
-- Update the document graph with new CLS values
-- Verify the optimization results
+- Reduce all documents to CLS ≤ 58 (optimal cognitive load range)
+- Preserve essential information and technical accuracy
+- Maintain document usefulness while improving readability
 
-This creates a complete optimization loop that actually improves the documents rather than just providing recommendations.
+The workflow stops when all documents are optimized or you choose to stop.
