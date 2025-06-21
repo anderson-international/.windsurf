@@ -9,7 +9,7 @@ This workflow runs the complete AI-powered optimization cycle to reduce cognitiv
 ## Single Command Optimization
 
 // turbo
-cmd /c node docs\ai\maintenance\scripts\cog-optimize.js
+cmd /c node docs\scripts\docs-cog-optimize.js
 
 ## What This Does
 
