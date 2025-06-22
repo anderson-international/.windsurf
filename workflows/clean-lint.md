@@ -10,7 +10,7 @@ User requires all terminal commands to use Windows command console (cmd) syntax 
 // turbo
 **Load common lint fixes reference:**
 ```
-Load: docs/pitfalls/prevent-lint-issues.md
+Load: docs/guides/code-prevent-lint-issues.md
 ```
 
 **Key Context Gained:**
