@@ -9,6 +9,7 @@ This workflow loads the essential schema information for building authentication
 ## Load Users Table
 
 // turbo
+
 ```bash
 cmd /c node docs/scripts/schema-query.js --table users
 ```
@@ -16,6 +17,7 @@ cmd /c node docs/scripts/schema-query.js --table users
 ## Load User Roles
 
 // turbo
+
 ```bash
 cmd /c node docs/scripts/schema-query.js --table enum_roles
 ```
@@ -23,6 +25,7 @@ cmd /c node docs/scripts/schema-query.js --table enum_roles
 ## Load User Specifications Relationship
 
 // turbo
+
 ```bash
 cmd /c node docs/scripts/schema-query.js --table specifications
 ```
@@ -30,6 +33,7 @@ cmd /c node docs/scripts/schema-query.js --table specifications
 ## Usage
 
 This workflow provides schema information for:
+
 - **User authentication** (users table with auth fields)
 - **Role-based access control** (enum_roles for permissions)
 - **User-owned content** (specifications relationship)
@@ -38,6 +42,7 @@ This workflow provides schema information for:
 ## AI Instructions
 
 After running these commands, you'll have the schema information to:
+
 - Build user registration and login forms
 - Implement role-based permissions (Admin, Expert, Public)
 - Handle user-owned specifications and content
@@ -47,6 +52,7 @@ After running these commands, you'll have the schema information to:
 ## Authentication Flow Schema
 
 The loaded schema supports:
+
 - Magic link authentication (email-based)
 - Role-based authorization
 - User-owned content relationships
