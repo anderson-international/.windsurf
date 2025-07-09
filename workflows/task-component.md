@@ -48,6 +48,12 @@ cmd /c node docs/scripts/docs-loader.js ui-design
 cmd /c node docs/scripts/docs-loader.js code-structure
 ```
 
+### 6. Load Form Schema Context
+
+/run schema-forms
+
+
+
 ## Context Loaded
 
 After running this workflow, you'll have complete context for:

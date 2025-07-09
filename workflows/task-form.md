@@ -52,7 +52,7 @@ cmd /c node docs/scripts/docs-loader.js db-enums
 
 /run schema-forms
 
-### 6. Load API Schema Context
+### 7. Load API Schema Context
 
 /run schema-api
 

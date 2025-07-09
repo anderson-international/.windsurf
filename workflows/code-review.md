@@ -12,7 +12,16 @@ We are going to review the code you have written so far. You only need to review
 - React anti-patterns
 - API error handling
 - Database form patterns
+- Typescript Linting errors (check each file for errors)
 - ESLint warnings and errors
+
+### Typescript Errors
+Run the TypeScript compiler directly to check for type errors
+// turbo
+
+```bash
+cmd /c npx tsc --noEmit
+```
 
 ### Load Critical AI Context
 
