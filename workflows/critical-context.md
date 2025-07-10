@@ -6,6 +6,9 @@ description: Essential context refresh for AI conversations
 
 This workflow loads the most critical constraints and patterns that AIs regularly forget, plus current schema information.
 
+## Windows command syntax
+/run cmd-syntax
+
 ## Load Core Constraints & Patterns
 
 // turbo
