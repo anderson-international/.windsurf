@@ -1,10 +1,10 @@
 ---
-description: Load schema tables for API development and endpoints
+description: Load schema tables for CRUD API development and endpoints
 ---
 
-# Schema for API Development
+# Schema for CRUD APIs
 
-This workflow loads the essential schema information for building REST APIs and backend endpoints.
+This workflow loads the essential schema information for building CRUD REST APIs and backend endpoints.
 
 ## Load Core Business Tables
 

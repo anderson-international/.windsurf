@@ -16,18 +16,13 @@ We are going to review the code you have written so far. You only need to review
 - ESLint warnings and errors
 
 ### Typescript Errors
-Run the TypeScript compiler directly to check for type errors
-// turbo
-
-```bash
-cmd /c npx tsc --noEmit
-```
+Run the TypeScript compiler for the files you have touched to check for type errors
 
 ### Load Critical AI Context
 
 /run critical-context
 
-### Load ESLint Eroor fixing context
+### Load ESLint Error fixing context
 // turbo
 
 ```bash

@@ -1,8 +1,8 @@
 ---
-description: Load schema tables for development and testing
+description: Load all schema tables for comprehensive development context
 ---
 
-# Schema for Development & Testing
+# All Schema Tables
 
 This workflow loads comprehensive schema information for development, testing, and debugging purposes.
 

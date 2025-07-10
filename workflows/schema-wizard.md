@@ -1,10 +1,10 @@
 ---
-description: Load schema tables for form development
+description: Load schema tables for multi-step wizard form development
 ---
 
-# Schema Tables for Form Development
+# Schema Tables for Wizard Forms
 
-This workflow loads the essential schema information needed for building forms, particularly specification forms.
+This workflow loads the essential schema information needed for building multi-step wizard forms, particularly specification wizards.
 
 ## Load Core Specification Table
 
