@@ -7,24 +7,19 @@ description: Initialize new conversations with goal establishment and approval g
 ## Purpose
 This workflow establishes conversation goals, sets approval gates, and selects appropriate context loaders for efficient AI-assisted development.
 
-## Step 1: Load Critical AI Context
-/run critical-context
+## Step 1 - Initialise Command Syntax
 /run cmd-syntax
 
-## Step 2: Establish Conversation Goal
-**AI ACTION REQUIRED**: Ask the user to clearly define the goal of this conversation:
-
-- What specific task or problem are you trying to solve?
-- What is the expected outcome or deliverable?
-- Are there any constraints or requirements I should be aware of?
-
-## Step 3: Set Approval Gates
+## Step 2: Set Approval Gates
 **AI INSTRUCTION**: You must operate under these mandatory constraints:
 
 1. **NO CHANGES WITHOUT APPROVAL** - Do not make any code changes, file modifications, or system updates without explicit user approval
 2. **ANALYZE AND REPORT FIRST** - Your cycle is: analyze → report findings → seek approval → then act
 3. **SEEK PERMISSION** - Before any destructive or irreversible actions, always ask "Should I proceed?"
 4. **INCREMENTAL PROGRESS** - Make small, approved changes rather than large modifications
+
+## Step 3: Establish Goal
+**AI ACTION REQUIRED**: Establish the primary goal of this conversation by asking the user
 
 ## Step 4: Select Appropriate Context Loader
 
@@ -80,4 +75,6 @@ Format: "Goal: [brief description]"
 7. AI seeks permission to load context
 8. AI proceeds only after approval
 
-**Remember**: This workflow establishes the foundation for productive, consent-based AI assistance.
+
+## Final Step: Load Critical AI Context
+/run critical-context
