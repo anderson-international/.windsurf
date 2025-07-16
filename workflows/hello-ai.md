@@ -2,7 +2,7 @@
 description: Initialize new conversations with goal establishment and approval gating
 ---
 
-# New Chat Conversation Initialization
+# Hello AI - A New Chat Conversation Initialization
 
 ## Purpose
 This workflow establishes conversation goals, sets approval gates, and selects appropriate context loaders for efficient AI-assisted development.
@@ -25,15 +25,10 @@ This workflow establishes conversation goals, sets approval gates, and selects a
 **AI ACTION REQUIRED**: Establish the primary goal of this conversation by asking the user. 
 
 ## Step 4: Rename Conversation
-**AI ACTION REQUIRED**: Based on the established goal, suggest a concise conversation title that summarizes the objective.
+**AI ACTION REQUIRED**: Based on the established goal, rename this conversation using a title that summarizes the newly established conversation goal.
 
 Format: "Goal: [brief description]"
 
 
 ## Step 5: Load Context
 /run auto-context
-
-## Remember - Excellent Collaboration Is Achieved Through:
-- Clear approval gates preventing cascading fixes.
-- Systematic verification confirming progress.
-- Incremental, approved changes—never broad refactoring!
