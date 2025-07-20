@@ -26,7 +26,9 @@ description: Independent code reviewer - fresh analysis only
 ### File Scope
 
 **Review Only**: Production files in `app/`, `components/`, `lib/`, `types/`, `hooks/`  
-**Exclude**: `*.md`, `*.js`, `docs/`, `test/`, `.windsurf/workflows/`, `.gitignore` files
+**Exclude**: `*.md`, `*.js`, `*.prisma`, `docs/`, `test/`, `.windsurf/workflows/`, `.gitignore` files
+
+**⚠️ CRITICAL**: All analysis commands must filter files according to these exclusions
 
 ### Methodology
 
@@ -40,11 +42,25 @@ description: Independent code reviewer - fresh analysis only
 ```bash
 cmd /c git status --porcelain
 ```
-List only production files (exclude docs, tests, .md files)
+**FILTER REQUIREMENT**: Remove these from analysis list:
+- `*.md`, `*.js`, `*.prisma` files
+- Files in `docs/`, `test/`, `.windsurf/workflows/`
+- `.gitignore` files
 
-### 2. Run Analysis Script
+**Only analyze**: TypeScript files in `app/`, `components/`, `lib/`, `types/`, `hooks/`
+
+### 2. Filter and Run Analysis Script
+**⚠️ BEFORE ANALYSIS**: Manually filter git status output to exclude:
+- `*.md`, `*.js`, `*.prisma` files  
+- Files in `docs/`, `test/`, `.windsurf/workflows/`
+
 ```bash
-cmd /c node docs/scripts/code-review-analyzer.js [file1] [file2] ...
+cmd /c node docs/scripts/code-review-analyzer.js [filtered-typescript-files-only]
+```
+
+**Example filtered command**:
+```bash
+cmd /c node docs/scripts/code-review-analyzer.js app/api/auth/route.ts components/wizard/WizardForm.tsx lib/services/user-service.ts
 ```
 
 ### 3. Load Context
@@ -57,7 +73,7 @@ Run `@[/critical-context]` plus file-type specific context:
 
 ### 4. Analyze JSON Data
 ```bash
-view_line_range docs/review/analysis_data.json
+view_line_range docs/review/code_review.json
 ```
 Use ONLY this data - no assumptions or inferences
 
@@ -82,15 +98,21 @@ write_to_file docs/review/code_review.md
 **⚠️ CRITICAL**: This is the ONLY file you may write to. Never modify production code.
 
 **Required Sections**:
-- **TASKS**: All violations that need fixing (ESLint errors, comment violations, missing return types, etc.)
+- **TASKS**: All violations that need fixing - ALL TASKS ARE MANDATORY
 - **FILE STATUS SUMMARY**: PASSING/NEEDS FIXES categorization
 - **Validation Commands**: Verification steps
 
+**🚨 CRITICAL TASK ORDERING**: 
+1. **Comments MUST be removed first** (affects file size calculations)
+2. **File size violations** (after comment removal)
+3. **All other violations** (ESLint errors, missing return types, etc.)
+
 **Format Rules**:
-- Use "Task 1", "Task 2" numbering
-- Clear action verbs: "Change to", "Add", "Remove"
-- No bold file names (causes AI confusion)
+- Use "Task 1", "Task 2" numbering in mandatory sequence order
+- Clear action verbs: "Remove", "Fix", "Add"
+- No bold file names (causes AI confusion) 
 - Explicit problem statements
+- **NEVER** use "Critical" vs "Quality" classifications - ALL TASKS ARE MANDATORY
 
 **TypeScript Return Types - REQUIRES DEEP ANALYSIS**:
 - Missing return types often indicate deeper architectural issues

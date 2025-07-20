@@ -7,7 +7,7 @@ description: Autonomously refresh relevant context files based on current work
 ## Purpose
 Autonomously load the most relevant context workflows based on recent work.
 
-## Step 1: Select 2-4 Relevant Workflows
+## Step 1: Select Relevant Workflows
 Choose workflows based on recent tasks and current development focus.
 
 ## Step 2: Execute Workflows

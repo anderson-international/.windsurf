@@ -29,6 +29,6 @@ Based on the index output, you'll typically run:
 
 - `cmd /c node docs/scripts/schema-query.js --table specifications` (for form development)
 - `cmd /c node docs/scripts/schema-query.js --enums --page 1` (for enum/dropdown data)
-- `cmd /c node docs/scripts/schema-query.js --pattern spec_*` (for junction tables)
+- `cmd /c node docs/scripts/schema-query.js --junctions` (for junction tables)
 
 This workflow validates the core schema query system - all schema information is now available on-demand without file size constraints.

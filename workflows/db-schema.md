@@ -14,7 +14,7 @@ This workflow loads comprehensive schema information for development, testing, a
 cmd /c node docs/scripts/schema-query.js --index
 ```
 
-## Load Core Table with Full Details
+## Load Core Tables
 
 // turbo
 
@@ -22,13 +22,37 @@ cmd /c node docs/scripts/schema-query.js --index
 cmd /c node docs/scripts/schema-query.js --table specifications
 ```
 
+## Load System Tables
+// turbo
+
+```bash
+cmd /c node docs/scripts/schema-query.js --pattern system_*
+```
+
 ## Load All Junction Tables
 
 // turbo
 
 ```bash
-cmd /c node docs/scripts/schema-query.js --pattern spec_*
+cmd /c node docs/scripts/schema-query.js --junctions
 ```
+
+## Load All Enum Tables
+
+// turbo
+
+```bash
+cmd /c node docs/scripts/schema-query.js --enums
+```
+
+## Load AI Tables
+
+// turbo
+
+```bash
+cmd /c node docs/scripts/schema-query.js --pattern ai_*
+```
+
 
 ## Usage
 

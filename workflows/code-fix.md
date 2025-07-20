@@ -4,173 +4,162 @@ description: Implement independent code review
 
 # Code Fix Workflow
 
-**Analyze → Report → Seek Approval → Execute**
+**Objective**: Fix ALL issues in `docs/review/code_review.md` in mandatory sequence
 
-## Rules
+**Process**: Analyze → Approve → Execute → Validate
 
-- **Fresh analysis only**: No cached data, previous results, or conversation history
-- **One fix at a time**: Individual approval and verification required
-- **Batch efficiency**: Multiple files in single commands
-- **TypeScript return types**: Mandatory deep analysis (see below)
+## Core Rules
 
-## 1. Load Review
+- **All tasks mandatory**: No "critical" vs "quality" - fix everything
+- **Mandatory sequence**: Comments → File sizes → Other fixes  
+- **Batch comments**: Single approval for all deletions (safe operation)
+- **Individual fixes**: Separate approval for logic-affecting changes
+- **Fresh analysis**: No cached data - verify issues before fixing
 
+## 1. Setup & Validation
+
+### Load Review Document
 ```bash
 cmd /c type docs\review\code_review.md
 ```
 
-## 2. Validate Issues
+### Load Context Documents
+/run tech-code-quality
 
+### Validate Current Issues
 ```bash
-# Verify issues still exist
+# Verify compilation and linting issues
 cmd /c npx tsc --noEmit --project tsconfig.json
 cmd /c npx eslint app/ components/ lib/ types/ hooks/ --max-warnings=0
 
-# Check file sizes (batch all files)
+# Batch validate file sizes and comments
 # // turbo
 cmd /c node docs\scripts\count-lines.js [file1] [file2] [file3] ...
-
-# Check comment violations (batch all files)
-# // turbo
 cmd /c node docs\scripts\count-lines.js --comments [file1] [file2] [file3] ...
 ```
 
-**Only proceed with issues confirmed in fresh output**
+**Only proceed with confirmed issues from fresh validation**
 
-## 3. Analyze Issues
+## 2. Fix Process (Mandatory Sequence)
 
-**For each confirmed issue**:
-1. `view_file_outline` and `view_line_range` for fresh analysis
-2. Determine fix complexity and risk
-3. **TypeScript return types**: Perform mandatory deep analysis (see below)
+### Step 1: Batch Comment Removal
 
-**Analysis Format**:
+**Analysis**: List all files with comments, count total violations
+
+**Approval Request**:
 ```
-**Issue: [filename]**
-❌ **Problem**: [specific issue from fresh analysis]
-🔧 **Fix**: [exactly what will be changed]
-⚠️ **Risk**: [Safe/Risky]
-✅ **Verification**: [how to confirm success]
-```
-
-**Fix Classification**:
-- **Safe**: Remove unused imports, console.logs, obvious comments
-- **Risky**: Logic changes, function signatures, state management
-- **Deep Analysis**: TypeScript return types
-
-### 🚨 TypeScript Return Type Analysis
-
-**Mandatory process for missing return types**:
-
-1. **Search existing types**:
-   ```bash
-   grep_search components/ hooks/ types/ "interface.*Return"
-   grep_search components/ hooks/ types/ "type.*Return"
-   ```
-
-2. **Analyze function context**:
-   ```bash
-   view_file_outline [target-file]
-   view_line_range [target-file] [function-lines]
-   view_line_range [target-file] 1 20  # Check imports
-   ```
-
-3. **Find similar patterns**:
-   ```bash
-   grep_search components/ hooks/ "function.*similar-pattern"
-   ```
-
-**Required approval format**:
-```
-**TypeScript Return Type Fix: [filename]**
-
-**Function Analysis**:
-- Function: [function-name]
-- Current signature: [current-signature]
-- Return value: [what-it-returns]
-
-**Existing Types Research**:
-- Canonical types found: [list-existing-types]
-- Import analysis: [existing-imports]
-- Pattern consistency: [matches-similar-functions]
-
-**Proposed Fix**:
-- Return type: [specific-type]
-- Rationale: [why-this-type]
-- Import needed: [import-statement-if-needed]
-
-**Risk**: [Safe/Risky with justification]
-
+**Batch Comment Deletion**
+Files: [file1] ([n] comments), [file2] ([n] comments)...
+Total: [n] comments | Risk: Safe | Verification: Size re-analysis
 Approve? [Yes/No]
 ```
 
-**Forbidden**: `: any`, `: unknown`, creating new types without research
-
-## 4. Request Approval
-
-**Standard fix request**:
+**Apply Fix**: Remove ALL comments, then re-run size analysis:
+```bash
+# // turbo  
+cmd /c node docs\scripts\count-lines.js [previously-commented-files]
 ```
-**Fix Request: [filename]**
-Issue: [specific problem]
-Proposed fix: [exact changes]
+
+### Step 2: File Size Violations
+
+**Analysis Process**:
+1. Load decomposition guidance: `cmd /c node docs\scripts\docs-loader.js code-size`
+2. Research existing patterns in codebase
+3. Plan logical file separation
+
+**Approval Request**:
+```
+**File Size Decomposition: [filename]**
+Current: [lines]/[limit] | Over by: [%]
+Plan: Split into [new-files] using [separation-logic]
+Pattern: [existing-similar-decompositions]
+Approve? [Yes/No]
+```
+
+**Apply**: Decompose file, update imports
+
+### Step 3: TypeScript Return Types
+
+**Analysis Process**:
+1. Search existing types: `grep_search types/ "interface.*Return"`
+2. Analyze function context: `view_file_outline [file]`
+3. Find similar patterns: `grep_search hooks/ "function.*[pattern]"`
+
+**Approval Request**:
+```
+**TypeScript Fix: [filename]**
+Function: [name] | Current: [signature] | Proposed: [return-type]
+Research: [existing-types] | Pattern: [similar-functions]
+Risk: [Safe/Risky] | Import: [if-needed]
+Approve? [Yes/No]
+```
+
+### Step 4: ESLint & Other Issues
+
+**Standard Fix Request**:
+```
+**Fix: [filename]**
+Issue: [specific-problem]
+Solution: [exact-changes]
 Risk: [Safe/Risky]
-
-Approve this fix? [Yes/No]
+Approve? [Yes/No]
 ```
 
-**TypeScript return types**: Use format from section 3 above
+## 3. Apply Fix Protocol
 
-## 5. Apply Fix
+**After Each Approval**:
+1. Apply approved changes
+2. Verify: `cmd /c npx tsc --noEmit --project tsconfig.json`
+3. Verify: `cmd /c npx eslint [filepath] --max-warnings=0` 
+4. **STOP** - Request next approval
 
-**After approval**:
-1. Apply fix using edit tool
-2. Verify TypeScript: `cmd /c npx tsc --noEmit --project tsconfig.json`
-3. Verify ESLint: `cmd /c npx eslint [filepath] --max-warnings=0`
-4. **STOP** - Wait for next approval
+**Exception - Batch Comments**:
+1. Apply all comment deletions
+2. Re-analyze file sizes
+3. Verify TypeScript compilation
+4. Proceed to size violations
 
-## 6. Final Validation
+## 4. Risk Classifications
 
+- **Safe**: Remove comments, unused imports, console.logs
+- **Risky**: Logic changes, function signatures, state management  
+- **Deep Analysis Required**: TypeScript return types, file decomposition
+
+**Forbidden Actions**:
+- Using `: any` or `: unknown` types
+- Arbitrary file splitting without pattern research
+- Cascade fixes across multiple files
+- Logic changes without explicit approval
+
+## 5. Completion Validation
+
+### Pre-Final Check
 ```bash
-# Comprehensive validation
 cmd /c npx tsc --noEmit --project tsconfig.json
 cmd /c npx eslint app/ components/ lib/ types/ hooks/ --max-warnings=0
 cmd /c git status --porcelain
 ```
 
-## 7. Update Documentation
-
-Check off completed items in `docs/review/code_review.md`
-
-## Commands Reference
-
-```bash
-# TypeScript compilation
-cmd /c npx tsc --noEmit --project tsconfig.json
-
-# ESLint (all production)
-cmd /c npx eslint app/ components/ lib/ types/ hooks/ --max-warnings=0
-
-# ESLint (specific file)
-cmd /c npx eslint [filepath] --max-warnings=0
-
-# File size limits (batch multiple files)
-cmd /c node docs\scripts\count-lines.js [file1] [file2] [file3] ...
-
-# Comment violations (batch multiple files)
-cmd /c node docs\scripts\count-lines.js --comments [file1] [file2] [file3] ...
-
-# Git status
-cmd /c git status --porcelain
-```
-
-## Completion Requirements
-
-- ✅ All issues analyzed fresh
-- ✅ Each fix individually approved and verified
+### Completion Checklist
+- ✅ All comment violations removed (Task 1)
+- ✅ File size re-analysis completed (After Task 1)
+- ✅ All size violations resolved (Task 2)
+- ✅ All TypeScript errors fixed (Task 3)
+- ✅ All ESLint errors resolved (Task 4)
+- ✅ All other issues addressed (Task 5)
 - ✅ TypeScript compilation passes
-- ✅ ESLint passes
-- ✅ File sizes within limits
-- ✅ Code review updated
+- ✅ ESLint passes with no warnings
 - ✅ No new issues introduced
 
-**Safety over speed. One perfect fix beats multiple broken attempts.**
+## Command Reference
+
+| Purpose | Command |
+|---------|----------|
+| TypeScript check | `cmd /c npx tsc --noEmit --project tsconfig.json` |
+| ESLint all | `cmd /c npx eslint app/ components/ lib/ types/ hooks/ --max-warnings=0` |
+| ESLint file | `cmd /c npx eslint [filepath] --max-warnings=0` |
+| File sizes | `cmd /c node docs\scripts\count-lines.js [files...]` |
+| Comments | `cmd /c node docs\scripts\count-lines.js --comments [files...]` |
+| Git status | `cmd /c git status --porcelain` |
+
+**Critical Principle**: Every issue in the code review must be resolved. No exceptions, no shortcuts. Safety over speed.
