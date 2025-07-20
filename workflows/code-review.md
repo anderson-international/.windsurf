@@ -120,6 +120,25 @@ write_to_file docs/review/code_review.md
 - Fixer AI must perform rigorous due diligence before any changes
 - Avoid creating new types when canonical types exist
 
+**ESLint no-useless-catch Error - REQUIRES ERROR COMPOSITION**:
+- **NEVER DELETE** catch blocks flagged by no-useless-catch
+- Original code is likely correct but needs proper error composition
+- Apply context-appropriate error patterns:
+  - **Services**: `throw new Error(`Service operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)`
+  - **API Routes**: `return handleApiError(error)` or create structured error response with context
+  - **Utilities**: Re-throw with enhanced context: `throw new Error(`Operation context: ${error instanceof Error ? error.message : String(error)}`)`
+  - **Critical Operations**: Add logging: `console.error('Operation failed:', error); throw error`
+- Preserve error types and stack traces while adding meaningful context
+
+**ESLint no-console Error - ENFORCE FAIL-FAST PRINCIPLE**:
+- **NEVER DELETE** console.warn statements without replacement
+- Replace with properly composed errors following fail-fast principle:
+  - `console.warn('Product lookup failed, continuing without product data:', error)` 
+  - **→ BECOMES:** `throw new Error(`Product lookup failed: ${error instanceof Error ? error.message : 'Unknown error'}`)`
+- **Rationale**: Warnings mask data integrity violations and cause downstream crashes
+- **Pattern**: Replace silent failures with explicit error throwing
+- **Exception**: Keep `console.error()` for actual logging before throwing errors
+
 **End-State Handling**:
 - **If ANY violations found**: Keep analysis_data.json for implementing AI
 - **If completely clean**: Delete analysis_data.json, create "All Clear" code_review.md
