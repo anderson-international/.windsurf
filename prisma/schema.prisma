@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model DeliveryProfile {
+  id             Int                    @id @default(autoincrement())
+  shopifyId      String                 @unique @map("shopify_id") @db.VarChar(255)
+  name           String                 @db.VarChar(255)
+  locationGroups ProfileLocationGroup[]
+
+  @@index([shopifyId], map: "idx_delivery_profiles_shopify_id")
+  @@map("delivery_profiles")
+}
+
+model ProfileLocationGroup {
+  id        Int                 @id @default(autoincrement())
+  shopifyId String              @unique @map("shopify_id") @db.VarChar(255)
+  profileId Int                 @map("profile_id")
+  zones     LocationGroupZone[]
+  profile   DeliveryProfile     @relation(fields: [profileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_profile_location_groups_profile_id")
+
+  @@index([profileId], map: "idx_profile_location_groups_profile_id")
+  @@index([shopifyId], map: "idx_profile_location_groups_shopify_id")
+  @@map("profile_location_groups")
+}
+
+model LocationGroupZone {
+  id              Int                  @id @default(autoincrement())
+  shopifyId       String               @unique @map("shopify_id") @db.VarChar(255)
+  locationGroupId Int                  @map("location_group_id")
+  name            String               @db.VarChar(255)
+  countries       String[]
+  locationGroup   ProfileLocationGroup @relation(fields: [locationGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_location_group_zones_location_group_id")
+  rates           ShippingRate[]
+
+  @@index([locationGroupId], map: "idx_location_group_zones_location_group_id")
+  @@index([shopifyId], map: "idx_location_group_zones_shopify_id")
+  @@map("location_group_zones")
+}
+
+model ShippingRate {
+  id          Int               @id @default(autoincrement())
+  shopifyId   String            @unique @map("shopify_id") @db.VarChar(255)
+  zoneId      Int               @map("zone_id")
+  handle      String            @unique @db.VarChar(255)
+  title       String            @db.VarChar(255)
+  price       Decimal           @db.Decimal(10, 2)
+  currency    String            @db.VarChar(3)
+  carrierName String            @map("carrier_name") @db.VarChar(255)
+  rateType    RateType          @default(FIXED) @map("rate_type")
+  zone        LocationGroupZone @relation(fields: [zoneId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_shipping_rates_zone_id")
+
+  @@index([handle], map: "idx_shipping_rates_handle")
+  @@index([shopifyId], map: "idx_shipping_rates_shopify_id")
+  @@index([zoneId], map: "idx_shipping_rates_zone_id")
+  @@map("shipping_rates")
+}
+
+enum RateType {
+  FIXED
+  PRICE_BASED
+  WEIGHT_BASED
+  CALCULATED
+}
