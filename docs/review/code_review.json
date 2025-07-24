@@ -1,0 +1,270 @@
+{
+  "timestamp": "2025-07-24T11:14:18.108Z",
+  "totalFiles": 8,
+  "results": {
+    "services/database-client.ts": {
+      "filePath": "services/database-client.ts",
+      "size": {
+        "lines": 22,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 22
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/rate-calculator.ts": {
+      "filePath": "services/rate-calculator.ts",
+      "size": {
+        "lines": 51,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 51
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/rate-generator.ts": {
+      "filePath": "services/rate-generator.ts",
+      "size": {
+        "lines": 83,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 83
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/rate-repository.ts": {
+      "filePath": "services/rate-repository.ts",
+      "size": {
+        "lines": 42,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 42
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/tariff-fetcher.ts": {
+      "filePath": "services/tariff-fetcher.ts",
+      "size": {
+        "lines": 59,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 59
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/weight-calculator.ts": {
+      "filePath": "services/weight-calculator.ts",
+      "size": {
+        "lines": 48,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 48
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/zone-rate-processor.ts": {
+      "filePath": "services/zone-rate-processor.ts",
+      "size": {
+        "lines": 60,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 60
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "types/rate-generation.ts": {
+      "filePath": "types/rate-generation.ts",
+      "size": {
+        "lines": 47,
+        "limit": 100,
+        "type": "types",
+        "status": "PASS",
+        "percentage": 47
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    }
+  }
+}

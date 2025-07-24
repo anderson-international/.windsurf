@@ -1,4 +1,5 @@
-import { ShopifyDeliveryProfilesResponse } from '../types/shopify'
+import { ShopifyDeliveryProfilesResponse, DeliveryProfileUpdateResponse } from '../types/shopify-responses'
+import { DeliveryProfileInput } from '../types/shopify-inputs'
 import { GET_DELIVERY_PROFILES_QUERY } from '../queries/delivery-profiles'
 
 interface ShopifyConfig {
@@ -52,5 +53,29 @@ export class ShopifyService {
   }
   async getDeliveryProfiles(): Promise<ShopifyDeliveryProfilesResponse> {
     return this.executeGraphQLQuery(GET_DELIVERY_PROFILES_QUERY)
+  }
+
+  async updateDeliveryProfile(profileId: string, profileInput: DeliveryProfileInput): Promise<DeliveryProfileUpdateResponse> {
+    const query = `
+      mutation deliveryProfileUpdate($id: ID!, $profile: DeliveryProfileInput!) {
+        deliveryProfileUpdate(id: $id, profile: $profile) {
+          profile {
+            id
+            name
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `
+    
+    const variables = {
+      id: profileId,
+      profile: profileInput
+    }
+    
+    return this.executeGraphQLQuery(query, variables)
   }
 }

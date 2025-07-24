@@ -1,6 +1,6 @@
 export const GET_DELIVERY_PROFILES_QUERY = `
   query {
-    deliveryProfiles(first: 50) {
+    deliveryProfiles(first: 10) {
       edges {
         node {
           id
@@ -13,17 +13,16 @@ export const GET_DELIVERY_PROFILES_QUERY = `
             locationGroupZones(first: 50) {
               edges {
                 node {
-                  id
                   zone {
                     id
                     name
                   }
-                  methodDefinitions(first: 50) {
+                  methodDefinitions(first: 150) {
                     edges {
                       node {
                         id
                         name
-                        rateDefinition {
+                        rateProvider {
                           ... on DeliveryRateDefinition {
                             id
                             price {
