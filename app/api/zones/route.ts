@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { ShopifyService } from '@/services/shopify'
-import type { ShopifyDeliveryProfilesResponse } from '@/types/shopify-responses'
+import type { ShopifyDeliveryProfilesResponse } from '@/types/shopify-query-responses'
 import type { ShippingZone } from '@/types/api'
 
 export async function GET(): Promise<NextResponse> {
@@ -38,11 +38,9 @@ function extractZonesFromShopifyData(shopifyResponse: ShopifyDeliveryProfilesRes
     return zones
   }
   
-  // Filter to only "General Profile"
   for (const profileEdge of shopifyResponse.deliveryProfiles.edges) {
     const profile = profileEdge.node
     
-    // Only process "General Profile" zones
     if (profile.name !== 'General Profile') {
       continue
     }

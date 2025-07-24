@@ -31,11 +31,16 @@ export class ZoneRateProcessor {
       let currentParcelMaxRate = 0
       
       parcelRanges.forEach(range => {
-        const calculatedPrice = this.calculator.calculateRate(
+        const tariff = this.calculator.calculateRate(
           zoneTariffs,
           range,
           parcel,
           previousParcelMaxRate
+        )
+        
+        const calculatedPrice = this.calculator.applyMarginToTariff(
+          tariff,
+          carrierInfo.margin_percentage
         )
         
         rates.push({
@@ -43,12 +48,13 @@ export class ZoneRateProcessor {
           zone_name: zoneName,
           weight_min: range.min,
           weight_max: range.max,
+          tariff: tariff,
           calculated_price: calculatedPrice,
           rate_title: carrierInfo.rate_title,
           delivery_description: carrierInfo.delivery_description
         })
         
-        currentParcelMaxRate = Math.max(currentParcelMaxRate, calculatedPrice)
+        currentParcelMaxRate = Math.max(currentParcelMaxRate, tariff)
       })
       
       previousParcelMaxRate = currentParcelMaxRate

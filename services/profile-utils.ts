@@ -1,4 +1,5 @@
-import { ShopifyDeliveryProfilesResponse, DeliveryProfile } from '../types/shopify-responses'
+import { ShopifyDeliveryProfilesResponse } from '../types/shopify-query-responses'
+import { DeliveryProfile } from '../types/shopify-core'
 import { DeliveryMethodDefinitionInput } from '../types/shopify-inputs'
 import { ShippingRate } from '../types/api'
 

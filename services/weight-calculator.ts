@@ -15,7 +15,7 @@ export class WeightRangeCalculator {
         max: Math.round(weight * 100) / 100
       })
     }
-    for (let weight = 0.60; weight <= 2.00; weight += 0.10) {
+    for (let weight = 0.60; weight <= 2.10; weight += 0.10) {
       ranges.push({
         min: Math.round((weight - 0.10) * 100) / 100,
         max: Math.round(weight * 100) / 100

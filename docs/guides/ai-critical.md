@@ -23,6 +23,13 @@ Avoid: Exceeding file size limits, React infinite loops, Missing context
 **Immediate Verification Required**: After creating or modifying any file, immediately run:
 `cmd /c node docs/scripts/count-lines.js [filename]` to verify size compliance
 
+## Dev Server Policy
+
+The USER creates and manages all development servers, NOT the AI.
+
+AI must never start or run development servers or long-running processes; only USER manages and initiates servers. AI should test only on USER-started servers and must prompt USER to start servers when needed. Violations include AI executing commands like `npm run dev`. This ensures USER control, avoids server conflicts, and maintains consistent environment management.
+
+
 ## Thin Controller Pattern
 
 - Route files: Pure HTTP handling (request/response, validation, status codes)
@@ -120,6 +127,3 @@ cmd /c node script.js --pattern "spec_*" # Quoted patterns
 
 - **Always**: Remove all comments before starting a task
 - **Never**: Add comments to code
-
-⚠️ **AI ACTION REQUIRED**: Before starting any task, assess if you need additional context.
-**Execute immediately**: Ask for specific context using: "I need context for [forms/API/React patterns/database/etc]"

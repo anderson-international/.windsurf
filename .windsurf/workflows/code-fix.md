@@ -18,13 +18,13 @@ description: Implement independent code review
 
 ## 1. Setup & Validation
 
+### Run the Context Workflow
+/run tech-code-quality
+
 ### Load Review Document
 ```bash
 cmd /c type docs\review\code_review.md
 ```
-
-### Load Context Documents
-/run tech-code-quality
 
 ### Validate Current Issues
 ```bash
@@ -95,6 +95,17 @@ Approve? [Yes/No]
 ```
 
 ### Step 4: ESLint & Other Issues
+
+**TypeScript any Type Fixes - REQUIRES CANONICAL TYPE ANALYSIS**:
+```
+**TypeScript any Fix: [filename]**
+Line: [line-number] | Context: [function/parameter-name]
+Current: any | Usage: [how-its-used]
+Canonical Research: [existing-types-found]
+Proposed: [specific-type] | Rationale: [why-this-type]
+Risk: [Safe/Risky] | Import: [if-needed]
+Approve? [Yes/No]
+```
 
 **Standard Fix Request**:
 ```

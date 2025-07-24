@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ShippingRatesReplacementService } from '../../../../services/shipping-rates-replacement'
+import { ShippingRatesReplacementService } from '../../../../services/shipping-rates-replacement-core'
 
 /**
  * PATCH /api/shipping-rates/update

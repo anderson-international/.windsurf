@@ -44,15 +44,24 @@ export class TariffFetcher {
 
   async fetchCarrierInfo(): Promise<CarrierInfo> {
     const prisma = this.db.getClient()
-    const carrier = await prisma.carriers.findFirst({ where: { active: true } })
+    const carrier = await prisma.carriers.findFirst({ 
+      where: { active: true },
+      select: { name: true, rate_title: true, delivery_description: true, margin_percentage: true }
+    })
     
     if (!carrier) {
       throw new Error('No active carrier found in database')
     }
     
+    if (carrier.margin_percentage === null || carrier.margin_percentage === undefined) {
+      throw new Error(`Carrier '${carrier.name}' has missing margin_percentage - cannot calculate rates without margin data`)
+    }
+
     return {
+      name: carrier.name,
       rate_title: carrier.rate_title,
-      delivery_description: carrier.delivery_description
+      delivery_description: carrier.delivery_description,
+      margin_percentage: Number(carrier.margin_percentage)
     }
   }
 }

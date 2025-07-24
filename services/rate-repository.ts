@@ -31,6 +31,7 @@ export class RateRepository {
           zone_name: rate.zone_name,
           weight_min: rate.weight_min,
           weight_max: rate.weight_max,
+          tariff: rate.tariff,
           calculated_price: rate.calculated_price,
           rate_title: rate.rate_title,
           delivery_description: rate.delivery_description

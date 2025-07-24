@@ -134,6 +134,17 @@ write_to_file docs/review/code_review.md
 - **Pattern**: Replace silent failures with explicit error throwing
 - **Exception**: Keep `console.error()` for actual logging before throwing errors
 
+**ESLint @typescript-eslint/no-explicit-any Error - REQUIRES TYPE ANALYSIS**:
+- **NEVER DELETE** any types without proper replacement
+- Analyze existing canonical types in codebase first
+- Use appropriate existing types instead of creating new ones
+- **Action Pattern**: "Analyze existing canonical types in codebase. Replace any with appropriate existing type. Do not create new types unless no suitable canonical type exists."
+- **Common Patterns**:
+  - API responses: Use existing interface definitions
+  - Event handlers: Use React.* types or DOM event types
+  - Generic objects: Use Record<string, unknown> or specific interface
+  - Function parameters: Analyze function usage to determine proper type
+
 **End-State Handling**:
 - **If ANY violations found**: Keep analysis_data.json for implementing AI
 - **If completely clean**: Delete analysis_data.json, create "All Clear" code_review.md

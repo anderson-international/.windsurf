@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ShopifyService } from '../../../services/shopify'
-import { ShippingRatesReplacementService } from '../../../services/shipping-rates-replacement'
+import { ShippingRatesReplacementService } from '../../../services/shipping-rates-replacement-core'
 import { transformShopifyData } from '../../../utils/shopify-transformers'
 
 export async function GET(): Promise<NextResponse> {

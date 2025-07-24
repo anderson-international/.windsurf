@@ -1,15 +1,59 @@
 {
-  "timestamp": "2025-07-24T11:14:18.108Z",
-  "totalFiles": 8,
+  "timestamp": "2025-07-24T15:34:52.111Z",
+  "totalFiles": 11,
   "results": {
-    "services/database-client.ts": {
-      "filePath": "services/database-client.ts",
+    "app/api/zones/route.ts": {
+      "filePath": "app/api/zones/route.ts",
       "size": {
-        "lines": 22,
+        "lines": 71,
+        "limit": 100,
+        "type": "routes",
+        "status": "PASS",
+        "percentage": 71
+      },
+      "comments": {
+        "violations": [
+          {
+            "type": "inline",
+            "line": 41,
+            "content": "// Filter to only \"General Profile\""
+          },
+          {
+            "type": "inline",
+            "line": 45,
+            "content": "// Only process \"General Profile\" zones"
+          }
+        ],
+        "count": 2,
+        "status": "FAIL"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 2,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/profile-utils.ts": {
+      "filePath": "services/profile-utils.ts",
+      "size": {
+        "lines": 38,
         "limit": 100,
         "type": "services",
         "status": "PASS",
-        "percentage": 22
+        "percentage": 38
       },
       "comments": {
         "violations": [],
@@ -29,7 +73,7 @@
         "warnings": []
       },
       "typescript": {
-        "totalFunctions": 0,
+        "totalFunctions": 3,
         "missingReturnTypes": 0,
         "hasExplicitTypes": true,
         "status": "PASS"
@@ -38,11 +82,11 @@
     "services/rate-calculator.ts": {
       "filePath": "services/rate-calculator.ts",
       "size": {
-        "lines": 51,
+        "lines": 67,
         "limit": 100,
         "type": "services",
         "status": "PASS",
-        "percentage": 51
+        "percentage": 67
       },
       "comments": {
         "violations": [],
@@ -68,8 +112,95 @@
         "status": "PASS"
       }
     },
-    "services/rate-generator.ts": {
-      "filePath": "services/rate-generator.ts",
+    "services/rate-repository.ts": {
+      "filePath": "services/rate-repository.ts",
+      "size": {
+        "lines": 43,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 43
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/shipping-rates-replacement.ts": {
+      "filePath": "services/shipping-rates-replacement.ts",
+      "size": {
+        "lines": 148,
+        "limit": 100,
+        "type": "services",
+        "status": "FAIL",
+        "percentage": 148
+      },
+      "comments": {
+        "violations": [
+          {
+            "type": "jsdoc",
+            "line": 74,
+            "content": "/**"
+          },
+          {
+            "type": "jsdoc",
+            "line": 75,
+            "content": "* Update specific shipping rates without affecting other rates"
+          },
+          {
+            "type": "jsdoc",
+            "line": 76,
+            "content": "* Only modifies/creates the specified rates, leaves others untouched"
+          },
+          {
+            "type": "inline",
+            "line": 118,
+            "content": "// Find existing rates to delete (rates with same ID being \"updated\")"
+          }
+        ],
+        "count": 4,
+        "status": "FAIL"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/shopify.ts": {
+      "filePath": "services/shopify.ts",
       "size": {
         "lines": 83,
         "limit": 100,
@@ -101,47 +232,14 @@
         "status": "PASS"
       }
     },
-    "services/rate-repository.ts": {
-      "filePath": "services/rate-repository.ts",
-      "size": {
-        "lines": 42,
-        "limit": 100,
-        "type": "services",
-        "status": "PASS",
-        "percentage": 42
-      },
-      "comments": {
-        "violations": [],
-        "count": 0,
-        "status": "PASS"
-      },
-      "react": {
-        "hasReactImport": false,
-        "hasUseCallback": false,
-        "hasUseMemo": false,
-        "hasUseEffect": false,
-        "hasHooks": false,
-        "issues": []
-      },
-      "eslint": {
-        "errors": [],
-        "warnings": []
-      },
-      "typescript": {
-        "totalFunctions": 0,
-        "missingReturnTypes": 0,
-        "hasExplicitTypes": true,
-        "status": "PASS"
-      }
-    },
     "services/tariff-fetcher.ts": {
       "filePath": "services/tariff-fetcher.ts",
       "size": {
-        "lines": 59,
+        "lines": 68,
         "limit": 100,
         "type": "services",
         "status": "PASS",
-        "percentage": 59
+        "percentage": 68
       },
       "comments": {
         "violations": [],
@@ -203,11 +301,11 @@
     "services/zone-rate-processor.ts": {
       "filePath": "services/zone-rate-processor.ts",
       "size": {
-        "lines": 60,
+        "lines": 66,
         "limit": 100,
         "type": "services",
         "status": "PASS",
-        "percentage": 60
+        "percentage": 66
       },
       "comments": {
         "violations": [],
@@ -236,11 +334,11 @@
     "types/rate-generation.ts": {
       "filePath": "types/rate-generation.ts",
       "size": {
-        "lines": 47,
+        "lines": 50,
         "limit": 100,
         "type": "types",
         "status": "PASS",
-        "percentage": 47
+        "percentage": 50
       },
       "comments": {
         "violations": [],
@@ -261,6 +359,39 @@
       },
       "typescript": {
         "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "utils/shopify-transformers.ts": {
+      "filePath": "utils/shopify-transformers.ts",
+      "size": {
+        "lines": 35,
+        "limit": 50,
+        "type": "utils",
+        "status": "PASS",
+        "percentage": 70
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 1,
         "missingReturnTypes": 0,
         "hasExplicitTypes": true,
         "status": "PASS"

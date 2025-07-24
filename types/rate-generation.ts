@@ -10,6 +10,7 @@ export interface GeneratedRate {
   readonly zone_name: string
   readonly weight_min: number
   readonly weight_max: number
+  readonly tariff: number
   readonly calculated_price: number
   readonly rate_title: string
   readonly delivery_description: string
@@ -21,8 +22,10 @@ export interface WeightRange {
 }
 
 export interface CarrierInfo {
+  readonly name: string
   readonly rate_title: string
   readonly delivery_description: string
+  readonly margin_percentage: number
 }
 
 export interface GenerationResult {

@@ -1,4 +1,5 @@
-import { ShopifyDeliveryProfilesResponse, DeliveryProfileUpdateResponse } from '../types/shopify-responses'
+import { ShopifyDeliveryProfilesResponse } from '../types/shopify-query-responses'
+import { DeliveryProfileUpdateResponse } from '../types/shopify-mutation-responses'
 import { DeliveryProfileInput } from '../types/shopify-inputs'
 import { GET_DELIVERY_PROFILES_QUERY } from '../queries/delivery-profiles'
 

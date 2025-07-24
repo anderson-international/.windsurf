@@ -268,60 +268,63 @@ function analyzeFile(filePath) {
 function generateCompactSummary(results) {
   const totalFiles = results.length;
   const failedFiles = results.filter(r => 
-    r.eslint.errors.length > 0 || 
+    r.eslint.errors.length > 0 || r.eslint.warnings.length > 0 || 
     r.comments.status === 'FAIL' || 
     r.size.status === 'FAIL' || 
     r.typescript.status === 'FAIL'
   );
   const passingFiles = totalFiles - failedFiles.length;
   
-  let summary = `=== CODE REVIEW SUMMARY ===\n`;
-  summary += `Files: ${totalFiles} | Failed: ${failedFiles.length} | Passed: ${passingFiles}\n`;
+  let summary = `CODE REVIEW: ${totalFiles} files | ${passingFiles} passed | ${failedFiles.length} failed\n`;
   summary += `\n`;
   
   // All violations are blocking and must be fixed
   if (failedFiles.length > 0) {
-    summary += `⚠️  VIOLATIONS FOUND - ALL MUST BE FIXED:\n`;
-    summary += `\n`;
+    summary += `VIOLATIONS (blocking):\n`;
     
     failedFiles.forEach(file => {
       const fileName = path.basename(file.filePath);
-      
-      // ESLint errors
-      if (file.eslint.errors.length > 0) {
-        file.eslint.errors.forEach(error => {
-          summary += `- ${fileName}: ${error.message} (line ${error.line})\n`;
-        });
-      }
-      
-      // Comment violations
-      if (file.comments.status === 'FAIL') {
-        summary += `- ${fileName}: Remove all comments and documentation\n`;
-      }
+
       
       // File size violations  
       if (file.size.status === 'FAIL') {
         const fileType = getFileType(file.filePath);
         const limit = FILE_SIZE_LIMITS[fileType];
-        summary += `- ${fileName}: File too large (${file.size.lineCount} lines, limit: ${limit})\n`;
+        summary += `${fileName}: File too large (${file.size.lines}/${limit}) - split into modules\n`;
+      }
+      
+      // Comment violations
+      if (file.comments.status === 'FAIL') {
+        summary += `${fileName}: Remove ${file.comments.count} comments\n`;
       }
       
       // TypeScript violations
       if (file.typescript.status === 'FAIL') {
-        summary += `- ${fileName}: Add explicit return types (${file.typescript.missingReturnTypes} missing)\n`;
+        summary += `${fileName}: Add ${file.typescript.missingReturnTypes} return types\n`;
       }
+      
+      // ESLint violations (all blocking)
+      const allViolations = [...file.eslint.errors, ...file.eslint.warnings];
+      if (allViolations.length > 0) {
+        allViolations.forEach(violation => {
+          // Terse message for common violations
+          let message = violation.message;
+          if (message.includes('Unexpected any')) {
+            message = 'Replace any type';
+          } else if (message.includes('Missing semicolon')) {
+            message = 'Add semicolon';
+          } else if (message.includes('Unused variable')) {
+            message = 'Remove unused variable';
+          }
+          summary += `${fileName}:${violation.line} - ${message}\n`;
+        });
+      }
+      
     });
-    
-    summary += `\n`;
-    summary += `🔧 ACTION REQUIRED: Fix ALL violations above before proceeding.\n`;
-    summary += `   No exceptions - every violation blocks development.\n`;
-    summary += `\n`;
+    summary += `\nACTION REQUIRED: Fix all violations above.\n`;
   } else {
     summary += `✅ All files passed code review standards.\n`;
-    summary += `\n`;
   }
-  
-  summary += `Detailed analysis written to: ${path.relative(process.cwd(), ANALYSIS_FILE)}\n`;
   
   return summary;
 }

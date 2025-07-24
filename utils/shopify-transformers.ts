@@ -1,4 +1,4 @@
-import { ShopifyDeliveryProfilesResponse } from '../types/shopify-responses'
+import { ShopifyDeliveryProfilesResponse } from '../types/shopify-query-responses'
 import { ShippingRate } from '../types/api'
 
 export function transformShopifyData(shopifyResponse: ShopifyDeliveryProfilesResponse): ShippingRate[] {

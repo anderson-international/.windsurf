@@ -15,6 +15,7 @@ model carriers {
   active               Boolean?  @default(true)
   created_at           DateTime? @default(now()) @db.Timestamp(6)
   updated_at           DateTime? @default(now()) @db.Timestamp(6)
+  margin_percentage    Decimal?  @default(0.00) @db.Decimal(5, 2)
 }
 
 model generated_rates {
@@ -27,6 +28,7 @@ model generated_rates {
   rate_title           String    @db.VarChar(255)
   delivery_description String    @db.VarChar(255)
   generated_at         DateTime? @default(now()) @db.Timestamp(6)
+  tariff               Decimal?  @db.Decimal(10, 2)
 
   @@index([weight_min, weight_max], map: "idx_generated_rates_weight_range")
   @@index([zone_id], map: "idx_generated_rates_zone_id")
