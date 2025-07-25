@@ -21,7 +21,10 @@ export class ShopifyRateDeployer {
       zoneId: zoneId,
       zoneName: rate.zone_name,
       currency: 'GBP',
-      price: Number(rate.calculated_price)
+      price: Number(rate.calculated_price),
+      deliveryDescription: rate.delivery_description,
+      weightMin: Number(rate.weight_min),
+      weightMax: Number(rate.weight_max)
     }))
 
     await this.graphqlService.updateProfileWithRates(

@@ -5,6 +5,7 @@ export interface ShopifyContext {
   readonly profileId: string
   readonly locationGroupId: string
   readonly zoneId: string
+  readonly zoneName: string
   readonly existingMethodDefinitionIds: string[]
 }
 
@@ -83,7 +84,10 @@ export class RateTransformer {
       zoneId: rate.zone_id,
       zoneName: zoneName,
       currency: 'GBP',
-      price: rate.calculated_price
+      price: rate.calculated_price,
+      deliveryDescription: rate.delivery_description,
+      weightMin: Number(rate.weight_min),
+      weightMax: Number(rate.weight_max)
     }))
   }
 

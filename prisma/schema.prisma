@@ -20,7 +20,6 @@ model carriers {
 
 model generated_rates {
   id                   Int       @id @default(autoincrement())
-  zone_id              String    @db.VarChar(255)
   zone_name            String    @db.VarChar(255)
   weight_min           Decimal   @db.Decimal(5, 2)
   weight_max           Decimal   @db.Decimal(5, 2)
@@ -31,7 +30,6 @@ model generated_rates {
   tariff               Decimal?  @db.Decimal(10, 2)
 
   @@index([weight_min, weight_max], map: "idx_generated_rates_weight_range")
-  @@index([zone_id], map: "idx_generated_rates_zone_id")
   @@index([zone_name], map: "idx_generated_rates_zone_name")
 }
 

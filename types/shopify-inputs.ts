@@ -22,11 +22,26 @@ export interface DeliveryLocationGroupZoneInput {
 
 export interface DeliveryMethodDefinitionInput {
   name: string
+  description?: string
   rateDefinition: DeliveryRateDefinitionInput
+  weightConditionsToCreate?: DeliveryWeightConditionInput[]
 }
 
 export interface DeliveryRateDefinitionInput {
-  price: MoneyInput
+  price: {
+    amount: string
+    currencyCode: string
+  }
+}
+
+export interface DeliveryWeightConditionInput {
+  operator: string
+  criteria: WeightInput
+}
+
+export interface WeightInput {
+  unit: string
+  value: number
 }
 
 export interface MoneyInput {

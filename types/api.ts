@@ -19,6 +19,9 @@ export interface ShippingRate {
   zoneName: string
   currency: string
   price: number
+  deliveryDescription?: string
+  weightMin?: number
+  weightMax?: number
 }
 
 export interface ShippingZone {

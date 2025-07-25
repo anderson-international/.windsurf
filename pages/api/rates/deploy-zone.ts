@@ -16,6 +16,7 @@ interface ApiResponse<T = unknown> {
 interface SingleZoneDeploymentResult {
   success: boolean
   zone_id: string
+  zone_name?: string
   deployed_rates: number
   total_rates: number
   existing_method_definitions: number
@@ -54,26 +55,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       apiVersion: process.env.SHOPIFY_API_VERSION || '2025-01'
     }
 
-    // Fetch rates for the specific zone from database
+    // Initialize services
+    const contextResolver = new ShopifyContextResolver(shopifyConfig)
+    const rateDeployer = new ShopifyRateDeployer(shopifyConfig)
+
+    // Resolve context for this zone using the working resolver
+    const shopifyContext = await contextResolver.fetchShopifyContextForZone(zone_id)
+    
+    // Get zone name from the context (now included in the working GraphQL query)
+    const zoneName = shopifyContext.zoneName
+
+    // Fetch rates for the specific zone from database using zone_name
     const rates = await prisma.generated_rates.findMany({
       where: {
-        zone_id: zone_id
+        zone_name: zoneName
       }
     })
 
     if (rates.length === 0) {
       return res.status(404).json({
-        error: `No rates found for zone ${zone_id}`,
+        error: `No rates found for zone name "${zoneName}" (zone_id: ${zone_id})`,
         timestamp
       })
     }
-
-    // Initialize services
-    const contextResolver = new ShopifyContextResolver(shopifyConfig)
-    const rateDeployer = new ShopifyRateDeployer(shopifyConfig)
-
-    // Resolve context for this single zone (should avoid throttling)
-    const shopifyContext = await contextResolver.fetchShopifyContextForZone(zone_id)
     
     // Convert Prisma results to GeneratedRate format
     const convertedRates: GeneratedRate[] = rates.map(rate => ({
@@ -93,6 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const result: SingleZoneDeploymentResult = {
       success: true,
       zone_id: zone_id,
+      zone_name: zoneName,
       deployed_rates: rates.length,
       total_rates: rates.length,
       existing_method_definitions: shopifyContext.existingMethodDefinitionIds.length
@@ -104,11 +109,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     })
 
   } catch (error) {
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown deployment error'
+    // Compose detailed error information for debugging
+    let errorMessage: string
+    let errorType: string
+    let errorStack: string | undefined
+
+    if (error instanceof Error) {
+      errorMessage = error.message
+      errorType = error.constructor.name
+      errorStack = error.stack
+    } else if (typeof error === 'string') {
+      errorMessage = error
+      errorType = 'StringError'
+      errorStack = undefined
+    } else if (error && typeof error === 'object') {
+      errorMessage = JSON.stringify(error)
+      errorType = 'ObjectError'
+      errorStack = undefined
+    } else {
+      errorMessage = String(error)
+      errorType = 'UnknownError'
+      errorStack = undefined
+    }
+
+    // Compose comprehensive error message
+    const detailedError = [
+      `${errorType}: ${errorMessage}`,
+      errorStack ? `Stack: ${errorStack.split('\n')[0]}` : null,
+      `Zone: ${req.body?.zone_id || 'undefined'}`,
+      `Timestamp: ${timestamp}`
+    ].filter(Boolean).join(' | ')
     
     return res.status(500).json({
-      error: errorMessage,
+      error: detailedError,
       timestamp
     })
   } finally {

@@ -2,6 +2,7 @@ import { ShippingRate } from '../types/api'
 import { ShopifyConfig } from './shopify-config'
 import { DeliveryProfileUpdateResponse } from '../types/shopify-mutation-responses'
 import { DeliveryProfileInput } from '../types/shopify-inputs'
+import { createMethodDefinition } from './profile-utils'
 
 export class ShopifyRateDeployerGraphQL {
   private readonly config: ShopifyConfig
@@ -38,15 +39,7 @@ export class ShopifyRateDeployerGraphQL {
         id: locationGroupId,
         zonesToUpdate: [{
           id: zoneId,
-          methodDefinitionsToCreate: rates.map(rate => ({
-            name: rate.title,
-            rateDefinition: {
-              price: {
-                amount: rate.price.toString(),
-                currencyCode: rate.currency
-              }
-            }
-          }))
+          methodDefinitionsToCreate: rates.map(rate => createMethodDefinition(rate))
         }]
       }]
     }
@@ -58,6 +51,7 @@ export class ShopifyRateDeployerGraphQL {
     
     if (response.deliveryProfileUpdate?.userErrors?.length > 0) {
       const errors = response.deliveryProfileUpdate.userErrors
+      console.error('❌ Shopify API errors:', errors)
       throw new Error(`Shopify API errors: ${errors.map((e: { message: string }) => e.message).join(', ')}`)
     }
   }

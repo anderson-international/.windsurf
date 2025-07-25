@@ -25,13 +25,38 @@ export function extractAllMethodDefinitionIds(profile: DeliveryProfile): string[
 }
 
 export function createMethodDefinition(rate: ShippingRate): DeliveryMethodDefinitionInput {
+  const weightConditions = []
+  
+  // Add weight conditions if available
+  if (rate.weightMin !== undefined && rate.weightMin !== null) {
+    weightConditions.push({
+      operator: "GREATER_THAN_OR_EQUAL_TO",
+      criteria: {
+        unit: "KILOGRAMS",
+        value: rate.weightMin
+      }
+    })
+  }
+  
+  if (rate.weightMax !== undefined && rate.weightMax !== null) {
+    weightConditions.push({
+      operator: "LESS_THAN_OR_EQUAL_TO", 
+      criteria: {
+        unit: "KILOGRAMS",
+        value: rate.weightMax
+      }
+    })
+  }
+
   return {
     name: rate.title,
+    description: rate.deliveryDescription,  // Description at method level
     rateDefinition: {
       price: {
         amount: rate.price.toString(),
         currencyCode: rate.currency
       }
-    }
+    },
+    weightConditionsToCreate: weightConditions.length > 0 ? weightConditions : undefined
   }
 }

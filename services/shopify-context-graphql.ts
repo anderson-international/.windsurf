@@ -25,6 +25,7 @@ export class ShopifyContextGraphQL {
                     node {
                       zone {
                         id
+                        name
                       }
                       methodDefinitions(first: 250) {
                         edges {
@@ -62,6 +63,7 @@ export class ShopifyContextGraphQL {
               profileId: profile.id,
               locationGroupId: locationGroup.locationGroup.id,
               zoneId: zoneId,
+              zoneName: zoneNode.zone.name,
               existingMethodDefinitionIds
             }
           }
