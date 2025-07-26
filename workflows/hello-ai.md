@@ -8,7 +8,6 @@ description: Initialize new conversations with goal establishment and approval g
 This workflow establishes conversation goals, sets approval gates, and selects appropriate context loaders for efficient AI-assisted development.
 
 ## Step 1 - Initialise Command Syntax
-/run cmd-syntax
 /run critical-context
 
 ## Step 2: Set Approval Gates
@@ -32,3 +31,6 @@ Format: "Goal: [brief description]"
 
 ## Step 5: Load Context
 /run auto-context
+
+## Step 6: Run Code Rules Workflow
+/run code-rules

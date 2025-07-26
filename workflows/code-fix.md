@@ -16,14 +16,20 @@ description: Implement independent code review
 - **Individual fixes**: Separate approval for logic-affecting changes
 - **Fresh analysis**: No cached data - verify issues before fixing
 
+
+
 ## 1. Setup & Validation
+
+##🚨 START: Run Critical Workflows
+/run cmd-syntax
+/run critical-context
 
 ### Load Review Document
 ```bash
 cmd /c type docs\review\code_review.md
 ```
 
-### Load Context Documents
+### Run Code Quality Workflow
 /run tech-code-quality
 
 ### Validate Current Issues
@@ -34,8 +40,8 @@ cmd /c npx eslint app/ components/ lib/ types/ hooks/ --max-warnings=0
 
 # Batch validate file sizes and comments
 # // turbo
-cmd /c node docs\scripts\count-lines.js [file1] [file2] [file3] ...
-cmd /c node docs\scripts\count-lines.js --comments [file1] [file2] [file3] ...
+cmd /c node docs\scripts\code-size.js [file1] [file2] [file3] ...
+cmd /c node docs\scripts\code-size.js --comments [file1] [file2] [file3] ...
 ```
 
 **Only proceed with confirmed issues from fresh validation**
@@ -57,7 +63,7 @@ Approve? [Yes/No]
 **Apply Fix**: Remove ALL comments, then re-run size analysis:
 ```bash
 # // turbo  
-cmd /c node docs\scripts\count-lines.js [previously-commented-files]
+cmd /c node docs\scripts\code-size.js [previously-commented-files]
 ```
 
 ### Step 2: File Size Violations
@@ -158,8 +164,8 @@ cmd /c git status --porcelain
 | TypeScript check | `cmd /c npx tsc --noEmit --project tsconfig.json` |
 | ESLint all | `cmd /c npx eslint app/ components/ lib/ types/ hooks/ --max-warnings=0` |
 | ESLint file | `cmd /c npx eslint [filepath] --max-warnings=0` |
-| File sizes | `cmd /c node docs\scripts\count-lines.js [files...]` |
-| Comments | `cmd /c node docs\scripts\count-lines.js --comments [files...]` |
+| File sizes | `cmd /c node docs\scripts\code-size.js [files...]` |
+| Comments | `cmd /c node docs\scripts\code-size.js --comments [files...]` |
 | Git status | `cmd /c git status --porcelain` |
 
 **Critical Principle**: Every issue in the code review must be resolved. No exceptions, no shortcuts. Safety over speed.

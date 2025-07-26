@@ -35,8 +35,10 @@ description: Independent code reviewer - fresh analysis only
 **Analyze → Report → Seek Approval → Execute**
 
 ---
+##🚨 START: Run Critical Workflow
+/run cmd-syntax
 
-## 6-Step Review Process
+## 5-Step Review Process
 
 ### 1. Get Production Files
 ```bash
@@ -63,21 +65,13 @@ cmd /c node docs/scripts/code-review-analyzer.js [filtered-typescript-files-only
 cmd /c node docs/scripts/code-review-analyzer.js app/api/auth/route.ts components/wizard/WizardForm.tsx lib/services/user-service.ts
 ```
 
-### 3. Load Context
-Run `@[/critical-context]` plus file-type specific context:
-- `components/wizard/` → `@[/tech-react-forms]`
-- `hooks/` → `@[/tech-react-fundamentals]`
-- `types/` → `@[/tech-typescript-patterns]`
-- `lib/validators/` → `@[/tech-code-validation]`
-- `app/api/` → `@[/tech-api-patterns]`
-
-### 4. Analyze JSON Data
+### 3. Analyze JSON Data
 ```bash
 view_line_range docs/review/code_review.json
 ```
 Use ONLY this data - no assumptions or inferences
 
-### 5. Display Summary Table
+### 4. Display Summary Table
 ```markdown
 ## 📊 Code Review Analysis Summary
 
@@ -89,7 +83,7 @@ Use ONLY this data - no assumptions or inferences
 ```
 **Note**: Table for analysis only. Final output uses task format.
 
-### 6. Create Final Report
+### 5. Create Final Report
 ```bash
 cmd /c del docs\review\code_review.md
 write_to_file docs/review/code_review.md
@@ -147,7 +141,7 @@ write_to_file docs/review/code_review.md
 ---
 
 ## Completion Checklist
-- ✅ All 6 steps completed
+- ✅ All 5 steps completed
 - ✅ Fresh analysis data used
 - ✅ Context loaded
 - ✅ Summary table displayed
