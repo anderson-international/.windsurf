@@ -172,14 +172,14 @@ class TariffSeeder {
       const batch = tariffs.slice(i, i + batchSize)
       
       const values = batch.map((_, index) => {
-        const offset = index * 4
-        return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4})`
+        const offset = index * 5
+        return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5})`
       }).join(', ')
       
-      const params = batch.flatMap(t => [t.zone_id, t.zone_name, t.weight_kg, t.tariff_amount])
+      const params = batch.flatMap(t => [t.zone_id, t.zone_name, t.weight_kg, t.tariff_amount, 1])
       
       const query = `
-        INSERT INTO zone_tariffs (zone_id, zone_name, weight_kg, tariff_amount)
+        INSERT INTO zone_tariffs (zone_id, zone_name, weight_kg, tariff_amount, carrier_id)
         VALUES ${values}
       `
       

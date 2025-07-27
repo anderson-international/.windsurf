@@ -16,17 +16,20 @@ export class TariffFetcher {
     await this.db.disconnect()
   }
 
-  async fetchZoneTariffs(): Promise<Map<string, ZoneTariff[]>> {
+  async fetchZoneTariffs(carrierId: number): Promise<Map<string, ZoneTariff[]>> {
     const prisma = this.db.getClient()
     const tariffs = await prisma.zone_tariffs.findMany({
-      orderBy: [{ zone_id: 'asc' }, { weight_kg: 'asc' }]
+      where: {
+        carrier_id: carrierId
+      },
+      orderBy: [{ zone_name: 'asc' }, { weight_kg: 'asc' }]
     })
     
     const tariffsByZone = new Map<string, ZoneTariff[]>()
     
     tariffs.forEach(row => {
       const tariff: ZoneTariff = {
-        zone_id: row.zone_id,
+        zone_id: row.zone_name,
         zone_name: row.zone_name,
         weight_kg: Number(row.weight_kg),
         tariff_amount: Number(row.tariff_amount)
@@ -42,15 +45,15 @@ export class TariffFetcher {
     return tariffsByZone
   }
 
-  async fetchCarrierInfo(): Promise<CarrierInfo> {
+  async fetchCarrierInfo(carrierId: number): Promise<CarrierInfo> {
     const prisma = this.db.getClient()
     const carrier = await prisma.carriers.findFirst({ 
-      where: { active: true },
+      where: { id: carrierId },
       select: { name: true, rate_title: true, delivery_description: true, margin_percentage: true }
     })
     
     if (!carrier) {
-      throw new Error('No active carrier found in database')
+      throw new Error(`Carrier with ID ${carrierId} not found in database`)
     }
     
     if (carrier.margin_percentage === null || carrier.margin_percentage === undefined) {

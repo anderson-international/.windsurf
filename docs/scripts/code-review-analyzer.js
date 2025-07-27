@@ -140,6 +140,44 @@ function analyzeReactPatterns(filePath) {
   }
 }
 
+function analyzeConsoleErrors(filePath) {
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split('\n');
+    
+    const violations = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const lineNum = i + 1;
+      
+      // Check for console.error and console.warn patterns
+      const consoleErrorMatch = line.match(/console\.(error|warn)\s*\(/);
+      if (consoleErrorMatch) {
+        const method = consoleErrorMatch[1];
+        violations.push({
+          line: lineNum,
+          method: method,
+          content: line.trim(),
+          guidance: `Replace console.${method} with proper error throwing. Use 'throw new Error(message)' instead of logging and continuing execution.`
+        });
+      }
+    }
+    
+    return {
+      violations,
+      count: violations.length,
+      status: violations.length === 0 ? 'PASS' : 'FAIL'
+    };
+  } catch (error) {
+    return {
+      violations: [],
+      count: 0,
+      status: 'PASS'
+    };
+  }
+}
+
 function runEslint(filePath) {
   try {
     execSync(`npx eslint "${filePath}" --max-warnings=0`, { stdio: 'pipe' });
@@ -252,6 +290,7 @@ function analyzeFile(filePath) {
   };
   
   const reactAnalysis = analyzeReactPatterns(filePath);
+  const consoleErrorAnalysis = analyzeConsoleErrors(filePath);
   const eslintAnalysis = runEslint(filePath);
   const typeScriptAnalysis = analyzeTypeScript(filePath);
   
@@ -260,6 +299,7 @@ function analyzeFile(filePath) {
     size: sizeAnalysis,
     comments: commentAnalysis,
     react: reactAnalysis,
+    consoleErrors: consoleErrorAnalysis,
     eslint: eslintAnalysis,
     typescript: typeScriptAnalysis
   };
@@ -271,7 +311,8 @@ function generateCompactSummary(results) {
     r.eslint.errors.length > 0 || r.eslint.warnings.length > 0 || 
     r.comments.status === 'FAIL' || 
     r.size.status === 'FAIL' || 
-    r.typescript.status === 'FAIL'
+    r.typescript.status === 'FAIL' ||
+    r.consoleErrors.status === 'FAIL'
   );
   const passingFiles = totalFiles - failedFiles.length;
   
@@ -303,6 +344,13 @@ function generateCompactSummary(results) {
         summary += `${fileName}: Add ${file.typescript.missingReturnTypes} return types\n`;
       }
       
+      // Console error violations (blocking - violates fail-fast principle)
+      if (file.consoleErrors.status === 'FAIL') {
+        file.consoleErrors.violations.forEach(violation => {
+          summary += `${fileName}:${violation.line} - FAIL-FAST VIOLATION: Replace console.${violation.method} with throw new Error()\n`;
+        });
+      }
+      
       // ESLint violations (all blocking)
       const allViolations = [...file.eslint.errors, ...file.eslint.warnings];
       if (allViolations.length > 0) {
@@ -331,8 +379,8 @@ function generateCompactSummary(results) {
 
 function generateBatchSummary(results) {
   const totalFiles = results.length;
-  const passedFiles = results.filter(r => r.comments.status === 'PASS' && r.size.status === 'PASS' && r.typescript.status === 'PASS' && r.eslint.errors.length === 0);
-  const failedFiles = results.filter(r => r.comments.status === 'FAIL' || r.size.status === 'FAIL' || r.typescript.status === 'FAIL' || r.eslint.errors.length > 0);
+  const passedFiles = results.filter(r => r.comments.status === 'PASS' && r.size.status === 'PASS' && r.typescript.status === 'PASS' && r.eslint.errors.length === 0 && r.consoleErrors.status === 'PASS');
+  const failedFiles = results.filter(r => r.comments.status === 'FAIL' || r.size.status === 'FAIL' || r.typescript.status === 'FAIL' || r.eslint.errors.length > 0 || r.consoleErrors.status === 'FAIL');
   
   let summary = `=== BATCH TEST SUMMARY ===\n`;
   summary += `Total Files: ${totalFiles} | Passed: ${passedFiles.length} | Failed: ${failedFiles.length}\n\n`;
@@ -345,6 +393,7 @@ function generateBatchSummary(results) {
       if (file.comments.status === 'FAIL') issues.push('comments');
       if (file.size.status === 'FAIL') issues.push('size');
       if (file.typescript.status === 'FAIL') issues.push(`typescript (${file.typescript.missingReturnTypes} missing)`);
+      if (file.consoleErrors.status === 'FAIL') issues.push(`console-errors (${file.consoleErrors.count} fail-fast violations)`);
       if (file.eslint.errors.length > 0) issues.push(`eslint (${file.eslint.errors.length} errors)`);
       summary += `- ${fileName}: ${issues.join(', ')}\n`;
     });

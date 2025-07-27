@@ -33,6 +33,8 @@ export interface GenerationResult {
   readonly zones_processed: number
   readonly rates_generated: number
   readonly errors?: string[]
+  readonly carrier_id?: number
+  readonly carrier_name?: string
 }
 
 export interface GenerationStats {

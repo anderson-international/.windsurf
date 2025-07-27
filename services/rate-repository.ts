@@ -15,6 +15,13 @@ export class RateRepository {
     await this.db.disconnect()
   }
 
+  async fetchCarriers(): Promise<{ id: number; name: string }[]> {
+    const prisma = this.db.getClient()
+    return await prisma.carriers.findMany({
+      select: { id: true, name: true }
+    })
+  }
+
   async storeGeneratedRates(rates: GeneratedRate[]): Promise<void> {
     const prisma = this.db.getClient()
     
@@ -27,14 +34,12 @@ export class RateRepository {
       
       await prisma.generated_rates.createMany({
         data: batch.map(rate => ({
-          zone_id: rate.zone_id,
           zone_name: rate.zone_name,
           weight_min: rate.weight_min,
           weight_max: rate.weight_max,
           tariff: rate.tariff,
           calculated_price: rate.calculated_price,
-          rate_title: rate.rate_title,
-          delivery_description: rate.delivery_description
+          carrier_id: 1
         }))
       })
     }

@@ -8,42 +8,58 @@ datasource db {
 }
 
 model carriers {
-  id                   Int       @id @default(autoincrement())
-  name                 String    @unique @db.VarChar(255)
-  rate_title           String    @db.VarChar(255)
-  delivery_description String    @db.VarChar(255)
-  active               Boolean?  @default(true)
-  created_at           DateTime? @default(now()) @db.Timestamp(6)
-  updated_at           DateTime? @default(now()) @db.Timestamp(6)
-  margin_percentage    Decimal?  @default(0.00) @db.Decimal(5, 2)
+  id                   Int                 @id @default(autoincrement())
+  name                 String              @unique @db.VarChar(255)
+  rate_title           String              @db.VarChar(255)
+  delivery_description String              @db.VarChar(255)
+  created_at           DateTime?           @default(now()) @db.Timestamp(6)
+  updated_at           DateTime?           @default(now()) @db.Timestamp(6)
+  margin_percentage    Decimal?            @default(0.00) @db.Decimal(5, 2)
+  zone_scope           zone_scope_enum     @default(UNIVERSAL)
+  generated_rates      generated_rates[]
+  universal_tariffs    universal_tariffs[]
+  zone_tariffs         zone_tariffs[]
 }
 
 model generated_rates {
-  id                   Int       @id @default(autoincrement())
-  zone_name            String    @db.VarChar(255)
-  weight_min           Decimal   @db.Decimal(5, 2)
-  weight_max           Decimal   @db.Decimal(5, 2)
-  calculated_price     Decimal   @db.Decimal(10, 2)
-  rate_title           String    @db.VarChar(255)
-  delivery_description String    @db.VarChar(255)
-  generated_at         DateTime? @default(now()) @db.Timestamp(6)
-  tariff               Decimal?  @db.Decimal(10, 2)
+  id               Int       @id @default(autoincrement())
+  zone_name        String    @db.VarChar(255)
+  weight_min       Decimal   @db.Decimal(5, 2)
+  weight_max       Decimal   @db.Decimal(5, 2)
+  calculated_price Decimal   @db.Decimal(10, 2)
+  generated_at     DateTime? @default(now()) @db.Timestamp(6)
+  tariff           Decimal?  @db.Decimal(10, 2)
+  carrier_id       Int
+  carriers         carriers  @relation(fields: [carrier_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_generated_rates_carrier")
 
   @@index([weight_min, weight_max], map: "idx_generated_rates_weight_range")
   @@index([zone_name], map: "idx_generated_rates_zone_name")
+  @@index([carrier_id], map: "idx_generated_rates_carrier_id")
 }
 
 model zone_tariffs {
   id            Int       @id @default(autoincrement())
-  zone_id       String    @db.VarChar(255)
   zone_name     String    @db.VarChar(255)
   weight_kg     Decimal   @db.Decimal(5, 2)
   tariff_amount Decimal   @db.Decimal(10, 2)
   created_at    DateTime? @default(now()) @db.Timestamp(6)
+  carrier_id    Int
+  carriers      carriers  @relation(fields: [carrier_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_zone_tariffs_carrier")
 
   @@index([weight_kg], map: "idx_zone_tariffs_weight")
-  @@index([zone_id], map: "idx_zone_tariffs_zone_id")
   @@index([zone_name], map: "idx_zone_tariffs_zone_name")
+  @@index([carrier_id, weight_kg], map: "idx_zone_tariffs_carrier_weight")
+  @@index([carrier_id, zone_name], map: "idx_zone_tariffs_carrier_zone")
+}
+
+model universal_tariffs {
+  id            Int      @id @default(autoincrement())
+  carrier_id    Int
+  weight_kg     Decimal  @db.Decimal(4, 2)
+  tariff_amount Decimal  @db.Decimal(8, 2)
+  carriers      carriers @relation(fields: [carrier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([carrier_id, weight_kg], map: "idx_universal_carrier_weight")
 }
 
 enum RateType {
@@ -51,4 +67,9 @@ enum RateType {
   PRICE_BASED
   WEIGHT_BASED
   CALCULATED
+}
+
+enum zone_scope_enum {
+  ZONE_SPECIFIC
+  UNIVERSAL
 }

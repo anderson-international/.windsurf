@@ -1,0 +1,136 @@
+import { PrismaClient } from '@prisma/client'
+import { ShopifyConfig } from './shopify-config'
+import { ShopifyContextResolver } from './shopify-context-resolver-core'
+import { ZoneMatcher } from './zone-matcher-core'
+import { ShopifyRateDeployer } from './shopify-rate-deployer-core'
+import { RateTransformer } from './rate-transformer'
+import { GeneratedRate } from '../types/rate-generation'
+
+const prisma = new PrismaClient()
+
+export interface DeploymentSummary {
+  success: boolean
+  zones_matched: number
+  zones_deployed: number
+  zones_failed: number
+  total_rates_deployed: number
+  shopify_only_zones: string[]
+  database_only_zones: string[]
+  failed_zones: string[]
+  errors: string[]
+}
+
+export class RateDeploymentService {
+  private readonly config: ShopifyConfig
+  private readonly zoneMatcher: ZoneMatcher
+  private readonly contextResolver: ShopifyContextResolver
+  private readonly rateDeployer: ShopifyRateDeployer
+  private readonly rateTransformer: RateTransformer
+
+  constructor(config: ShopifyConfig) {
+    this.config = config
+    this.zoneMatcher = new ZoneMatcher(config)
+    this.contextResolver = new ShopifyContextResolver(config)
+    this.rateDeployer = new ShopifyRateDeployer(config)
+    this.rateTransformer = new RateTransformer()
+  }
+
+  async fetchGeneratedRates(): Promise<GeneratedRate[]> {
+    console.log('📊 Step 1: Fetching generated rates from database...')
+    const generatedRates = await prisma.generated_rates.findMany({
+      select: {
+        zone_name: true,
+        weight_min: true,
+        weight_max: true,
+        tariff: true,
+        calculated_price: true,
+        carriers: {
+          select: {
+            rate_title: true,
+            delivery_description: true
+          }
+        }
+      }
+    })
+
+    return generatedRates.map(rate => ({
+      zone_id: rate.zone_name,
+      zone_name: rate.zone_name,
+      weight_min: Number(rate.weight_min),
+      weight_max: Number(rate.weight_max),
+      tariff: Number(rate.tariff),
+      calculated_price: Number(rate.calculated_price),
+      rate_title: rate.carriers.rate_title,
+      delivery_description: rate.carriers.delivery_description
+    }))
+  }
+
+  async performZoneMatching(transformedRates: GeneratedRate[]) {
+    console.log('🏪 Step 2: Fetching zones from Shopify...')
+    const shopifyZones = await this.zoneMatcher.fetchShopifyZones()
+    console.log(`Found ${shopifyZones.length} zones in Shopify`)
+
+    console.log('💾 Step 3: Extracting zones from database...')
+    const databaseZones = this.zoneMatcher.extractDatabaseZones(transformedRates)
+    console.log(`Found ${databaseZones.length} zones in database`)
+
+    console.log('🔗 Step 4: Matching zones by name...')
+    const matchingResult = this.zoneMatcher.matchZones(shopifyZones, databaseZones, transformedRates)
+    console.log(`Matched ${matchingResult.matches.length} zones for deployment`)
+
+    return matchingResult
+  }
+
+  async deployRates(matchingResult: any): Promise<DeploymentSummary> {
+    console.log('🚀 Step 5: Deploying rates for matched zones...')
+    const deploymentResults: DeploymentSummary = {
+      success: false,
+      zones_matched: matchingResult.matches.length,
+      zones_deployed: 0,
+      zones_failed: 0,
+      total_rates_deployed: 0,
+      shopify_only_zones: matchingResult.shopify_only_zones.map((z: any) => z.name),
+      database_only_zones: matchingResult.database_only_zones.map((z: any) => z.zone_name),
+      failed_zones: [],
+      errors: []
+    }
+
+    for (const match of matchingResult.matches) {
+      try {
+        console.log(`Deploying ${match.generated_rates.length} rates for zone: ${match.shopify_zone.name}`)
+        
+        const shopifyContext = await this.contextResolver.fetchShopifyContextForZone(match.shopify_zone.id)
+        
+        const shopifyRateInputs = this.rateTransformer.transformRatesForZone(
+          match.generated_rates,
+          match.shopify_zone.id,
+          match.shopify_zone.name
+        )
+
+        await this.rateDeployer.updateProfileWithRates(
+          shopifyContext.profileId,
+          shopifyContext.locationGroupId,
+          match.shopify_zone.id,
+          shopifyRateInputs,
+          shopifyContext.existingMethodDefinitionIds
+        )
+
+        deploymentResults.zones_deployed++
+        deploymentResults.total_rates_deployed += match.generated_rates.length
+        
+      } catch (error) {
+        const errorMessage = `Failed to deploy zone ${match.shopify_zone.name}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        deploymentResults.zones_failed++
+        deploymentResults.failed_zones.push(match.shopify_zone.name)
+        deploymentResults.errors.push(errorMessage)
+      }
+    }
+
+    deploymentResults.success = deploymentResults.zones_failed === 0
+    return deploymentResults
+  }
+
+  async disconnect(): Promise<void> {
+    await prisma.$disconnect()
+  }
+}

@@ -36,6 +36,7 @@ export interface ZoneContextResponse {
               node: {
                 zone: {
                   id: string
+                  name: string
                 }
                 methodDefinitions: {
                   edges: Array<{

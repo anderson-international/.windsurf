@@ -12,7 +12,7 @@ export interface RateGenerationResponse {
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<RateGenerationResponse>
-) {
+): Promise<void> {
   if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,
@@ -29,7 +29,19 @@ export default async function handler(
   try {
     await generator.connect()
     
-    const result = await generator.generateRates()
+    const { carrierId } = req.body
+    
+    if (!carrierId || typeof carrierId !== 'number') {
+      return res.status(400).json({
+        success: false,
+        zones_processed: 0,
+        rates_generated: 0,
+        errors: ['carrierId is required and must be a number'],
+        execution_time_ms: Date.now() - startTime
+      })
+    }
+    
+    const result = await generator.generateRates(carrierId)
     
     const response: RateGenerationResponse = {
       success: result.success,

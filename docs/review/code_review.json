@@ -1,31 +1,20 @@
 {
-  "timestamp": "2025-07-24T15:34:52.111Z",
-  "totalFiles": 11,
+  "timestamp": "2025-07-27T14:51:27.236Z",
+  "totalFiles": 3,
   "results": {
-    "app/api/zones/route.ts": {
-      "filePath": "app/api/zones/route.ts",
+    "services\\rate-generator.ts": {
+      "filePath": "services\\rate-generator.ts",
       "size": {
-        "lines": 71,
+        "lines": 123,
         "limit": 100,
-        "type": "routes",
-        "status": "PASS",
-        "percentage": 71
+        "type": "services",
+        "status": "FAIL",
+        "percentage": 123
       },
       "comments": {
-        "violations": [
-          {
-            "type": "inline",
-            "line": 41,
-            "content": "// Filter to only \"General Profile\""
-          },
-          {
-            "type": "inline",
-            "line": 45,
-            "content": "// Only process \"General Profile\" zones"
-          }
-        ],
-        "count": 2,
-        "status": "FAIL"
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
       },
       "react": {
         "hasReactImport": false,
@@ -35,23 +24,92 @@
         "hasHooks": false,
         "issues": []
       },
+      "consoleErrors": {
+        "violations": [
+          {
+            "line": 107,
+            "method": "error",
+            "content": "console.error(`✗ Failed to generate rates for carrier: ${carrier.name}`, errorMessage)",
+            "guidance": "Replace console.error with proper error throwing. Use 'throw new Error(message)' instead of logging and continuing execution."
+          }
+        ],
+        "count": 1,
+        "status": "FAIL"
+      },
       "eslint": {
         "errors": [],
-        "warnings": []
+        "warnings": [
+          {
+            "line": 107,
+            "column": 9,
+            "message": "Unexpected console statement  no-console"
+          }
+        ]
       },
       "typescript": {
-        "totalFunctions": 2,
+        "totalFunctions": 0,
         "missingReturnTypes": 0,
         "hasExplicitTypes": true,
         "status": "PASS"
       }
     },
-    "services/profile-utils.ts": {
-      "filePath": "services/profile-utils.ts",
+    "pages\\api\\rates\\generate-all.ts": {
+      "filePath": "pages\\api\\rates\\generate-all.ts",
       "size": {
-        "lines": 38,
-        "limit": 100,
-        "type": "services",
+        "lines": 59,
+        "limit": 150,
+        "type": "components",
+        "status": "PASS",
+        "percentage": 39
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [
+          {
+            "line": 50,
+            "method": "error",
+            "content": "console.error('Failed to generate rates for all carriers:', error)",
+            "guidance": "Replace console.error with proper error throwing. Use 'throw new Error(message)' instead of logging and continuing execution."
+          }
+        ],
+        "count": 1,
+        "status": "FAIL"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": [
+          {
+            "line": 50,
+            "column": 5,
+            "message": "Unexpected console statement  no-console"
+          }
+        ]
+      },
+      "typescript": {
+        "totalFunctions": 1,
+        "missingReturnTypes": 1,
+        "hasExplicitTypes": false,
+        "status": "FAIL"
+      }
+    },
+    "pages\\api\\rates\\generate\\[carrierId].ts": {
+      "filePath": "pages\\api\\rates\\generate\\[carrierId].ts",
+      "size": {
+        "lines": 57,
+        "limit": 150,
+        "type": "components",
         "status": "PASS",
         "percentage": 38
       },
@@ -68,333 +126,33 @@
         "hasHooks": false,
         "issues": []
       },
-      "eslint": {
-        "errors": [],
-        "warnings": []
-      },
-      "typescript": {
-        "totalFunctions": 3,
-        "missingReturnTypes": 0,
-        "hasExplicitTypes": true,
-        "status": "PASS"
-      }
-    },
-    "services/rate-calculator.ts": {
-      "filePath": "services/rate-calculator.ts",
-      "size": {
-        "lines": 67,
-        "limit": 100,
-        "type": "services",
-        "status": "PASS",
-        "percentage": 67
-      },
-      "comments": {
-        "violations": [],
-        "count": 0,
-        "status": "PASS"
-      },
-      "react": {
-        "hasReactImport": false,
-        "hasUseCallback": false,
-        "hasUseMemo": false,
-        "hasUseEffect": false,
-        "hasHooks": false,
-        "issues": []
-      },
-      "eslint": {
-        "errors": [],
-        "warnings": []
-      },
-      "typescript": {
-        "totalFunctions": 0,
-        "missingReturnTypes": 0,
-        "hasExplicitTypes": true,
-        "status": "PASS"
-      }
-    },
-    "services/rate-repository.ts": {
-      "filePath": "services/rate-repository.ts",
-      "size": {
-        "lines": 43,
-        "limit": 100,
-        "type": "services",
-        "status": "PASS",
-        "percentage": 43
-      },
-      "comments": {
-        "violations": [],
-        "count": 0,
-        "status": "PASS"
-      },
-      "react": {
-        "hasReactImport": false,
-        "hasUseCallback": false,
-        "hasUseMemo": false,
-        "hasUseEffect": false,
-        "hasHooks": false,
-        "issues": []
-      },
-      "eslint": {
-        "errors": [],
-        "warnings": []
-      },
-      "typescript": {
-        "totalFunctions": 0,
-        "missingReturnTypes": 0,
-        "hasExplicitTypes": true,
-        "status": "PASS"
-      }
-    },
-    "services/shipping-rates-replacement.ts": {
-      "filePath": "services/shipping-rates-replacement.ts",
-      "size": {
-        "lines": 148,
-        "limit": 100,
-        "type": "services",
-        "status": "FAIL",
-        "percentage": 148
-      },
-      "comments": {
+      "consoleErrors": {
         "violations": [
           {
-            "type": "jsdoc",
-            "line": 74,
-            "content": "/**"
-          },
-          {
-            "type": "jsdoc",
-            "line": 75,
-            "content": "* Update specific shipping rates without affecting other rates"
-          },
-          {
-            "type": "jsdoc",
-            "line": 76,
-            "content": "* Only modifies/creates the specified rates, leaves others untouched"
-          },
-          {
-            "type": "inline",
-            "line": 118,
-            "content": "// Find existing rates to delete (rates with same ID being \"updated\")"
+            "line": 48,
+            "method": "error",
+            "content": "console.error(`Failed to generate rates for carrier ${parsedCarrierId}:`, error)",
+            "guidance": "Replace console.error with proper error throwing. Use 'throw new Error(message)' instead of logging and continuing execution."
           }
         ],
-        "count": 4,
+        "count": 1,
         "status": "FAIL"
       },
-      "react": {
-        "hasReactImport": false,
-        "hasUseCallback": false,
-        "hasUseMemo": false,
-        "hasUseEffect": false,
-        "hasHooks": false,
-        "issues": []
-      },
       "eslint": {
         "errors": [],
-        "warnings": []
-      },
-      "typescript": {
-        "totalFunctions": 0,
-        "missingReturnTypes": 0,
-        "hasExplicitTypes": true,
-        "status": "PASS"
-      }
-    },
-    "services/shopify.ts": {
-      "filePath": "services/shopify.ts",
-      "size": {
-        "lines": 83,
-        "limit": 100,
-        "type": "services",
-        "status": "PASS",
-        "percentage": 83
-      },
-      "comments": {
-        "violations": [],
-        "count": 0,
-        "status": "PASS"
-      },
-      "react": {
-        "hasReactImport": false,
-        "hasUseCallback": false,
-        "hasUseMemo": false,
-        "hasUseEffect": false,
-        "hasHooks": false,
-        "issues": []
-      },
-      "eslint": {
-        "errors": [],
-        "warnings": []
-      },
-      "typescript": {
-        "totalFunctions": 0,
-        "missingReturnTypes": 0,
-        "hasExplicitTypes": true,
-        "status": "PASS"
-      }
-    },
-    "services/tariff-fetcher.ts": {
-      "filePath": "services/tariff-fetcher.ts",
-      "size": {
-        "lines": 68,
-        "limit": 100,
-        "type": "services",
-        "status": "PASS",
-        "percentage": 68
-      },
-      "comments": {
-        "violations": [],
-        "count": 0,
-        "status": "PASS"
-      },
-      "react": {
-        "hasReactImport": false,
-        "hasUseCallback": false,
-        "hasUseMemo": false,
-        "hasUseEffect": false,
-        "hasHooks": false,
-        "issues": []
-      },
-      "eslint": {
-        "errors": [],
-        "warnings": []
-      },
-      "typescript": {
-        "totalFunctions": 0,
-        "missingReturnTypes": 0,
-        "hasExplicitTypes": true,
-        "status": "PASS"
-      }
-    },
-    "services/weight-calculator.ts": {
-      "filePath": "services/weight-calculator.ts",
-      "size": {
-        "lines": 48,
-        "limit": 100,
-        "type": "services",
-        "status": "PASS",
-        "percentage": 48
-      },
-      "comments": {
-        "violations": [],
-        "count": 0,
-        "status": "PASS"
-      },
-      "react": {
-        "hasReactImport": false,
-        "hasUseCallback": false,
-        "hasUseMemo": false,
-        "hasUseEffect": false,
-        "hasHooks": false,
-        "issues": []
-      },
-      "eslint": {
-        "errors": [],
-        "warnings": []
-      },
-      "typescript": {
-        "totalFunctions": 0,
-        "missingReturnTypes": 0,
-        "hasExplicitTypes": true,
-        "status": "PASS"
-      }
-    },
-    "services/zone-rate-processor.ts": {
-      "filePath": "services/zone-rate-processor.ts",
-      "size": {
-        "lines": 66,
-        "limit": 100,
-        "type": "services",
-        "status": "PASS",
-        "percentage": 66
-      },
-      "comments": {
-        "violations": [],
-        "count": 0,
-        "status": "PASS"
-      },
-      "react": {
-        "hasReactImport": false,
-        "hasUseCallback": false,
-        "hasUseMemo": false,
-        "hasUseEffect": false,
-        "hasHooks": false,
-        "issues": []
-      },
-      "eslint": {
-        "errors": [],
-        "warnings": []
-      },
-      "typescript": {
-        "totalFunctions": 0,
-        "missingReturnTypes": 0,
-        "hasExplicitTypes": true,
-        "status": "PASS"
-      }
-    },
-    "types/rate-generation.ts": {
-      "filePath": "types/rate-generation.ts",
-      "size": {
-        "lines": 50,
-        "limit": 100,
-        "type": "types",
-        "status": "PASS",
-        "percentage": 50
-      },
-      "comments": {
-        "violations": [],
-        "count": 0,
-        "status": "PASS"
-      },
-      "react": {
-        "hasReactImport": false,
-        "hasUseCallback": false,
-        "hasUseMemo": false,
-        "hasUseEffect": false,
-        "hasHooks": false,
-        "issues": []
-      },
-      "eslint": {
-        "errors": [],
-        "warnings": []
-      },
-      "typescript": {
-        "totalFunctions": 0,
-        "missingReturnTypes": 0,
-        "hasExplicitTypes": true,
-        "status": "PASS"
-      }
-    },
-    "utils/shopify-transformers.ts": {
-      "filePath": "utils/shopify-transformers.ts",
-      "size": {
-        "lines": 35,
-        "limit": 50,
-        "type": "utils",
-        "status": "PASS",
-        "percentage": 70
-      },
-      "comments": {
-        "violations": [],
-        "count": 0,
-        "status": "PASS"
-      },
-      "react": {
-        "hasReactImport": false,
-        "hasUseCallback": false,
-        "hasUseMemo": false,
-        "hasUseEffect": false,
-        "hasHooks": false,
-        "issues": []
-      },
-      "eslint": {
-        "errors": [],
-        "warnings": []
+        "warnings": [
+          {
+            "line": 48,
+            "column": 5,
+            "message": "Unexpected console statement  no-console"
+          }
+        ]
       },
       "typescript": {
         "totalFunctions": 1,
-        "missingReturnTypes": 0,
-        "hasExplicitTypes": true,
-        "status": "PASS"
+        "missingReturnTypes": 1,
+        "hasExplicitTypes": false,
+        "status": "FAIL"
       }
     }
   }

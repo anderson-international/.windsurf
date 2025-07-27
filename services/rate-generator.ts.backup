@@ -81,7 +81,10 @@ export class RateGeneratorService {
   }
 
   async generateRatesForAllCarriers(): Promise<GenerationResult[]> {
-    const carriers = await this.repository.fetchCarriers()
+    const prisma = this.repository.getClient()
+    const carriers = await prisma.carriers.findMany({
+      select: { id: true, name: true }
+    })
 
     if (carriers.length === 0) {
       throw new Error('No carriers found in database')
@@ -98,9 +101,10 @@ export class RateGeneratorService {
           carrier_name: carrier.name
         }
         results.push(carrierResult)
-
+        console.log(`✓ Generated rates for carrier: ${carrier.name}`)
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        console.error(`✗ Failed to generate rates for carrier: ${carrier.name}`, errorMessage)
         
         results.push({
           success: false,
