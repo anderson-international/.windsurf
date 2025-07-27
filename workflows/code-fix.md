@@ -11,10 +11,15 @@ description: Implement independent code review
 ## Core Rules
 
 - **All tasks mandatory**: No "critical" vs "quality" - fix everything
-- **Mandatory sequence**: Comments → File sizes → Other fixes  
+- **Mandatory sequence**: Comments → Console statements → File sizes → Other fixes  
 - **Batch comments**: Single approval for all deletions (safe operation)
 - **Individual fixes**: Separate approval for logic-affecting changes
 - **Fresh analysis**: No cached data - verify issues before fixing
+
+##🚨 START: Run the Crital Conext Workflows
+/run cmd-syntax
+/run critical-context
+
 
 ## 1. Setup & Validation
 
@@ -34,8 +39,7 @@ cmd /c npx eslint app/ components/ lib/ types/ hooks/ --max-warnings=0
 
 # Batch validate file sizes and comments
 # // turbo
-cmd /c node docs\scripts\count-lines.js [file1] [file2] [file3] ...
-cmd /c node docs\scripts\count-lines.js --comments [file1] [file2] [file3] ...
+cmd /c node docs\scripts\code-review-analyzer.js [file1] [file2] [file3] ...
 ```
 
 **Only proceed with confirmed issues from fresh validation**
@@ -54,13 +58,54 @@ Total: [n] comments | Risk: Safe | Verification: Size re-analysis
 Approve? [Yes/No]
 ```
 
-**Apply Fix**: Remove ALL comments, then re-run size analysis:
+**Apply Fix**: Use batch script, then re-run size analysis:
 ```bash
-# // turbo  
-cmd /c node docs\scripts\count-lines.js [previously-commented-files]
+# // turbo
+cmd /c node docs\scripts\code-fix.js --comments [file1] [file2] [file3] ...
+cmd /c node docs\scripts\code-size.js [previously-commented-files]
 ```
 
-### Step 2: File Size Violations
+### Step 2: Console Statement Fixes
+
+#### 2A. Batch Console.log Removal
+
+**Analysis**: List all files with console.log/debug/info violations
+
+**Approval Request**:
+```
+**Batch Console Removal**
+Files: [file1] ([n] console statements), [file2] ([n] console statements)...
+Total: [n] console.log/debug/info | Risk: Safe | Skips: console.error/warn
+Approve? [Yes/No]
+```
+
+**Apply Fix**: Use batch script to remove debugging console statements:
+```bash
+# // turbo
+cmd /c node docs\scripts\code-fix.js --console [file1] [file2] [file3] ...
+```
+
+#### 2B. Console.error/warn Analysis (BLOCKING VIOLATIONS)
+
+**Analysis Process**:
+1. Detect fail-fast violations: `cmd /c node docs\scripts\code-review-analyzer.js [files]`
+2. Examine each console.error/warn context
+3. Research error handling patterns in codebase
+4. Plan proper error composition and throwing
+
+**Approval Request**:
+```
+**FAIL-FAST VIOLATION: [filename]:[line]**
+Current: console.[error/warn]('[message]')
+Context: [function-name] | Situation: [error-condition]
+Replacement: throw new Error('[composed-message]')
+Pattern: [similar-error-handling] | Risk: Logic change
+Approve? [Yes/No]
+```
+
+**Critical**: Each console.error/warn must be individually approved as they require logic changes
+
+### Step 3: File Size Violations
 
 **Analysis Process**:
 1. Load decomposition guidance: `cmd /c node docs\scripts\docs-loader.js code-size`
@@ -78,7 +123,7 @@ Approve? [Yes/No]
 
 **Apply**: Decompose file, update imports
 
-### Step 3: TypeScript Return Types
+### Step 4: TypeScript Return Types
 
 **Analysis Process**:
 1. Search existing types: `grep_search types/ "interface.*Return"`
@@ -94,7 +139,7 @@ Risk: [Safe/Risky] | Import: [if-needed]
 Approve? [Yes/No]
 ```
 
-### Step 4: ESLint & Other Issues
+### Step 5: ESLint & Other Issues
 
 **TypeScript any Type Fixes - REQUIRES CANONICAL TYPE ANALYSIS**:
 ```
@@ -132,8 +177,8 @@ Approve? [Yes/No]
 
 ## 4. Risk Classifications
 
-- **Safe**: Remove comments, unused imports, console.logs
-- **Risky**: Logic changes, function signatures, state management  
+- **Safe**: Remove comments, unused imports, console.log/debug/info
+- **Risky**: console.error/warn replacement, logic changes, function signatures, state management  
 - **Deep Analysis Required**: TypeScript return types, file decomposition
 
 **Forbidden Actions**:
@@ -154,10 +199,12 @@ cmd /c git status --porcelain
 ### Completion Checklist
 - ✅ All comment violations removed (Task 1)
 - ✅ File size re-analysis completed (After Task 1)
-- ✅ All size violations resolved (Task 2)
-- ✅ All TypeScript errors fixed (Task 3)
-- ✅ All ESLint errors resolved (Task 4)
-- ✅ All other issues addressed (Task 5)
+- ✅ All console.log/debug/info removed (Task 2A)
+- ✅ All console.error/warn replaced with throws (Task 2B)
+- ✅ All size violations resolved (Task 3)
+- ✅ All TypeScript errors fixed (Task 4)
+- ✅ All ESLint errors resolved (Task 5)
+- ✅ All other issues addressed (Task 6)
 - ✅ TypeScript compilation passes
 - ✅ ESLint passes with no warnings
 - ✅ No new issues introduced
@@ -169,8 +216,10 @@ cmd /c git status --porcelain
 | TypeScript check | `cmd /c npx tsc --noEmit --project tsconfig.json` |
 | ESLint all | `cmd /c npx eslint app/ components/ lib/ types/ hooks/ --max-warnings=0` |
 | ESLint file | `cmd /c npx eslint [filepath] --max-warnings=0` |
-| File sizes | `cmd /c node docs\scripts\count-lines.js [files...]` |
-| Comments | `cmd /c node docs\scripts\count-lines.js --comments [files...]` |
+| File sizes | `cmd /c node docs\scripts\code-size.js [files...]` |
+| Comments | `cmd /c node docs\scripts\code-size.js --comments [files...]` |
+| Console removal | `cmd /c node docs\scripts\code-fix.js --console [files...]` |
+| Console analysis | `cmd /c node docs\scripts\code-review-analyzer.js [files...]` |
 | Git status | `cmd /c git status --porcelain` |
 
 **Critical Principle**: Every issue in the code review must be resolved. No exceptions, no shortcuts. Safety over speed.
