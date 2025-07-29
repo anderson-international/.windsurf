@@ -158,5 +158,4 @@ write_to_file docs/review/code_review.md
 - ✅ Context loaded
 - ✅ Summary table displayed
 - ✅ Findings verified
-- ✅ User approval obtained
 - ✅ Final code_review.md written
