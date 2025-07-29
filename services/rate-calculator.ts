@@ -1,16 +1,14 @@
-import type { ZoneTariff, WeightRange, RateGenerationConfig } from '@/types/rate-generation'
+import type { BaseTariff, WeightRange } from '../types/rate-generation'
 import { WeightRangeCalculator } from './weight-calculator'
 
 export class RateCalculator {
-  private readonly config: RateGenerationConfig
   private readonly weightCalculator: WeightRangeCalculator
 
-  constructor(config: RateGenerationConfig) {
-    this.config = config
-    this.weightCalculator = new WeightRangeCalculator(config)
+  constructor() {
+    this.weightCalculator = new WeightRangeCalculator()
   }
 
-  private findTariffForWeight(tariffs: ZoneTariff[], weight: number): number {
+  private findTariffForWeight(tariffs: BaseTariff[], weight: number): number {
     const tariff = tariffs.find(t => parseFloat(t.weight_kg.toString()) >= weight)
     
     if (!tariff) {
@@ -24,16 +22,17 @@ export class RateCalculator {
   }
 
   private calculateRateForRange(
-    tariffs: ZoneTariff[], 
+    tariffs: BaseTariff[], 
     range: WeightRange, 
     parcelNumber: number,
-    previousParcelMaxRate: number
+    previousParcelMaxRate: number,
+    maxParcelWeight: number
   ): number {
     if (parcelNumber === 1) {
       const baseTariff = this.findTariffForWeight(tariffs, range.max)
       return baseTariff
     } else {
-      const remainderWeight = range.max - (parcelNumber - 1) * this.config.MAX_PARCEL_WEIGHT
+      const remainderWeight = range.max - (parcelNumber - 1) * maxParcelWeight
       
       if (remainderWeight <= 0) {
         throw new Error(
@@ -48,12 +47,13 @@ export class RateCalculator {
   }
 
   calculateRate(
-    tariffs: ZoneTariff[], 
+    tariffs: BaseTariff[], 
     range: WeightRange, 
     parcelNumber: number,
-    previousMaxRate: number
+    previousMaxRate: number,
+    maxParcelWeight: number
   ): number {
-    return this.calculateRateForRange(tariffs, range, parcelNumber, previousMaxRate)
+    return this.calculateRateForRange(tariffs, range, parcelNumber, previousMaxRate, maxParcelWeight)
   }
   
   getWeightCalculator(): WeightRangeCalculator {

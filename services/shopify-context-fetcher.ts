@@ -1,12 +1,12 @@
-import { ShopifyConfig } from './shopify-config'
-import { ShopifyContext } from './rate-transformer'
+import { ShopifyGraphQLClient } from './shopify-graphql-client'
+import type { ShopifyConfig, ShopifyContext } from './shopify-config'
 import { ZoneContextResponse } from '../types/shopify-query-responses'
 
-export class ShopifyContextGraphQL {
-  private readonly config: ShopifyConfig
+export class ShopifyContextFetcher {
+  private readonly graphqlClient: ShopifyGraphQLClient
 
   constructor(config: ShopifyConfig) {
-    this.config = config
+    this.graphqlClient = new ShopifyGraphQLClient(config)
   }
 
   async fetchShopifyContext(zoneId: string): Promise<ShopifyContext> {
@@ -45,7 +45,7 @@ export class ShopifyContextGraphQL {
       }
     `
 
-    const response = await this.executeGraphQLQuery<ZoneContextResponse>(query)
+    const response = await this.graphqlClient.executeQuery<ZoneContextResponse>(query)
     
     for (const profileEdge of response.deliveryProfiles.edges) {
       const profile = profileEdge.node
@@ -74,29 +74,7 @@ export class ShopifyContextGraphQL {
     throw new Error(`Zone ${zoneId} not found in any delivery profile`)
   }
 
-  private async executeGraphQLQuery<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
-    const response = await fetch(
-      `${this.config.storeUrl}/admin/api/${this.config.apiVersion}/graphql.json`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Access-Token': this.config.adminAccessToken,
-        },
-        body: JSON.stringify({ query, variables }),
-      }
-    )
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.errors) {
-      throw new Error(data.errors[0].message)
-    }
-
-    return data.data
+  async fetchShopifyContextByName(zoneName: string): Promise<ShopifyContext> {
+    throw new Error(`fetchShopifyContextByName not yet implemented for zone: ${zoneName}`)
   }
 }

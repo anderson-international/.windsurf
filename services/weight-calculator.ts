@@ -1,12 +1,6 @@
-import type { WeightRange, RateGenerationConfig } from '@/types/rate-generation'
+import type { WeightRange } from '@/types/rate-generation'
 
 export class WeightRangeCalculator {
-  private readonly config: RateGenerationConfig
-
-  constructor(config: RateGenerationConfig) {
-    this.config = config
-  }
-
   generateBaseWeightRanges(): WeightRange[] {
     const ranges: WeightRange[] = []
     for (let weight = 0.05; weight <= 0.50; weight += 0.05) {
@@ -25,16 +19,16 @@ export class WeightRangeCalculator {
     return ranges
   }
 
-  generateParcelRanges(parcelNumber: number): WeightRange[] {
+  generateParcelRanges(parcelNumber: number, maxParcelWeight: number): WeightRange[] {
     const baseRanges = this.generateBaseWeightRanges()
     const ranges: WeightRange[] = []
     
-    const previousParcelMax = (parcelNumber - 1) * this.config.MAX_PARCEL_WEIGHT
+    const previousParcelMax = (parcelNumber - 1) * maxParcelWeight
     
     baseRanges.forEach(range => {
       const adjustedMin = previousParcelMax + range.min
       const adjustedMax = previousParcelMax + range.max
-      if (adjustedMax <= this.config.MAX_TOTAL_WEIGHT) {
+      if (adjustedMax <= previousParcelMax + maxParcelWeight) {
         ranges.push({
           min: Math.round(adjustedMin * 100) / 100,
           max: Math.round(adjustedMax * 100) / 100

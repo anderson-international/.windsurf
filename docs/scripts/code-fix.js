@@ -7,7 +7,6 @@ class CodeFixer {
       filesProcessed: 0,
       commentsRemoved: 0,
       consoleStatementsRemoved: 0,
-      backupsCreated: 0,
       errors: 0
     }
   }
@@ -94,22 +93,7 @@ class CodeFixer {
     return { content: result, removedCount }
   }
 
-  /**
-   * Create backup of file
-   * @param {string} filePath - Path to file
-   * @returns {boolean} - Success status
-   */
-  createBackup(filePath) {
-    try {
-      const backupPath = `${filePath}.backup`
-      fs.copyFileSync(filePath, backupPath)
-      this.stats.backupsCreated++
-      return true
-    } catch (error) {
-      console.error(`❌ Failed to create backup for ${filePath}:`, error.message)
-      return false
-    }
-  }
+
 
   /**
    * Process a single file for comment removal
@@ -134,11 +118,6 @@ class CodeFixer {
       }
 
       console.log(`🔧 Processing: ${filePath}`)
-
-      // Create backup
-      if (!this.createBackup(filePath)) {
-        return false
-      }
 
       // Read file content
       const originalContent = fs.readFileSync(filePath, 'utf8')
@@ -184,11 +163,6 @@ class CodeFixer {
       }
 
       console.log(`🔧 Processing: ${filePath}`)
-
-      // Create backup
-      if (!this.createBackup(filePath)) {
-        return false
-      }
 
       // Read file content
       const originalContent = fs.readFileSync(filePath, 'utf8')
@@ -248,13 +222,7 @@ class CodeFixer {
     console.log(`Files processed: ${this.stats.filesProcessed}`)
     console.log(`Comments removed: ${this.stats.commentsRemoved}`)
     console.log(`Console statements removed: ${this.stats.consoleStatementsRemoved}`)
-    console.log(`Backups created: ${this.stats.backupsCreated}`)
     console.log(`Errors: ${this.stats.errors}`)
-    
-    if (this.stats.backupsCreated > 0) {
-      console.log('\n💾 Backup files created with .backup extension')
-      console.log('   Use these to restore if needed')
-    }
 
     if (this.stats.errors === 0 && this.stats.filesProcessed > 0) {
       console.log('\n✅ All files processed successfully!')
@@ -285,13 +253,12 @@ Features:
   ✅ Removes multi-line comments (/* ... */)
   ✅ Removes console.log/debug/info statements
   ✅ Preserves console.error/warn for manual review
-  ✅ Creates .backup files automatically
+
   ✅ Batch processing support
   ✅ TypeScript/JavaScript file validation
   ✅ Processing statistics
 
 Safety:
-  - Original files backed up as .backup
   - Only processes .ts, .js, .tsx, .jsx files
   - Preserves code structure and spacing
 `)

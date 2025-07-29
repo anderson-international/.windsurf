@@ -51,7 +51,6 @@ export class ShopifyRateDeployerGraphQL {
     
     if (response.deliveryProfileUpdate?.userErrors?.length > 0) {
       const errors = response.deliveryProfileUpdate.userErrors
-      console.error('❌ Shopify API errors:', errors)
       throw new Error(`Shopify API errors: ${errors.map((e: { message: string }) => e.message).join(', ')}`)
     }
   }

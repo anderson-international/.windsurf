@@ -3,3 +3,11 @@ export interface ShopifyConfig {
   readonly adminAccessToken: string
   readonly apiVersion: string
 }
+
+export interface ShopifyContext {
+  zoneId: string
+  zoneName: string
+  profileId: string
+  locationGroupId: string
+  existingMethodDefinitionIds: string[]
+}

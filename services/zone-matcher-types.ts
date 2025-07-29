@@ -6,7 +6,6 @@ export interface ShopifyZone {
 }
 
 export interface DatabaseZone {
-  readonly zone_id: string
   readonly zone_name: string
   readonly rate_count: number
 }

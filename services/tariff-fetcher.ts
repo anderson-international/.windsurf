@@ -1,70 +1,78 @@
-import type { ZoneTariff, CarrierInfo } from '@/types/rate-generation'
+import type { ZoneTariff, CarrierInfo } from '../types/rate-generation'
 import { DatabaseClient } from './database-client'
+import { UniversalTariffService } from './universal-tariff-service'
+import { CarrierServiceInfoService } from './carrier-service-info-service'
 
 export class TariffFetcher {
   private readonly db: DatabaseClient
+  private readonly universalTariffService: UniversalTariffService
+  private readonly carrierServiceInfoService: CarrierServiceInfoService
 
   constructor() {
     this.db = new DatabaseClient()
+    this.universalTariffService = new UniversalTariffService()
+    this.carrierServiceInfoService = new CarrierServiceInfoService()
   }
 
   async connect(): Promise<void> {
     await this.db.connect()
+    await this.universalTariffService.connect()
+    await this.carrierServiceInfoService.connect()
   }
 
   async disconnect(): Promise<void> {
     await this.db.disconnect()
+    await this.universalTariffService.disconnect()
+    await this.carrierServiceInfoService.disconnect()
   }
 
-  async fetchZoneTariffs(carrierId: number): Promise<Map<string, ZoneTariff[]>> {
+  async fetchZoneTariffs(carrierServiceId: number): Promise<Map<string, ZoneTariff[]>> {
     const prisma = this.db.getClient()
-    const tariffs = await prisma.zone_tariffs.findMany({
-      where: {
-        carrier_id: carrierId
-      },
-      orderBy: [{ zone_name: 'asc' }, { weight_kg: 'asc' }]
+    
+
+    const carrierService = await prisma.carrier_services.findFirst({
+      where: { id: carrierServiceId },
+      select: { zone_scope: true }
     })
+    
+    if (!carrierService) {
+      throw new Error(`Carrier service with ID ${carrierServiceId} not found in database`)
+    }
     
     const tariffsByZone = new Map<string, ZoneTariff[]>()
     
-    tariffs.forEach(row => {
-      const tariff: ZoneTariff = {
-        zone_id: row.zone_name,
-        zone_name: row.zone_name,
-        weight_kg: Number(row.weight_kg),
-        tariff_amount: Number(row.tariff_amount)
-      }
+    if (carrierService.zone_scope === 'ZONE_SPECIFIC') {
+
+      const tariffs = await prisma.zone_tariffs.findMany({
+        where: { carrier_service_id: carrierServiceId },
+        orderBy: [{ zone_name: 'asc' }, { weight_kg: 'asc' }]
+      })
       
-      if (!tariffsByZone.has(tariff.zone_id)) {
-        tariffsByZone.set(tariff.zone_id, [])
-      }
-      
-      tariffsByZone.get(tariff.zone_id)!.push(tariff)
-    })
+      tariffs.forEach(row => {
+        const tariff: ZoneTariff = {
+          zone_name: row.zone_name,
+          weight_kg: Number(row.weight_kg),
+          tariff_amount: Number(row.tariff_amount),
+          carrier_id: row.carrier_service_id
+        }
+        
+        if (!tariffsByZone.has(tariff.zone_name)) {
+          tariffsByZone.set(tariff.zone_name, [])
+        }
+        
+        tariffsByZone.get(tariff.zone_name)!.push(tariff)
+      })
+    } else {
+      const universalTariffs = await this.universalTariffService.replicateUniversalTariffsAcrossZones(carrierServiceId)
+      universalTariffs.forEach((tariffs, zoneId) => {
+        tariffsByZone.set(zoneId, tariffs)
+      })
+    }
     
     return tariffsByZone
   }
 
-  async fetchCarrierInfo(carrierId: number): Promise<CarrierInfo> {
-    const prisma = this.db.getClient()
-    const carrier = await prisma.carriers.findFirst({ 
-      where: { id: carrierId },
-      select: { name: true, rate_title: true, delivery_description: true, margin_percentage: true }
-    })
-    
-    if (!carrier) {
-      throw new Error(`Carrier with ID ${carrierId} not found in database`)
-    }
-    
-    if (carrier.margin_percentage === null || carrier.margin_percentage === undefined) {
-      throw new Error(`Carrier '${carrier.name}' has missing margin_percentage - cannot calculate rates without margin data`)
-    }
-
-    return {
-      name: carrier.name,
-      rate_title: carrier.rate_title,
-      delivery_description: carrier.delivery_description,
-      margin_percentage: Number(carrier.margin_percentage)
-    }
+  async fetchCarrierServiceInfo(carrierServiceId: number): Promise<CarrierInfo> {
+    return await this.carrierServiceInfoService.fetchCarrierServiceInfo(carrierServiceId)
   }
 }

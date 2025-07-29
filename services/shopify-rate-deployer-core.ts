@@ -1,15 +1,12 @@
 import { GeneratedRate } from '../types/rate-generation'
 import { ShippingRate } from '../types/api'
-import { ShopifyConfig } from './shopify-config'
-import { ShopifyContext, RateTransformer } from './rate-transformer'
+import { ShopifyConfig, ShopifyContext } from './shopify-config'
 import { ShopifyRateDeployerGraphQL } from './shopify-rate-deployer-graphql'
 
 export class ShopifyRateDeployer {
-  private readonly transformer: RateTransformer
   private readonly graphqlService: ShopifyRateDeployerGraphQL
 
   constructor(config: ShopifyConfig) {
-    this.transformer = new RateTransformer()
     this.graphqlService = new ShopifyRateDeployerGraphQL(config)
   }
 
@@ -19,7 +16,7 @@ export class ShopifyRateDeployer {
       title: rate.rate_title,
       profileName: 'Default',
       zoneId: zoneId,
-      zoneName: rate.zone_name,
+      zoneName: context.zoneName,
       currency: 'GBP',
       price: Number(rate.calculated_price),
       deliveryDescription: rate.delivery_description,

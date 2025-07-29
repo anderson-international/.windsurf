@@ -1,15 +1,15 @@
 {
-  "timestamp": "2025-07-27T14:51:27.236Z",
-  "totalFiles": 3,
+  "timestamp": "2025-07-29T13:32:19.862Z",
+  "totalFiles": 25,
   "results": {
-    "services\\rate-generator.ts": {
-      "filePath": "services\\rate-generator.ts",
+    "pages/api/rates/count.ts": {
+      "filePath": "pages/api/rates/count.ts",
       "size": {
-        "lines": 123,
-        "limit": 100,
-        "type": "services",
-        "status": "FAIL",
-        "percentage": 123
+        "lines": 53,
+        "limit": 150,
+        "type": "components",
+        "status": "PASS",
+        "percentage": 35
       },
       "comments": {
         "violations": [],
@@ -25,26 +25,51 @@
         "issues": []
       },
       "consoleErrors": {
-        "violations": [
-          {
-            "line": 107,
-            "method": "error",
-            "content": "console.error(`✗ Failed to generate rates for carrier: ${carrier.name}`, errorMessage)",
-            "guidance": "Replace console.error with proper error throwing. Use 'throw new Error(message)' instead of logging and continuing execution."
-          }
-        ],
-        "count": 1,
-        "status": "FAIL"
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
       },
       "eslint": {
         "errors": [],
-        "warnings": [
-          {
-            "line": 107,
-            "column": 9,
-            "message": "Unexpected console statement  no-console"
-          }
-        ]
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 1,
+        "missingReturnTypes": 1,
+        "hasExplicitTypes": false,
+        "status": "FAIL"
+      }
+    },
+    "services/rate-calculator.ts": {
+      "filePath": "services/rate-calculator.ts",
+      "size": {
+        "lines": 67,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 67
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
       },
       "typescript": {
         "totalFunctions": 0,
@@ -53,10 +78,390 @@
         "status": "PASS"
       }
     },
-    "pages\\api\\rates\\generate-all.ts": {
-      "filePath": "pages\\api\\rates\\generate-all.ts",
+    "services/shopify-config.ts": {
+      "filePath": "services/shopify-config.ts",
       "size": {
-        "lines": 59,
+        "lines": 14,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 14
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/shopify-context-resolver-core.ts": {
+      "filePath": "services/shopify-context-resolver-core.ts",
+      "size": {
+        "lines": 31,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 31
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/shopify-rate-deployer-core.ts": {
+      "filePath": "services/shopify-rate-deployer-core.ts",
+      "size": {
+        "lines": 52,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 52
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/shopify-rate-deployer-graphql.ts": {
+      "filePath": "services/shopify-rate-deployer-graphql.ts",
+      "size": {
+        "lines": 84,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 84
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/tariff-fetcher.ts": {
+      "filePath": "services/tariff-fetcher.ts",
+      "size": {
+        "lines": 79,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 79
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/weight-calculator.ts": {
+      "filePath": "services/weight-calculator.ts",
+      "size": {
+        "lines": 42,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 42
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/zone-matcher-types.ts": {
+      "filePath": "services/zone-matcher-types.ts",
+      "size": {
+        "lines": 25,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 25
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/zone-rate-processor.ts": {
+      "filePath": "services/zone-rate-processor.ts",
+      "size": {
+        "lines": 65,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 65
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "types/rate-generation.ts": {
+      "filePath": "types/rate-generation.ts",
+      "size": {
+        "lines": 74,
+        "limit": 100,
+        "type": "types",
+        "status": "PASS",
+        "percentage": 74
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 2,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "pages/api/rates/deploy-all-zones.ts": {
+      "filePath": "pages/api/rates/deploy-all-zones.ts",
+      "size": {
+        "lines": 67,
+        "limit": 150,
+        "type": "components",
+        "status": "PASS",
+        "percentage": 45
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 1,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "pages/api/rates/generate/[zoneName].ts": {
+      "filePath": "pages/api/rates/generate/[zoneName].ts",
+      "size": {
+        "lines": 58,
         "limit": 150,
         "type": "components",
         "status": "PASS",
@@ -76,42 +481,29 @@
         "issues": []
       },
       "consoleErrors": {
-        "violations": [
-          {
-            "line": 50,
-            "method": "error",
-            "content": "console.error('Failed to generate rates for all carriers:', error)",
-            "guidance": "Replace console.error with proper error throwing. Use 'throw new Error(message)' instead of logging and continuing execution."
-          }
-        ],
-        "count": 1,
-        "status": "FAIL"
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
       },
       "eslint": {
         "errors": [],
-        "warnings": [
-          {
-            "line": 50,
-            "column": 5,
-            "message": "Unexpected console statement  no-console"
-          }
-        ]
+        "warnings": []
       },
       "typescript": {
         "totalFunctions": 1,
-        "missingReturnTypes": 1,
-        "hasExplicitTypes": false,
-        "status": "FAIL"
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
       }
     },
-    "pages\\api\\rates\\generate\\[carrierId].ts": {
-      "filePath": "pages\\api\\rates\\generate\\[carrierId].ts",
+    "services/carrier-service-info-service.ts": {
+      "filePath": "services/carrier-service-info-service.ts",
       "size": {
-        "lines": 57,
-        "limit": 150,
-        "type": "components",
+        "lines": 49,
+        "limit": 100,
+        "type": "services",
         "status": "PASS",
-        "percentage": 38
+        "percentage": 49
       },
       "comments": {
         "violations": [],
@@ -127,32 +519,437 @@
         "issues": []
       },
       "consoleErrors": {
-        "violations": [
-          {
-            "line": 48,
-            "method": "error",
-            "content": "console.error(`Failed to generate rates for carrier ${parsedCarrierId}:`, error)",
-            "guidance": "Replace console.error with proper error throwing. Use 'throw new Error(message)' instead of logging and continuing execution."
-          }
-        ],
-        "count": 1,
-        "status": "FAIL"
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
       },
       "eslint": {
         "errors": [],
-        "warnings": [
-          {
-            "line": 48,
-            "column": 5,
-            "message": "Unexpected console statement  no-console"
-          }
-        ]
+        "warnings": []
       },
       "typescript": {
-        "totalFunctions": 1,
-        "missingReturnTypes": 1,
-        "hasExplicitTypes": false,
-        "status": "FAIL"
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/multi-zone-orchestrator-core.ts": {
+      "filePath": "services/multi-zone-orchestrator-core.ts",
+      "size": {
+        "lines": 59,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 59
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/shopify-context-fetcher.ts": {
+      "filePath": "services/shopify-context-fetcher.ts",
+      "size": {
+        "lines": 81,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 81
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/shopify-graphql-client.ts": {
+      "filePath": "services/shopify-graphql-client.ts",
+      "size": {
+        "lines": 36,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 36
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/shopify-zone-fetcher.ts": {
+      "filePath": "services/shopify-zone-fetcher.ts",
+      "size": {
+        "lines": 76,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 76
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/tariff-collection-service.ts": {
+      "filePath": "services/tariff-collection-service.ts",
+      "size": {
+        "lines": 69,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 69
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/universal-tariff-service.ts": {
+      "filePath": "services/universal-tariff-service.ts",
+      "size": {
+        "lines": 59,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 59
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/zone-processor.ts": {
+      "filePath": "services/zone-processor.ts",
+      "size": {
+        "lines": 65,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 65
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/zone-rate-collector.ts": {
+      "filePath": "services/zone-rate-collector.ts",
+      "size": {
+        "lines": 64,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 64
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "services/zone-rate-service.ts": {
+      "filePath": "services/zone-rate-service.ts",
+      "size": {
+        "lines": 64,
+        "limit": 100,
+        "type": "services",
+        "status": "PASS",
+        "percentage": 64
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "types/multi-zone-types.ts": {
+      "filePath": "types/multi-zone-types.ts",
+      "size": {
+        "lines": 22,
+        "limit": 100,
+        "type": "types",
+        "status": "PASS",
+        "percentage": 22
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
+      }
+    },
+    "types/zone-rate-types.ts": {
+      "filePath": "types/zone-rate-types.ts",
+      "size": {
+        "lines": 9,
+        "limit": 100,
+        "type": "types",
+        "status": "PASS",
+        "percentage": 9
+      },
+      "comments": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS"
       }
     }
   }

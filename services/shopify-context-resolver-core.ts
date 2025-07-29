@@ -1,31 +1,30 @@
-import { GeneratedRate } from '../types/rate-generation'
-import { ShopifyContext, ShopifyContextMap } from './rate-transformer'
-import { ShopifyConfig } from './shopify-config'
-import { ShopifyContextGraphQL } from './shopify-context-graphql'
+import type { ShopifyConfig, ShopifyContext } from './shopify-config'
+import { ShopifyContextFetcher } from './shopify-context-fetcher'
+
+export interface ShopifyContextMap {
+  [zoneId: string]: ShopifyContext
+}
 
 export class ShopifyContextResolver {
-  private readonly graphqlService: ShopifyContextGraphQL
+  private readonly graphqlService: ShopifyContextFetcher
 
   constructor(config: ShopifyConfig) {
-    this.graphqlService = new ShopifyContextGraphQL(config)
+    this.graphqlService = new ShopifyContextFetcher(config)
   }
 
-  async resolveContextsForRates(rates: GeneratedRate[]): Promise<ShopifyContextMap> {
-    const uniqueZoneIds = [...new Set(rates.map(rate => rate.zone_id))]
-    const contextMap: ShopifyContextMap = {}
-
-    for (const zoneId of uniqueZoneIds) {
-      try {
-        contextMap[zoneId] = await this.graphqlService.fetchShopifyContext(zoneId)
-      } catch (error) {
-        throw new Error(`Failed to resolve context for zone ${zoneId}: ${error instanceof Error ? error.message : 'Unknown error'}`)
-      }
+  async resolveContextForZone(zoneName: string): Promise<ShopifyContext> {
+    try {
+      return await this.graphqlService.fetchShopifyContext(zoneName)
+    } catch (error) {
+      throw new Error(`Failed to resolve context for zone ${zoneName}: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
-
-    return contextMap
   }
 
   async fetchShopifyContextForZone(zoneId: string): Promise<ShopifyContext> {
     return this.graphqlService.fetchShopifyContext(zoneId)
+  }
+
+  async fetchShopifyContextForZoneName(zoneName: string): Promise<ShopifyContext> {
+    return this.graphqlService.fetchShopifyContextByName(zoneName)
   }
 }
