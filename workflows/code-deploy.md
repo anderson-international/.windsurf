@@ -32,7 +32,7 @@ cmd /c git branch --show-current
 # // turbo
 cmd /c git add .
 cmd /c git status --porcelain
-cmd /c git commit -m "Deploy: Auto-commit before branch sync"
+cmd /c git commit -m Deploy-Auto-commit-before-branch-sync
 cmd /c git push origin windsurf
 ```
 
@@ -54,7 +54,7 @@ cmd /c git branch --show-current
 ```bash
 # // turbo
 cmd /c git pull origin main
-cmd /c git merge windsurf --no-ff -m "Deploy: Merge windsurf branch to main"
+cmd /c git merge windsurf --no-ff -m Deploy-Merge-windsurf-branch-to-main
 cmd /c git push origin main
 ```
 
@@ -101,7 +101,7 @@ cmd /c git checkout windsurf
 ❌ ERROR: Merge conflicts detected
 ACTION: Resolve conflicts manually, then:
 cmd /c git add .
-cmd /c git commit -m "Resolve merge conflicts"
+cmd /c git commit -m Resolve-merge-conflicts
 cmd /c git push origin main
 cmd /c git checkout windsurf
 ```
@@ -121,10 +121,10 @@ cmd /c git checkout windsurf
 | Check current branch | `cmd /c git branch --show-current` |
 | Add all changes | `cmd /c git add .` |
 | Check status | `cmd /c git status --porcelain` |
-| Commit changes | `cmd /c git commit -m "message"` |
+| Commit changes | `cmd /c git commit -m message-with-hyphens` |
 | Push branch | `cmd /c git push origin [branch]` |
 | Switch branch | `cmd /c git checkout [branch]` |
-| Merge branch | `cmd /c git merge [branch] --no-ff -m "message"` |
+| Merge branch | `cmd /c git merge [branch] --no-ff -m message-with-hyphens` |
 | Pull latest | `cmd /c git pull origin [branch]` |
 
 **Deployment Philosophy**: Safe, predictable, and always returns to development state (windsurf branch).
