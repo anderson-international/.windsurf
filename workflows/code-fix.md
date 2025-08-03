@@ -26,18 +26,9 @@ description: Implement independent code review
 cmd /c type docs\review\code_review.md
 ```
 
-### Validate Current Issues
-```bash
-# Verify compilation and linting issues
-cmd /c npx tsc --noEmit --project tsconfig.json
-cmd /c npx eslint app/ components/ lib/ types/ hooks/ --max-warnings=0
-
-# Batch validate file sizes and comments
-# // turbo
-cmd /c node docs\scripts\code-review-analyzer.js [file1] [file2] [file3] ...
-```
-
-**Only proceed with confirmed issues from fresh validation**
+### Confirm you have fully ingested the review document
+- Summarise the finding of the code_review.md
+- Wait for approval to continue
 
 ## 2. Fix Process (Mandatory Sequence)
 
