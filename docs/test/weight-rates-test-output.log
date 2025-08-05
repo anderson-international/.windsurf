@@ -1,0 +1,84 @@
+🚀 WEIGHT-BASED RATES TEST LOG
+===============================================
+
+🔍 Finding universal carriers...
+✅ Found universal carrier: IoM Post - Express - From 7 Working Days
+
+📊 Carrier Details:
+- Service: Express - From 7 Working Days
+- Margin: 30%
+- Max Parcel Weight: 2kg
+- Max Total Weight: 8kg
+- Max Parcels: 4
+
+📊 Available Tariff Weight Breaks:
+- 0.25kg: $13.99
+- 0.75kg: $18.76
+- 2kg: $24.15
+
+🧪 Testing weight range from 0.1kg to max total weight...
+
+📈 Calculating rates for 16 different weights...
+
+╔════════════╦═══════════════╦══════════════╦═══════════╦═════════════╦════════════════╗
+║ Weight(kg) ║ # of Parcels   ║ Base Rate($) ║ Margin(%) ║ Final Rate($)║ Parcel Breakdown║
+╠════════════╬═══════════════╬══════════════╬═══════════╬═════════════╬════════════════╣
+║ 0.1        ║ 1               ║ $13.99       ║ 30        ║ $18.19      ║ P1:0.1kg→$13.99 ║
+║ 0.3        ║ 1               ║ $13.99       ║ 30        ║ $18.19      ║ P1:0.3kg→$13.99 ║
+║ 0.3        ║ 1               ║ $18.76       ║ 30        ║ $24.39      ║ P1:0.3kg→$18.76 ║
+║ 0.7        ║ 1               ║ $18.76       ║ 30        ║ $24.39      ║ P1:0.7kg→$18.76 ║
+║ 0.8        ║ 1               ║ $18.76       ║ 30        ║ $24.39      ║ P1:0.8kg→$18.76 ║
+║ 0.8        ║ 1               ║ $24.15       ║ 30        ║ $31.39      ║ P1:0.8kg→$24.15 ║
+║ 1.0        ║ 1               ║ $24.15       ║ 30        ║ $31.39      ║ P1:1.0kg→$24.15 ║
+║ 1.9        ║ 1               ║ $24.15       ║ 30        ║ $31.39      ║ P1:1.9kg→$24.15 ║
+║ 2.0        ║ 1               ║ $24.15       ║ 30        ║ $31.39      ║ P1:2.0kg→$24.15 ║
+║ 2.1        ║ 2               ║ $38.14       ║ 30        ║ $49.58      ║ P1:2.0kg→$24.15, P2:0.1kg→$13.99 ║
+║ 3.0        ║ 2               ║ $48.3        ║ 30        ║ $62.79      ║ P1:2.0kg→$24.15, P2:1.0kg→$24.15 ║
+║ 4.0        ║ 2               ║ $48.3        ║ 30        ║ $62.79      ║ P1:2.0kg→$24.15, P2:2.0kg→$24.15 ║
+║ 5.0        ║ 3               ║ $72.45       ║ 30        ║ $94.18      ║ P1:2.0kg→$24.15, P2:2.0kg→$24.15, P3:1.0kg→$24.15 ║
+║ 6.0        ║ 3               ║ $72.45       ║ 30        ║ $94.18      ║ P1:2.0kg→$24.15, P2:2.0kg→$24.15, P3:2.0kg→$24.15 ║
+║ 7.0        ║ 4               ║ $96.6        ║ 30        ║ $125.58     ║ P1:2.0kg→$24.15, P2:2.0kg→$24.15, P3:2.0kg→$24.15, P4:1.0kg→$24.15 ║
+║ 8.0        ║ 4               ║ $96.6        ║ 30        ║ $125.58     ║ P1:2.0kg→$24.15, P2:2.0kg→$24.15, P3:2.0kg→$24.15, P4:2.0kg→$24.15 ║
+╚════════════╩═══════════════╩══════════════╩═══════════╩═════════════╩════════════════╝
+
+🔍 MULTI-PARCEL RATE CALCULATION EXPLAINED:
+1. For weights exceeding max parcel weight, shipment is split into multiple parcels
+2. Each parcel is charged based on its weight using the "next weight break" tariff
+3. Rates for all parcels are summed to get the total base rate
+4. Margin percentage is applied to the total base rate
+
+📝 DETAILED EXAMPLES:
+
+Example 1: Single parcel (1kg)
+- Total weight: 1kg (within max parcel weight of 2kg)
+- Number of parcels: 1
+- Parcel breakdown:
+  • Parcel 1: 1kg (uses 2kg tariff at $24.15)
+- Base rate: $24.15
+- Margin applied: 30%
+- Final rate: $31.39
+
+Example 2: Multi-parcel (3kg)
+- Total weight: 3kg (exceeds max parcel weight of 2kg)
+- Number of parcels: 2
+- Parcel breakdown:
+  • Parcel 1: 2kg (uses 2kg tariff at $24.15)
+  • Parcel 2: 1kg (uses 2kg tariff at $24.15)
+- Base rate: $48.3 (sum of all parcel rates)
+- Margin applied: 30%
+- Final rate: $62.79
+
+Example 3: Maximum weight (8kg)
+- Total weight: 8kg (max total weight)
+- Number of parcels: 4
+- Parcel breakdown:
+  • Parcel 1: 2kg (uses 2kg tariff at $24.15)
+  • Parcel 2: 2kg (uses 2kg tariff at $24.15)
+  • Parcel 3: 2kg (uses 2kg tariff at $24.15)
+  • Parcel 4: 2kg (uses 2kg tariff at $24.15)
+- Base rate: $96.6 (sum of all parcel rates)
+- Margin applied: 30%
+- Final rate: $125.58
+
+===============================================
+✅ Test complete! Full results written to c:\Users\jonny\code\shopify-shipping\docs\test\weight-rates-test-output.log

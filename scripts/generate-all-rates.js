@@ -1,12 +1,16 @@
 /**
- * Test script for /api/rates/generate-all endpoint
- * Tests multi-carrier rate generation functionality
+ * Generate All Rates
+ * 
+ * Script to generate shipping rates for all carriers at once.
+ * Makes a POST request to the /api/rates/generate-all endpoint.
+ * 
+ * Usage: node scripts/generate-all-rates.js
  */
 
 const BASE_URL = 'http://localhost:3000'
 
-async function testGenerateAllCarriers() {
-  console.log('🧪 Testing Generate All Carriers Endpoint')
+async function generateAllRates() {
+  console.log('🧪 Generating Rates for All Carriers')
   console.log('========================================\n')
 
   try {
@@ -54,40 +58,8 @@ async function testGenerateAllCarriers() {
   }
 }
 
-async function testInvalidMethod() {
-  console.log('\n\n🧪 Testing Invalid Method (GET)')
-  console.log('================================\n')
+// Run the script
+console.log('🚀 Starting Rate Generation for All Carriers')
+console.log('==============================================\n')
 
-  try {
-    const response = await fetch(`${BASE_URL}/api/rates/generate-all`, {
-      method: 'GET'
-    })
-
-    const data = await response.json()
-    
-    console.log(`📊 Response Status: ${response.status}`)
-    console.log(`📋 Response Data:`)
-    console.log(JSON.stringify(data, null, 2))
-    
-    if (response.status === 405) {
-      console.log('\n✅ SUCCESS - Correctly rejected GET method')
-    } else {
-      console.log('\n❌ UNEXPECTED - Should have returned 405 Method Not Allowed')
-    }
-  } catch (error) {
-    console.error('\n💥 REQUEST FAILED:', error.message)
-  }
-}
-
-async function runAllTests() {
-  console.log('🚀 Starting Multi-Carrier Rate Generation Tests')
-  console.log('==============================================\n')
-  
-  await testGenerateAllCarriers()
-  await testInvalidMethod()
-  
-  console.log('\n🏁 All tests completed!')
-}
-
-// Run tests
-runAllTests().catch(console.error)
+generateAllRates().catch(console.error)

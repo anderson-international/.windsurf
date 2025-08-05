@@ -1,3 +1,12 @@
+/**
+ * Shopify Zones Inspector
+ * 
+ * Utility to debug GraphQL response structure from Shopify related to shipping zones.
+ * Helps diagnose issues with zone retrieval and structure.
+ * 
+ * Usage: node scripts/shopify-zones-inspector.js
+ */
+
 require('dotenv').config()
 
 async function debugGraphQLResponse() {
