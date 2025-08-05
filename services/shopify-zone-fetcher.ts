@@ -7,17 +7,34 @@ interface ShopifyZone {
 
 interface ShopifyZoneResponse {
   data: {
-    shop: {
-      shippingZones: {
-        edges: Array<{
-          node: {
-            id: string
-            name: string
-          }
-        }>
-      }
+    deliveryProfiles: {
+      edges: Array<{
+        node: {
+          id: string
+          name: string
+          default: boolean
+          profileLocationGroups: Array<{
+            locationGroup: {
+              id: string
+            }
+            locationGroupZones: {
+              edges: Array<{
+                node: {
+                  zone: {
+                    id: string
+                    name: string
+                  }
+                }
+              }>
+            }
+          }>
+        }
+      }>
     }
   }
+  errors?: Array<{
+    message: string
+  }>
 }
 
 export class ShopifyZoneFetcher {
@@ -30,12 +47,26 @@ export class ShopifyZoneFetcher {
   async fetchAllZones(): Promise<ShopifyZone[]> {
     const query = `
       query GetShippingZones {
-        shop {
-          shippingZones(first: 50) {
-            edges {
-              node {
-                id
-                name
+        deliveryProfiles(first: 10) {
+          edges {
+            node {
+              id
+              name
+              default
+              profileLocationGroups {
+                locationGroup {
+                  id
+                }
+                locationGroupZones(first: 50) {
+                  edges {
+                    node {
+                      zone {
+                        id
+                        name
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -62,10 +93,44 @@ export class ShopifyZoneFetcher {
 
       const data: ShopifyZoneResponse = await response.json()
       
-      return data.data.shop.shippingZones.edges.map(edge => ({
-        id: edge.node.id,
-        name: edge.node.name
-      }))
+      // Check for GraphQL errors
+      if (data.errors && data.errors.length > 0) {
+        const errorMessages = data.errors.map(err => err.message).join(', ')
+        throw new Error(`GraphQL errors: ${errorMessages}`)
+      }
+      
+      // Check if data structure exists
+      if (!data.data || !data.data.deliveryProfiles) {
+        throw new Error(`Invalid response structure: ${JSON.stringify(data)}`)
+      }
+      
+      // Find the General Profile (default profile)
+      const generalProfile = data.data.deliveryProfiles.edges.find(
+        profileEdge => profileEdge.node.default === true
+      )
+      
+      if (!generalProfile) {
+        throw new Error('General Profile (default delivery profile) not found')
+      }
+      
+      console.log(`📋 Found General Profile: "${generalProfile.node.name}" with ID: ${generalProfile.node.id}`)
+      
+      // Extract zones only from the General Profile
+      const zones: ShopifyZone[] = []
+      
+      generalProfile.node.profileLocationGroups.forEach(locationGroup => {
+        locationGroup.locationGroupZones.edges.forEach(zoneEdge => {
+          const zone = zoneEdge.node.zone
+          zones.push({
+            id: zone.id,
+            name: zone.name
+          })
+        })
+      })
+      
+      console.log(`✅ Found ${zones.length} zones in General Profile: ${zones.map(z => z.name).join(', ')}`)
+      
+      return zones
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'

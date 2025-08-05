@@ -1,11 +1,11 @@
 /**
- * Shipping Rates Deployment Script
+ * Dry-Run Deployment Script
  * 
- * Deploys generated shipping rates to all Shopify zones using the modern API.
- * Leverages the automated rate generation and deployment system.
+ * Previews what would be deployed to Shopify without making any changes.
+ * Shows the exact GraphQL queries and variables that would be sent.
  * 
  * Usage: 
- *   node scripts/deploy-shipping-rates.js  # Live deployment to Shopify
+ *   node scripts/dry-run-deployment.js  # Preview deployment without changes
  */
 
 const http = require('http');
@@ -14,7 +14,7 @@ const http = require('http');
 const CONFIG = {
   hostname: 'localhost',
   port: 3000,
-  timeout: 120000 // 2 minutes timeout for deployment
+  timeout: 120000 // 2 minutes timeout for analysis
 };
 
 function log(message) {
@@ -56,7 +56,20 @@ function makeRequest(options, body = null) {
     });
 
     req.on('error', (error) => {
-      reject(new Error(`Request failed: ${error.message}`));
+      // Enhanced error details for better debugging
+      const errorDetails = {
+        message: error.message || 'Unknown error',
+        code: error.code,
+        syscall: error.syscall,
+        errno: error.errno
+      };
+      
+      let errorMessage = `Request failed: ${errorDetails.message}`;
+      if (errorDetails.code) {
+        errorMessage += ` (${errorDetails.code})`;
+      }
+      
+      reject(new Error(errorMessage));
     });
 
     req.on('timeout', () => {
@@ -72,13 +85,16 @@ function makeRequest(options, body = null) {
   });
 }
 
-async function deployAllZones() {
+async function dryRunDeployment() {
   log('============================================================');
-  log('🚀 SHOPIFY SHIPPING RATES DEPLOYMENT - LIVE');
+  log('🔍 SHOPIFY SHIPPING RATES DRY-RUN PREVIEW');
   log('============================================================\n');
+  
+  log('🔍 DRY RUN MODE: No changes will be made to Shopify');
+  log('📋 This will show the exact GraphQL queries that would be executed\n');
 
   try {
-    log('📊 Deploying rates to all Shopify zones...');
+    log('📊 Analyzing deployment to all Shopify zones...');
     log('⏳ This may take a few minutes...\n');
 
     const deployResponse = await makeRequest({
@@ -86,7 +102,7 @@ async function deployAllZones() {
       port: CONFIG.port,
       path: '/api/rates/deploy-all-zones',
       method: 'POST'
-    });
+    }, { dry_run: true });
 
     if (deployResponse.status !== 200) {
       throw new Error(`HTTP ${deployResponse.status}: ${JSON.stringify(deployResponse.data)}`);
@@ -95,37 +111,36 @@ async function deployAllZones() {
     const result = deployResponse.data;
 
     if (!result.success) {
-      throw new Error(result.error || 'Deployment failed');
+      throw new Error(result.error || 'Dry-run analysis failed');
     }
 
     // Display results
     log('============================================================');
-    log('🎉 DEPLOYMENT COMPLETE:');
+    log('🔍 DRY-RUN ANALYSIS COMPLETE:');
     log('============================================================');
     
-    log(`📊 Total zones processed: ${result.total_zones_processed}`);
-    log(`✅ Successful deployments: ${result.successful_deployments}`);
-    log(`❌ Failed deployments: ${result.failed_deployments}`);
+    log(`📊 Total zones analyzed: ${result.total_zones_processed}`);
+    log(`✅ Zones ready for deployment: ${result.successful_deployments}`);
+    log(`❌ Zones with issues: ${result.failed_deployments}`);
     
     if (result.results && result.results.length > 0) {
-      log('\n📋 Zone-by-zone results:');
+      log('\n📋 Zone-by-zone analysis:');
       result.results.forEach((zoneResult, index) => {
         const status = zoneResult.success ? '✅' : '❌';
-        const rates = zoneResult.success ? ` (${zoneResult.rates_deployed} rates)` : '';
+        const rates = zoneResult.success ? ` (${zoneResult.rates_deployed} rates ready)` : '';
         log(`   ${index + 1}. ${status} ${zoneResult.zone_name}${rates}`);
         
         if (!zoneResult.success && zoneResult.error) {
-          log(`      Error: ${zoneResult.error}`);
+          log(`      Issue: ${zoneResult.error}`);
         }
       });
     }
 
     log('\n============================================================');
-    log('🎉 LIVE DEPLOYMENT COMPLETE');
-    if (result.successful_deployments > 0) {
-      log('✅ Shipping rates are now live in Shopify');
-    }
-    
+    log('🔍 DRY-RUN PREVIEW COMPLETE');
+    log('📋 Check console output above for GraphQL queries that would be executed');
+    log('💡 Run the live deployment script to perform actual deployment:');
+    log('   node scripts/deploy-shipping-rates.js');
     log('============================================================');
 
     // Exit with appropriate code
@@ -133,12 +148,26 @@ async function deployAllZones() {
 
   } catch (error) {
     log('\n============================================================');
-    log('❌ DEPLOYMENT FAILED');
+    log('❌ DRY-RUN ANALYSIS FAILED');
     log('============================================================');
     log(`Error: ${error.message}`);
     
-    if (error.message.includes('ECONNREFUSED')) {
+    // Check for various connection-related errors
+    const errorMsg = error.message.toLowerCase();
+    if (errorMsg.includes('econnrefused') || 
+        errorMsg.includes('connection refused') ||
+        errorMsg.includes('connect econnrefused') ||
+        errorMsg.includes('request failed') && errorMsg.includes('econnrefused')) {
       log('\n💡 Make sure the development server is running:');
+      log('   npm run dev');
+    } else if (errorMsg.includes('enotfound') || errorMsg.includes('getaddrinfo')) {
+      log('\n💡 Check hostname and port configuration:');
+      log(`   Currently trying: ${CONFIG.hostname}:${CONFIG.port}`);
+    } else if (errorMsg.includes('timeout')) {
+      log('\n💡 Server might be running but not responding:');
+      log('   Check if the server is fully started and responsive');
+    } else {
+      log('\n💡 If the development server isn\'t running, start it with:');
       log('   npm run dev');
     }
     
@@ -147,5 +176,5 @@ async function deployAllZones() {
   }
 }
 
-// Run the deployment
-deployAllZones();
+// Run the dry-run analysis
+dryRunDeployment();

@@ -8,6 +8,13 @@ interface ZoneRateResponse {
   total_rates_generated: number
   message: string
   error?: string
+  error_details?: {
+    error_type: string
+    original_message: string
+    zone_context: string
+    dry_run_mode: boolean
+    stack_trace?: string[]
+  }
 }
 
 export default async function handler(
@@ -26,6 +33,8 @@ export default async function handler(
   }
 
   const zoneName = req.query.zoneName as string
+  const { dry_run = false } = req.body || {}
+  
   if (!zoneName) {
     return res.status(400).json({
       success: false,
@@ -39,19 +48,38 @@ export default async function handler(
 
   try {
     const service = new ZoneRateGenerationService()
-    const result = await service.generateAndDeployZoneRates(zoneName)
+    const result = await service.generateAndDeployZoneRates(zoneName, dry_run)
     
     return res.status(200).json(result)
   } catch (error) {
+    // Enhanced error handling with detailed diagnostic information
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
+    const errorName = error instanceof Error ? error.name : 'UnknownError'
+    
+    // Log detailed error information for debugging
+    console.error(`❌ Zone generation failed for '${zoneName}':`, {
+      name: errorName,
+      message: errorMessage,
+      stack: errorStack,
+      zoneName,
+      dryRun: dry_run
+    })
     
     return res.status(500).json({
       success: false,
       zone_name: zoneName,
       rates_deployed: 0,
       total_rates_generated: 0,
-      message: 'Internal server error',
-      error: errorMessage
+      message: 'Zone rate generation failed',
+      error: `${errorName}: ${errorMessage}`,
+      error_details: {
+        error_type: errorName,
+        original_message: errorMessage,
+        zone_context: zoneName,
+        dry_run_mode: dry_run,
+        stack_trace: errorStack?.split('\n').slice(0, 5) // First 5 lines of stack trace
+      }
     })
   }
 }

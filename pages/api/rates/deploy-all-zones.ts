@@ -36,10 +36,11 @@ export default async function handler(
   }
 
   const timestamp = new Date().toISOString()
+  const { dry_run = false } = req.body || {}
 
   try {
     const orchestrator = new MultiZoneOrchestrator()
-    const result = await orchestrator.orchestrateAllZones()
+    const result = await orchestrator.orchestrateAllZones(dry_run)
 
     return res.status(200).json({
       success: true,

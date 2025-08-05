@@ -14,17 +14,17 @@ export class ShopifyContextResolver {
 
   async resolveContextForZone(zoneName: string): Promise<ShopifyContext> {
     try {
-      return await this.graphqlService.fetchShopifyContext(zoneName)
+      return await this.graphqlService.fetchShopifyContextByZoneName(zoneName)
     } catch (error) {
       throw new Error(`Failed to resolve context for zone ${zoneName}: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
   async fetchShopifyContextForZone(zoneId: string): Promise<ShopifyContext> {
-    return this.graphqlService.fetchShopifyContext(zoneId)
+    throw new Error('fetchShopifyContextForZone by ID is deprecated. Use fetchShopifyContextForZoneName instead.')
   }
 
   async fetchShopifyContextForZoneName(zoneName: string): Promise<ShopifyContext> {
-    return this.graphqlService.fetchShopifyContextByName(zoneName)
+    return this.graphqlService.fetchShopifyContextByZoneName(zoneName)
   }
 }

@@ -26,7 +26,7 @@ export class ZoneRateProcessor {
     const maxParcels = Math.ceil(carrierInfo.max_total_weight / carrierInfo.max_parcel_weight)
     
     for (let parcel = 1; parcel <= maxParcels; parcel++) {
-      const parcelRanges = weightCalculator.generateParcelRanges(parcel, carrierInfo.max_parcel_weight)
+      const parcelRanges = weightCalculator.generateParcelRangesFromTariffs(tariffs, parcel, carrierInfo.max_parcel_weight)
       let currentParcelMaxRate = 0
       
       parcelRanges.forEach(range => {

@@ -17,7 +17,7 @@ export class MultiZoneOrchestrator {
     this.zoneProcessor = new ZoneProcessor(baseUrl)
   }
 
-  async orchestrateAllZones(): Promise<OrchestrationResult> {
+  async orchestrateAllZones(dryRun: boolean = false): Promise<OrchestrationResult> {
     try {
       const zones = await this.fetchShopifyZones()
       
@@ -30,7 +30,43 @@ export class MultiZoneOrchestrator {
         }
       }
 
-      const results = await this.zoneProcessor.processAllZones(zones)
+      console.log(`📋 Processing ${zones.length} zones with fail-fast on first error...`)
+      console.log(`📦 Zone contexts will be fetched once and cached automatically`)
+      
+      // Process zones one by one with fail-fast on any error
+      const results: ZoneProcessingResult[] = []
+      
+      for (const zone of zones) {
+        console.log(`🔍 Processing zone: ${zone.name}`)
+        const result = await this.zoneProcessor.processZone(zone, dryRun)
+        results.push(result)
+        
+        if (!result.success) {
+          // Fail fast on first error
+          const detailedError = {
+            systematic_issue_detected: true,
+            failed_zone: result.zone_name,
+            error_details: result.error,
+            diagnostic_message: result.message,
+            zones_processed: results.length,
+            total_zones_available: zones.length,
+            recommendation: 'Fix the underlying issue before processing remaining zones'
+          }
+          
+          console.error(`❌ Error detected in zone '${zone.name}' - stopping processing`)
+          console.error('Error details:', JSON.stringify(detailedError, null, 2))
+          
+          return {
+            total_zones_processed: results.length,
+            successful_deployments: results.filter(r => r.success).length,
+            failed_deployments: results.filter(r => !r.success).length,
+            results,
+            systematic_error: detailedError
+          }
+        }
+        
+        console.log(`✅ Zone '${zone.name}' processed successfully`)
+      }
       return this.compileResults(results)
 
     } catch (error) {

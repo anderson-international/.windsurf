@@ -27,6 +27,7 @@ export interface ZoneContextResponse {
     edges: Array<{
       node: {
         id: string
+        default?: boolean
         profileLocationGroups: Array<{
           locationGroup: {
             id: string

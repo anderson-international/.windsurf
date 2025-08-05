@@ -18,4 +18,12 @@ export interface OrchestrationResult {
   successful_deployments: number
   failed_deployments: number
   results: ZoneProcessingResult[]
+  systematic_error?: {
+    systematic_issue_detected: boolean
+    failed_zone: string
+    error_details?: string
+    diagnostic_message: string
+    total_zones_available: number
+    recommendation: string
+  }
 }

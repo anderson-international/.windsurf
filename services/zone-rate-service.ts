@@ -18,7 +18,7 @@ export class ZoneRateGenerationService {
     }
   }
 
-  async generateAndDeployZoneRates(zoneName: string): Promise<ZoneRateResponse> {
+  async generateAndDeployZoneRates(zoneName: string, dryRun: boolean = false): Promise<ZoneRateResponse> {
     try {
       const ratesToDeploy = await this.collector.buildInMemoryRatesCollection(zoneName)
 
@@ -32,7 +32,7 @@ export class ZoneRateGenerationService {
         }
       }
 
-      const deploymentResult = await this.deployRatesToShopify(zoneName, ratesToDeploy)
+      const deploymentResult = await this.deployRatesToShopify(zoneName, ratesToDeploy, dryRun)
       
       return {
         success: true,
@@ -50,13 +50,14 @@ export class ZoneRateGenerationService {
 
   private async deployRatesToShopify(
     zoneName: string, 
-    rates: GeneratedRate[]
+    rates: GeneratedRate[],
+    dryRun: boolean = false
   ): Promise<{ rates_deployed: number }> {
     const contextResolver = new ShopifyContextResolver(this.shopifyConfig)
     const rateDeployer = new ShopifyRateDeployer(this.shopifyConfig)
 
     const shopifyContext = await contextResolver.fetchShopifyContextForZoneName(zoneName)
-    await rateDeployer.deployZoneRates(shopifyContext.zoneId, rates, shopifyContext)
+    await rateDeployer.deployZoneRates(shopifyContext.zoneId, rates, shopifyContext, dryRun)
 
     return { rates_deployed: rates.length }
   }

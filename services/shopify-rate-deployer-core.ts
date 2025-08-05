@@ -10,7 +10,7 @@ export class ShopifyRateDeployer {
     this.graphqlService = new ShopifyRateDeployerGraphQL(config)
   }
 
-  async deployZoneRates(zoneId: string, rates: GeneratedRate[], context: ShopifyContext): Promise<void> {
+  async deployZoneRates(zoneId: string, rates: GeneratedRate[], context: ShopifyContext, dryRun: boolean = false): Promise<void> {
     const shippingRates: ShippingRate[] = rates.map((rate, index) => ({
       id: `${zoneId}-${index}`,
       title: rate.rate_title,
@@ -29,7 +29,8 @@ export class ShopifyRateDeployer {
       context.locationGroupId, 
       zoneId, 
       shippingRates,
-      context.existingMethodDefinitionIds
+      context.existingMethodDefinitionIds,
+      dryRun
     )
   }
 
@@ -38,14 +39,16 @@ export class ShopifyRateDeployer {
     locationGroupId: string, 
     zoneId: string, 
     rates: ShippingRate[],
-    existingMethodDefinitionIds: string[]
+    existingMethodDefinitionIds: string[],
+    dryRun: boolean = false
   ): Promise<void> {
     return this.graphqlService.updateProfileWithRates(
       profileId,
       locationGroupId,
       zoneId,
       rates,
-      existingMethodDefinitionIds
+      existingMethodDefinitionIds,
+      dryRun
     )
   }
 }

@@ -2,20 +2,37 @@ import { ShopifyGraphQLClient } from './shopify-graphql-client'
 import type { ShopifyConfig, ShopifyContext } from './shopify-config'
 import { ZoneContextResponse } from '../types/shopify-query-responses'
 
+// Module-level cache that persists across all instances
+let profileDataCache: ZoneContextResponse | null = null
+
 export class ShopifyContextFetcher {
   private readonly graphqlClient: ShopifyGraphQLClient
 
   constructor(config: ShopifyConfig) {
     this.graphqlClient = new ShopifyGraphQLClient(config)
   }
+  
+  // Clear cache method for testing or forced refresh
+  static clearCache() {
+    profileDataCache = null
+  }
 
-  async fetchShopifyContext(zoneId: string): Promise<ShopifyContext> {
+  async fetchAllZoneContexts(): Promise<ZoneContextResponse> {
+    // Return cached data if available
+    if (profileDataCache) {
+      console.log('📦 Using cached profile data')
+      return profileDataCache
+    }
+    
+    console.log('🔍 Fetching all zone contexts from General Profile (single API call)...')
+    
     const query = `
       query GetZoneContext {
         deliveryProfiles(first: 50) {
           edges {
             node {
               id
+              default
               profileLocationGroups {
                 locationGroup {
                   id
@@ -46,6 +63,14 @@ export class ShopifyContextFetcher {
     `
 
     const response = await this.graphqlClient.executeQuery<ZoneContextResponse>(query)
+    console.log(`✅ Fetched zone contexts from Shopify - caching for future use`)
+    profileDataCache = response  // Cache the response
+    return response
+  }
+
+  async fetchShopifyContextByZoneName(zoneName: string): Promise<ShopifyContext> {
+    // Always use cached data if available, otherwise fetch once
+    const response = await this.fetchAllZoneContexts()
     
     for (const profileEdge of response.deliveryProfiles.edges) {
       const profile = profileEdge.node
@@ -54,7 +79,7 @@ export class ShopifyContextFetcher {
         for (const zoneEdge of locationGroup.locationGroupZones.edges) {
           const zoneNode = zoneEdge.node
           
-          if (zoneNode.zone.id === zoneId) {
+          if (zoneNode.zone.name === zoneName) {
             const existingMethodDefinitionIds = zoneNode.methodDefinitions.edges.map(
               (edge: { node: { id: string } }) => edge.node.id
             )
@@ -62,7 +87,7 @@ export class ShopifyContextFetcher {
             return {
               profileId: profile.id,
               locationGroupId: locationGroup.locationGroup.id,
-              zoneId: zoneId,
+              zoneId: zoneNode.zone.id,
               zoneName: zoneNode.zone.name,
               existingMethodDefinitionIds
             }
@@ -71,10 +96,6 @@ export class ShopifyContextFetcher {
       }
     }
     
-    throw new Error(`Zone ${zoneId} not found in any delivery profile`)
-  }
-
-  async fetchShopifyContextByName(zoneName: string): Promise<ShopifyContext> {
-    throw new Error(`fetchShopifyContextByName not yet implemented for zone: ${zoneName}`)
+    throw new Error(`Zone "${zoneName}" not found in any delivery profile`)
   }
 }

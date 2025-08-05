@@ -21,32 +21,50 @@ export class ZoneRateCollector {
     const allRates: GeneratedRate[] = []
     const processedCarrierIds = new Set<number>()
 
+    // Group zone-specific tariffs by carrier ID
     const zoneTariffs = await this.tariffService.fetchZoneSpecificTariffs(zoneName)
+    const zoneTariffsByCarrier = new Map<number, BaseTariff[]>()
     
     for (const zoneTariff of zoneTariffs) {
-      if (!processedCarrierIds.has(zoneTariff.carrier_id)) {
-        const carrierRates = await this.generateRatesForCarrier(
-          [zoneTariff], 
-          zoneTariff.carrier_id, 
-          zoneName
-        )
-        allRates.push(...carrierRates)
-        processedCarrierIds.add(zoneTariff.carrier_id)
+      if (!zoneTariffsByCarrier.has(zoneTariff.carrier_id)) {
+        zoneTariffsByCarrier.set(zoneTariff.carrier_id, [])
       }
+      zoneTariffsByCarrier.get(zoneTariff.carrier_id)!.push(zoneTariff)
+    }
+    
+    // Process each carrier with ALL its zone-specific tariffs
+    for (const [carrierId, carrierTariffs] of zoneTariffsByCarrier) {
+      const carrierRates = await this.generateRatesForCarrier(
+        carrierTariffs,  // Pass ALL tariffs for this carrier
+        carrierId, 
+        zoneName
+      )
+      allRates.push(...carrierRates)
+      processedCarrierIds.add(carrierId)
     }
 
+    // Group universal tariffs by carrier ID
     const universalTariffs = await this.tariffService.fetchUniversalTariffs()
+    const universalTariffsByCarrier = new Map<number, BaseTariff[]>()
     
     for (const universalTariff of universalTariffs) {
       if (!processedCarrierIds.has(universalTariff.carrier_id)) {
-        const carrierRates = await this.generateRatesForCarrier(
-          [universalTariff], 
-          universalTariff.carrier_id, 
-          zoneName
-        )
-        allRates.push(...carrierRates)
-        processedCarrierIds.add(universalTariff.carrier_id)
+        if (!universalTariffsByCarrier.has(universalTariff.carrier_id)) {
+          universalTariffsByCarrier.set(universalTariff.carrier_id, [])
+        }
+        universalTariffsByCarrier.get(universalTariff.carrier_id)!.push(universalTariff)
       }
+    }
+    
+    // Process each carrier with ALL its universal tariffs
+    for (const [carrierId, carrierTariffs] of universalTariffsByCarrier) {
+      const carrierRates = await this.generateRatesForCarrier(
+        carrierTariffs,  // Pass ALL tariffs for this carrier
+        carrierId, 
+        zoneName
+      )
+      allRates.push(...carrierRates)
+      processedCarrierIds.add(carrierId)
     }
 
     return allRates
