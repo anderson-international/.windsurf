@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+
 }
 
 datasource db {
@@ -7,35 +8,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model carriers {
-  id               Int                @id(map: "carriers_new_pkey") @default(autoincrement())
-  name             String             @unique(map: "carriers_new_name_key") @db.VarChar(255)
-  carrier_services carrier_services[]
-}
-
-model zone_tariffs {
+model carrier_service_deployment_exclusions {
   id                 Int              @id @default(autoincrement())
-  zone_name          String           @db.VarChar(255)
-  weight_kg          Decimal          @db.Decimal(5, 2)
-  tariff_amount      Decimal          @db.Decimal(10, 2)
+  carrier_service_id Int
+  excluded_zone_name String           @db.VarChar(255)
   created_at         DateTime?        @default(now()) @db.Timestamp(6)
-  carrier_service_id Int
-  carrier_services   carrier_services @relation(fields: [carrier_service_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "zone_tariffs_carrier_services_fk")
+  carrier_services   carrier_services @relation(fields: [carrier_service_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  @@index([weight_kg], map: "idx_zone_tariffs_weight")
-  @@index([zone_name], map: "idx_zone_tariffs_zone_name")
-  @@index([carrier_service_id, weight_kg], map: "idx_zone_tariffs_carrier_weight")
-  @@index([carrier_service_id, zone_name], map: "idx_zone_tariffs_carrier_zone")
-}
-
-model universal_tariffs {
-  id                 Int              @id @default(autoincrement())
-  carrier_service_id Int
-  weight_kg          Decimal          @db.Decimal(4, 2)
-  tariff_amount      Decimal          @db.Decimal(8, 2)
-  carrier_services   carrier_services @relation(fields: [carrier_service_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "universal_tariffs_carrier_services_fk")
-
-  @@index([carrier_service_id, weight_kg], map: "idx_universal_carrier_weight")
+  @@unique([carrier_service_id, excluded_zone_name], map: "carrier_service_deployment_ex_carrier_service_id_excluded_z_key")
 }
 
 model carrier_service_zones {
@@ -50,20 +30,52 @@ model carrier_service_zones {
 }
 
 model carrier_services {
-  id                    Int                     @id @default(autoincrement())
-  carrier_id            Int
-  service_name          String                  @db.VarChar(255)
-  delivery_description  String                  @db.VarChar(255)
-  margin_percentage     Decimal                 @db.Decimal(5, 2)
-  max_parcel_weight     Decimal                 @default(2.00) @db.Decimal(5, 2)
-  max_total_weight      Decimal                 @default(8.00) @db.Decimal(5, 2)
-  zone_scope            zone_scope_enum?        @default(UNIVERSAL)
-  carrier_service_zones carrier_service_zones[]
-  carriers              carriers                @relation(fields: [carrier_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  universal_tariffs     universal_tariffs[]
-  zone_tariffs          zone_tariffs[]
+  id                                    Int                                     @id @default(autoincrement())
+  carrier_id                            Int
+  service_name                          String                                  @db.VarChar(255)
+  delivery_description                  String                                  @db.VarChar(255)
+  margin_percentage                     Decimal                                 @db.Decimal(5, 2)
+  max_parcel_weight                     Decimal                                 @default(2.00) @db.Decimal(5, 2)
+  max_total_weight                      Decimal                                 @default(8.00) @db.Decimal(5, 2)
+  zone_scope                            zone_scope_enum?                        @default(UNIVERSAL)
+  carrier_service_deployment_exclusions carrier_service_deployment_exclusions[]
+  carrier_service_zones                 carrier_service_zones[]
+  carriers                              carriers                                @relation(fields: [carrier_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  universal_tariffs                     universal_tariffs[]
+  zone_tariffs                          zone_tariffs[]
 
   @@unique([carrier_id, service_name])
+}
+
+model carriers {
+  id               Int                @id(map: "carriers_new_pkey") @default(autoincrement())
+  name             String             @unique(map: "carriers_new_name_key") @db.VarChar(255)
+  carrier_services carrier_services[]
+}
+
+model universal_tariffs {
+  id                 Int              @id @default(autoincrement())
+  carrier_service_id Int
+  weight_kg          Decimal          @db.Decimal(4, 2)
+  tariff_amount      Decimal          @db.Decimal(8, 2)
+  carrier_services   carrier_services @relation(fields: [carrier_service_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "universal_tariffs_carrier_services_fk")
+
+  @@index([carrier_service_id, weight_kg], map: "idx_universal_carrier_weight")
+}
+
+model zone_tariffs {
+  id                 Int              @id @default(autoincrement())
+  zone_name          String           @db.VarChar(255)
+  weight_kg          Decimal          @db.Decimal(5, 2)
+  tariff_amount      Decimal          @db.Decimal(10, 2)
+  created_at         DateTime?        @default(now()) @db.Timestamp(6)
+  carrier_service_id Int
+  carrier_services   carrier_services @relation(fields: [carrier_service_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "zone_tariffs_carrier_services_fk")
+
+  @@index([carrier_service_id, weight_kg], map: "idx_zone_tariffs_carrier_weight")
+  @@index([carrier_service_id, zone_name], map: "idx_zone_tariffs_carrier_zone")
+  @@index([weight_kg], map: "idx_zone_tariffs_weight")
+  @@index([zone_name], map: "idx_zone_tariffs_zone_name")
 }
 
 enum RateType {

@@ -21,11 +21,19 @@ export class ZoneRateCollector {
     const allRates: GeneratedRate[] = []
     const processedCarrierIds = new Set<number>()
 
+    // Get deployment exclusions for this zone
+    const excludedCarrierIds = await this.getDeploymentExclusions(zoneName)
+
     // Group zone-specific tariffs by carrier ID
     const zoneTariffs = await this.tariffService.fetchZoneSpecificTariffs(zoneName)
     const zoneTariffsByCarrier = new Map<number, BaseTariff[]>()
     
     for (const zoneTariff of zoneTariffs) {
+      // Skip if this carrier is excluded from this zone
+      if (excludedCarrierIds.includes(zoneTariff.carrier_id)) {
+        continue
+      }
+      
       if (!zoneTariffsByCarrier.has(zoneTariff.carrier_id)) {
         zoneTariffsByCarrier.set(zoneTariff.carrier_id, [])
       }
@@ -49,6 +57,11 @@ export class ZoneRateCollector {
     
     for (const universalTariff of universalTariffs) {
       if (!processedCarrierIds.has(universalTariff.carrier_id)) {
+        // Skip if this carrier is excluded from this zone
+        if (excludedCarrierIds.includes(universalTariff.carrier_id)) {
+          continue
+        }
+        
         if (!universalTariffsByCarrier.has(universalTariff.carrier_id)) {
           universalTariffsByCarrier.set(universalTariff.carrier_id, [])
         }
@@ -77,5 +90,18 @@ export class ZoneRateCollector {
   ): Promise<GeneratedRate[]> {
     const carrierInfo = await this.tariffService.fetchCarrierInfo(carrierId)
     return this.processor.generateRatesForZone(tariffs, carrierInfo, carrierId, zoneName)
+  }
+
+  private async getDeploymentExclusions(zoneName: string): Promise<number[]> {
+    const exclusions = await this.prisma.carrier_service_deployment_exclusions.findMany({
+      where: {
+        excluded_zone_name: zoneName
+      },
+      select: {
+        carrier_service_id: true
+      }
+    })
+    
+    return exclusions.map(exclusion => exclusion.carrier_service_id)
   }
 }
