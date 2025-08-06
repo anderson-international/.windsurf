@@ -33,17 +33,7 @@ cmd /c type docs\review\code_review.md
 ## 2. Fix Process (Mandatory Sequence)
 
 ### Step 1: Batch Comment Removal
-
-**Analysis**: List all files with comments, count total violations
-
-**Approval Request**:
 ```
-**Batch Comment Deletion**
-Files: [file1] ([n] comments), [file2] ([n] comments)...
-Total: [n] comments | Risk: Safe | Verification: Size re-analysis
-Approve? [Yes/No]
-```
-
 **Apply Fix**: Use batch script, then re-run size analysis:
 ```bash
 # // turbo
@@ -54,22 +44,12 @@ cmd /c node docs\scripts\code-size.js [previously-commented-files]
 ### Step 2: Console Statement Fixes
 
 #### 2A. Batch Console.log Removal
-
-**Analysis**: List all files with console.log/debug/info violations
-
-**Approval Request**:
 ```
-**Batch Console Removal**
-Files: [file1] ([n] console statements), [file2] ([n] console statements)...
-Total: [n] console.log/debug/info | Risk: Safe | Skips: console.error/warn
-Approve? [Yes/No]
-```
-
-**Apply Fix**: Use batch script to remove debugging console statements:
+**Apply Fix**: Use batch script, then re-run size analysis:
 ```bash
 # // turbo
 cmd /c node docs\scripts\code-fix.js --console [file1] [file2] [file3] ...
-```
+cmd /c node docs\scripts\code-size.js [previously-commented-files]
 
 #### 2B. Console.error/warn Analysis (BLOCKING VIOLATIONS)
 
