@@ -30,10 +30,6 @@ description: Independent code reviewer - fresh analysis only
 
 **⚠️ CRITICAL**: All analysis commands must filter files according to these exclusions
 
-### Methodology
-
-**Analyze → Report → Seek Approval → Execute**
-
 ---
 ##🚨 START: Run Critical Workflow
 /run cmd-syntax
@@ -84,6 +80,7 @@ Use ONLY this data - no assumptions or inferences
 **Note**: Table for analysis only. Final output uses task format.
 
 ### 5. Create Final Report
+Do not seek approval. Write the report and finish the task
 ```bash
 cmd /c del docs\review\code_review.md
 write_to_file docs/review/code_review.md

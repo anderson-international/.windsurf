@@ -33,6 +33,8 @@ cmd /c type docs\review\code_review.md
 ## 2. Fix Process (Mandatory Sequence)
 
 ### Step 1: Batch Comment Removal
+Always use the node docs\scripts\code-fix.js tool for to batch remove comments and console statements
+
 ```
 **Apply Fix**: Use batch script, then re-run size analysis:
 ```bash
