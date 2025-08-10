@@ -21,7 +21,7 @@ description: Mandatory code quality for all file operations
 
 ### Command to Execute
 ```bash
-node docs/scripts/code-review-analyzer.js [file-path]
+node docs/scripts/code-review-analyzer.js [file-1] [file-2]
 ```
 
 ### File Scope
@@ -32,8 +32,7 @@ node docs/scripts/code-review-analyzer.js [file-path]
 ### Rules
 1. **New Files**: Immediately run analyzer on created file
 2. **File Edits**: Immediately run analyzer on modified file  
-4. **No Judgment Calls**: Every file operation triggers validation
-5. **Fix Issues Immediately**: Address any violations before proceeding
+3. **Fix Issues Immediately**: Address any violations before proceeding
 
 ### Enforcement
 - **Zero tolerance** for skipping validation

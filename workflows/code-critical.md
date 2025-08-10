@@ -13,6 +13,7 @@ This workflow loads the most critical constraints and patterns that AIs regularl
 cmd /c node docs/scripts/docs-loader.js --help
 cmd /c node docs/scripts/schema-query.js --help
 cmd /c node docs/scripts/code-review-analyzer.js --help
+cmd /c node docs/scripts/code-fix.js --help
 ```
 
 ## SECOND: Run critical workflows
@@ -43,4 +44,4 @@ cmd /c node docs/scripts/schema-query.js --index
 - **Seek Explicit Approval**: Never proceed with fixes without user confirmation
 - **Execute Systematically**: Apply fixes methodically, one at a time
 
-EXCEPTION 
+EXCEPTION

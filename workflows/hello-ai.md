@@ -10,12 +10,10 @@ This workflow establishes conversation goals, sets approval gates, and selects a
 ## **CRITICAL AI INSTRUCTION**
 Perform the steps below sequentially. Do not skip any steps. Do not rely on memories of previous runs of this workflow. Ensure you run the each workflow marked with the /run command.
 
-## Step 1
-
-### Step 1.1 - Initialise Command Syntax
+## Step 1 - Load Critical Conext
 /run code-critical
 
-### Step 1.2: Set Approval Gates
+## Step 2: Set Approval Gates
 **AI INSTRUCTION**: You must operate under these mandatory constraints:
 
 #### Methodology: Analyze → Report → Seek Approval → Execute
@@ -25,17 +23,17 @@ Perform the steps below sequentially. Do not skip any steps. Do not rely on memo
 - **Seek Explicit Approval**: Never proceed with fixes without user confirmation
 - **Execute Systematically**: Apply fixes methodically, one at a time
 
-### Step 1.3: Establish Goal(s)
+### Step 3: Establish Goal(s)
 **AI ACTION REQUIRED**: 
  - Establish the goal of this conversation.
  - Ask follow on questions until satisfied you have understood the goal.
  - **Important**: Questions should be asked one at a time. 
 
 
-## Step 2 Load Vital Context
+## Step 4 Load Vital Context
 
-### Step 2.1: Load task specific context
+### Load task specific context
 /run auto-context
 
-### Step 2.2: Load code quality validation guidance and tool usage
+### Load code quality validation guidance and tool usage
 /run code-validation

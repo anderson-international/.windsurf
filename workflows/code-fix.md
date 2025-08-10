@@ -4,32 +4,18 @@ description: Independent code fixes with strict approval gating
 
 # Code Fix Workflow
  
-**Objective**: Resolve all issues in `docs/review/code_review.md` in the mandated order.
+**Objective**: Resolve all issues in `docs/review/code_review.json` in the mandated order.
 
-**Process**: Analyze → Report → Seek Approval → Execute → Validate
-
-## Core Rules
-
-- **All tasks mandatory**; no "critical vs quality" split.
-- **Mandatory order**: Comments → Console.log/debug/info → Console.warn/error → File sizes → Types → ESLint/any
-- **Batch safe ops**: Comments and console.log/debug/info may be batched with a single approval per category.
-- **Risky ops (per-item approval)**: console.warn/error handling, file decomposition, TypeScript return/canonical types.
-- **Fresh analysis** after each change; never rely on cached assumptions.
-- **Post-change analyzer required**: After any modification in `app/`, `components/`, `lib/`, `types/`, `hooks/`, immediately run `docs\scripts\code-review-analyzer.js`.
-- **File size budgets**:
-  - components ≤ 150 lines
-  - hooks ≤ 100 lines
-  - utils ≤ 50 lines
-  - types ≤ 100 lines
-  - API routes ≤ 100 lines
-- **No auto-run markers** in this workflow; approvals are explicit.
 
 ## Phase 0 — Prepare & Load Context
 
 - Run the context workflow: `/run tech-code-quality`
-- Load the review document:
-  ```bash
-  cmd /c type docs\review\code_review.md
+- 
+Analyze JSON Data
+```bash
+view_line_range docs/review/code_review.json
+```
+
   ```
 - Summarize the findings. Wait for approval to proceed.
 
@@ -53,8 +39,6 @@ description: Independent code fixes with strict approval gating
   ```bash
   cmd /c node docs\scripts\code-fix.js --console [files...]
   ```
-
-Stop and request approval to enter Phase 3.
 
 ## Phase 3 — Risky Fixes (per-item approval)
 
