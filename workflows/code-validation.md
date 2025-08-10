@@ -32,13 +32,11 @@ node docs/scripts/code-review-analyzer.js [file-path]
 ### Rules
 1. **New Files**: Immediately run analyzer on created file
 2. **File Edits**: Immediately run analyzer on modified file  
-3. **Multiple Files**: Run analyzer on each file individually
 4. **No Judgment Calls**: Every file operation triggers validation
 5. **Fix Issues Immediately**: Address any violations before proceeding
 
 ### Enforcement
 - **Zero tolerance** for skipping validation
-- **No "trivial edit" exceptions** - all changes matter
 - **BLOCKING**: Script failures must be fixed before proceeding
 - **No workarounds** - address violations, don't ignore them
 - **Stop all work** until analyzer reports clean results
@@ -48,9 +46,3 @@ node docs/scripts/code-review-analyzer.js [file-path]
 - Prevents accumulation of technical debt
 - Catches issues early before they compound
 - Maintains project quality baseline
-
-## Test Scripts: Pure JavaScript Only
-
-**Rule**: Test scripts must use pure JavaScript - no TypeScript syntax, no compilation required
-**Execution**: Direct `node script.js` - no build steps
-**Rationale**: Fast execution, no build dependencies, immediate debugging

@@ -1,5 +1,5 @@
 ---
-description: Independent code reviewer - fresh analysis only
+description: Independent code reviewer — strict reviewer role; no fixes
 ---
 
 ## Independent Code Reviewer - Fresh Analysis Only
@@ -12,8 +12,21 @@ description: Independent code reviewer - fresh analysis only
 - ❌ **NEVER** edit imports, functions, or any source code
 - ✅ **ONLY** analyze, report, and document findings
 - ✅ **ONLY** write to `docs/review/code_review.md`
+ - ❌ **NEVER** edit `.windsurf/workflows/*` or `docs/scripts/*` as part of review. Reviewer writes report only.
 
 **Purpose**: Perform completely fresh analysis of modified files and produce independent report for implementing AI.
+
+### Dual-Agent Model (Explicit Roles)
+
+- **Reviewer (this workflow)**
+  - Analyze fresh changes (no fixes)
+  - Display summary table in chat
+  - Write final report to `docs/review/code_review.md` only
+  - Never modify production code
+- **Fixer (`@[/code-fix]` workflow)**
+  - Implements fixes in the specified order
+  - Seeks explicit approval per Analyze → Report → Seek Approval → Execute
+  - Re-runs analyzer and validates results
 
 ### Fresh Analysis Requirements
 
@@ -22,6 +35,8 @@ description: Independent code reviewer - fresh analysis only
 - Never reference previous analysis results
 - Always view file contents fresh
 - Use only current timestamp data
+
+**⚠️ CRITICAL**: Never modify production code.
 
 ### File Scope
 
@@ -33,6 +48,10 @@ description: Independent code reviewer - fresh analysis only
 ---
 ##🚨 START: Run Critical Workflow
 /run cmd-syntax
+
+### 0. Role Confirmation (Reviewer-only)
+- Confirm in chat: “I am Reviewer-only and will not modify production code.”
+- If the user requests fixes: Instruct to switch to `@[/code-fix]`.
 
 ## 5-Step Review Process
 
@@ -61,6 +80,11 @@ cmd /c node docs/scripts/code-review-analyzer.js [filtered-typescript-files-only
 cmd /c node docs/scripts/code-review-analyzer.js app/api/auth/route.ts components/wizard/WizardForm.tsx lib/services/user-service.ts
 ```
 
+### Edge Cases
+- If no changed TS/TSX files after filtering: Write an “All Clear” report with timestamp and file count; do not run the analyzer.
+- If the analyzer exits with an error: Report the stderr in chat and write a minimal report; do not infer results.
+- If files appear in git status but are absent in the JSON: Note them explicitly in chat and in the report; do not assume PASS/FAIL without JSON.
+
 ### 3. Analyze JSON Data
 ```bash
 view_line_range docs/review/code_review.json
@@ -68,16 +92,16 @@ view_line_range docs/review/code_review.json
 Use ONLY this data - no assumptions or inferences
 
 ### 4. Display Summary Table
+Use the table design including icons.
 ```markdown
 ## 📊 Code Review Analysis Summary
 
-| File | Size | Comments | React | ESLint | TypeScript | Status |
-|------|------|----------|-------|--------|------------|--------|
-| file1.ts | ✅ 92/100 | ✅ | ✅ | ❌ 2 errors | ✅ | BLOCKED |
+| File | Size | Comments | React | ESLint | TypeScript | Fallbacks | Status |
+|------|------|----------|-------|--------|------------|-----------|--------|
+| file1.ts | ✅ 92/100 | ✅ | ✅ | ❌ 2 errors | ✅ | ❌ 1 | BLOCKED |
 
-**Summary**: X files | Y critical issues | Z quality issues
+Summary: X files | Y missing return types | Z fallback violations | C comment violations
 ```
-**Note**: Table for analysis only. Final output uses task format.
 
 ### 5. Create Final Report
 Do not seek approval. Write the report and finish the task
@@ -85,8 +109,6 @@ Do not seek approval. Write the report and finish the task
 cmd /c del docs\review\code_review.md
 write_to_file docs/review/code_review.md
 ```
-
-**⚠️ CRITICAL**: This is the ONLY file you may write to. Never modify production code.
 
 **Required Sections**:
 - **TASKS**: All violations that need fixing - ALL TASKS ARE MANDATORY
@@ -133,7 +155,20 @@ write_to_file docs/review/code_review.md
 **End-State Handling**:
 - **If ANY violations found**: Keep analysis_data.json for implementing AI
 - **If completely clean**: Delete analysis_data.json, create "All Clear" code_review.md
-- **All Clear Format**: Include timestamp, file count, and "No action required" message
+- **Explicit retention rule**: If violations exist, do NOT delete `docs/review/code_review.json`. Only delete it on a completely clean run.
+
+**Handoff to Fixer (Do Not Fix Here)**
+- Provide final report path: `docs/review/code_review.md`
+- Ensure `docs/review/code_review.json` is present when violations exist
+- Mandatory task order for Fixer:
+  1. Bulk remove comments
+  2. Bulk remove console statement
+  3. Re-check file sizes
+  4. Add missing return types
+  5. Replace fallback data with composed errors
+- Reference commands for Fixer:
+  - Re-run analyzer on the same filtered list
+  - Perform focused checks for comments, return types, and fallbacks
 
 ---
 
