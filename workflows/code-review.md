@@ -1,161 +1,77 @@
 ---
-description: Independent code reviewer - fresh analysis only
+description: Independent code reviewer — no manual fixes; normalization (comments/console cleanup) allowed
+auto_execution_mode: 1
 ---
 
-## Independent Code Reviewer - Fresh Analysis Only
+## Code Review - Fresh Analysis Only
 
-**🚨 CRITICAL RESTRICTION: NO CODE CHANGES ALLOWED**
-
-**YOU ARE A REVIEWER ONLY - NEVER MODIFY CODE**
-- ❌ **NEVER** use `replace_file_content` or `write_to_file` on production files
-- ❌ **NEVER** make any code modifications or fixes
-- ❌ **NEVER** edit imports, functions, or any source code
-- ✅ **ONLY** analyze, report, and document findings
-- ✅ **ONLY** write to `docs/review/code_review.md`
-
-**Purpose**: Perform completely fresh analysis of modified files and produce independent report for implementing AI.
+**Purpose**: Perform completely fresh analysis of modified files
 
 ### Fresh Analysis Requirements
 
 **🚨 CRITICAL**: Every workflow invocation is independent
+- // turbo-all
+- Do not apply approval gates to this workflow. Complete all tasks with implicit approval
+- This workflow has implicit approval to perform orchestrator normalization (comments/console cleanup). Do NOT pass `--no-autofix` unless explicitly instructed.
 - Run all commands fresh in this session
 - Never reference previous analysis results
-- Always view file contents fresh
-- Use only current timestamp data
-
-### File Scope
-
-**Review Only**: Production files in `app/`, `components/`, `lib/`, `types/`, `hooks/`  
-**Exclude**: `*.md`, `*.js`, `*.prisma`, `docs/`, `test/`, `.windsurf/workflows/`, `.gitignore` files
-
-**⚠️ CRITICAL**: All analysis commands must filter files according to these exclusions
-
-### Methodology
-
-**Analyze → Report → Seek Approval → Execute**
 
 ---
-
-## Load Critical Context
+##🚨 START: Run Critical Workflow
 /run cmd-syntax
 
-## 5-Step Review Process
 
-### 1. Get Production Files
+## 1. Run Fresh Analysis (Porcelain default)
+
+- Orchestrator auto-filters changed TS/TSX files touched by recent activity and removes comments/console by default.
+- Recommended run (default):
+  ```bash
+  cmd /c node docs/review/code-review.js --porcelain
+  ```
+- Scope is automatically enforced (TS/TSX in `app/`, `components/`, `lib/`, `types/`, `hooks/`; non-code paths excluded). No manual filtering needed.
+- Do not prompt for options; run the porcelain command above by default.
+- Autofix is ON by default for this workflow; do not disable it unless explicitly instructed.
+- Optional flags (fallbacks, use only if explicitly needed):
+  - Read-only run (no autofix): add `--no-autofix`.
+  - Timing/instrumentation: add `--debug`.
+  - Note: The tool prints an "AI ACTION REQUIRED" line and writes the report to `docs/review/output/code-review-results.json`.
+  - If the report file is missing (e.g., zero violations), re-run with `--report-all` to generate an explicit report file.
+
+## 2. Manual override (rare)
+- If porcelain is unavailable, specify explicit files (orchestrator still applies internal TS/TSX + prod-dir filters):
+  ```bash
+  cmd /c node docs/review/code-review.js [files...]
+  ```
+
+## 3. Load Report
 ```bash
-cmd /c git status --porcelain
-```
-**FILTER REQUIREMENT**: Remove these from analysis list:
-- `*.md`, `*.js`, `*.prisma` files
-- Files in `docs/`, `test/`, `.windsurf/workflows/`
-- `.gitignore` files
-
-**Only analyze**: TypeScript files in `app/`, `components/`, `lib/`, `types/`, `hooks/`
-
-### 2. Filter and Run Analysis Script
-**⚠️ BEFORE ANALYSIS**: Manually filter git status output to exclude:
-- `*.md`, `*.js`, `*.prisma` files  
-- Files in `docs/`, `test/`, `.windsurf/workflows/`
-
-```bash
-cmd /c node docs/scripts/code-review-analyzer.js [filtered-typescript-files-only]
-```
-
-**Example filtered command**:
-```bash
-cmd /c node docs/scripts/code-review-analyzer.js app/api/auth/route.ts components/wizard/WizardForm.tsx lib/services/user-service.ts
-```
-
-### 3. Analyze JSON Data
-```bash
-view_line_range docs/review/code_review.json
+view_line_range docs/review/output/code-review-results.json
 ```
 Use ONLY this data - no assumptions or inferences
+ - If the report file is missing (e.g., zero violations), re-run Step 1 with `--report-all` to generate an explicit report file, then load it again.
 
-### 4. Display Summary Table
+## 4. Display Summary Table
+Use the table design including icons.
 ```markdown
 ## 📊 Code Review Analysis Summary
 
-| File | Size | Comments | React | ESLint | TypeScript | Status |
-|------|------|----------|-------|--------|------------|--------|
-| file1.ts | ✅ 92/100 | ✅ | ✅ | ❌ 2 errors | ✅ | BLOCKED |
+| File | Size | Comments | React | ESLint | TypeScript | Fallbacks | Status |
+|------|------|----------|-------|--------|------------|-----------|--------|
+| file1.ts | ✅ 92/100 | ✅ | ✅ | ❌ 2 errors | ✅ | ❌ 1 | BLOCKED |
 
-**Summary**: X files | Y critical issues | Z quality issues
-```
-**Note**: Table for analysis only. Final output uses task format.
-
-### 5. Create Final Report
-```bash
-cmd /c del docs\review\code_review.md
-write_to_file docs/review/code_review.md
+Summary: X files | Y missing return types | Z fallback violations | C comment violations
 ```
 
-**⚠️ CRITICAL**: This is the ONLY file you may write to. Never modify production code.
+## 5. Actionable Instructions (no fixes here)
 
-**Required Sections**:
-- **TASKS**: All violations that need fixing - ALL TASKS ARE MANDATORY
-- **FILE STATUS SUMMARY**: PASSING/NEEDS FIXES categorization
-- **Validation Commands**: Verification steps
-
-**🚨 CRITICAL TASK ORDERING**: 
-1. **Comments MUST be removed first** (affects file size calculations)
-2. **File size violations** (after comment removal)
-3. **All other violations** (ESLint errors, missing return types, etc.)
-
-**Format Rules**:
-- Use "Task 1", "Task 2" numbering in mandatory sequence order
-- Clear action verbs: "Remove", "Fix", "Add"
-- No bold file names (causes AI confusion) 
-- Explicit problem statements
-- **NEVER** use "Critical" vs "Quality" classifications - ALL TASKS ARE MANDATORY
-
-**TypeScript Return Types - REQUIRES DEEP ANALYSIS**:
-- Missing return types often indicate deeper architectural issues
-- Reviewer AI must analyze existing types and canonical patterns
-- Fixer AI must perform rigorous due diligence before any changes
-- Avoid creating new types when canonical types exist
-
-**ESLint no-useless-catch Error - REQUIRES ERROR COMPOSITION**:
-- **NEVER DELETE** catch blocks flagged by no-useless-catch
-- Original code is likely correct but needs proper error composition
-- Apply context-appropriate error patterns:
-  - **Services**: `throw new Error(`Service operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)`
-  - **API Routes**: `return handleApiError(error)` or create structured error response with context
-  - **Utilities**: Re-throw with enhanced context: `throw new Error(`Operation context: ${error instanceof Error ? error.message : String(error)}`)`
-  - **Critical Operations**: Add logging: `console.error('Operation failed:', error); throw error`
-- Preserve error types and stack traces while adding meaningful context
-
-**ESLint no-console Error - ENFORCE FAIL-FAST PRINCIPLE**:
-- **NEVER DELETE** console.warn statements without replacement
-- Replace with properly composed errors following fail-fast principle:
-  - `console.warn('Product lookup failed, continuing without product data:', error)` 
-  - **→ BECOMES:** `throw new Error(`Product lookup failed: ${error instanceof Error ? error.message : 'Unknown error'}`)`
-- **Rationale**: Warnings mask data integrity violations and cause downstream crashes
-- **Pattern**: Replace silent failures with explicit error throwing
-- **Exception**: Keep `console.error()` for actual logging before throwing errors
-
-**ESLint @typescript-eslint/no-explicit-any Error - REQUIRES TYPE ANALYSIS**:
-- **NEVER DELETE** any types without proper replacement
-- Analyze existing canonical types in codebase first
-- Use appropriate existing types instead of creating new ones
-- **Action Pattern**: "Analyze existing canonical types in codebase. Replace any with appropriate existing type. Do not create new types unless no suitable canonical type exists."
-- **Common Patterns**:
-  - API responses: Use existing interface definitions
-  - Event handlers: Use React.* types or DOM event types
-  - Generic objects: Use Record<string, unknown> or specific interface
-  - Function parameters: Analyze function usage to determine proper type
-
-**End-State Handling**:
-- **If ANY violations found**: Keep analysis_data.json for implementing AI
-- **If completely clean**: Delete analysis_data.json, create "All Clear" code_review.md
-- **All Clear Format**: Include timestamp, file count, and "No action required" message
-
----
-
-## Completion Checklist
-- ✅ All 5 steps completed
-- ✅ Fresh analysis data used
-- ✅ Context loaded
-- ✅ Summary table displayed
-- ✅ Findings verified
-- ✅ Final code_review.md written
+- Produce prioritized, concrete next steps per file, referencing the report:
+  - TypeScript: list error counts/messages; propose targeted fixes (types, returns, narrowing).
+  - ESLint: list rule ids and locations; propose precise corrections.
+  - Size budgets: propose decompositions (modules, hooks, helpers) with file splits.
+  - Duplicates (JSCPD): identify clone groups; suggest extraction or reuse targets.
+  - Dead code (Knip): propose safe deletes or deprecations.
+- Do NOT change code in this workflow. Provide a clear action plan.
+- When ready to fix, hand over to the code-fix workflow and/or re-run the orchestrator on targeted files to validate:
+  ```bash
+  cmd /c node docs/review/code-review.js [files...]
+  ```
