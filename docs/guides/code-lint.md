@@ -274,12 +274,5 @@ const handleClick = useCallback(() => {
 
 - `npm run lint` - Check for issues
 - `npm run lint -- --fix` - Auto-fix simple issues
-- Use underscore prefix for intentionally unused variables
 - Add explicit return types to all functions
 - Import `Image` from 'next/image' instead of using `<img>`
-
-**IDE Setup:**
-
-- Install ESLint extension
-- Enable "Fix on Save"
-- Configure TypeScript checking

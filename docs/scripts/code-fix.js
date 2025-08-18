@@ -7,8 +7,13 @@ class CodeFixer {
       filesProcessed: 0,
       commentsRemoved: 0,
       consoleStatementsRemoved: 0,
-      errors: 0
+      errors: 0,
+      filesDeleted: 0,
+      dirsDeleted: 0,
+      missingSkipped: 0
     }
+    // Repository root (script is at docs/scripts/*)
+    this.repoRoot = path.resolve(__dirname, '../../')
   }
 
   /**
@@ -21,19 +26,19 @@ class CodeFixer {
     let result = content
 
     // Remove JSDoc blocks (/** ... */)
-    result = result.replace(/\/\*\*[\s\S]*?\*\//g, (match) => {
+    result = result.replace(/\/\*\*[\s\S]*?\*\//g, () => {
       removedCount++
       return ''
     })
 
     // Remove multi-line comments (/* ... */)
-    result = result.replace(/\/\*[\s\S]*?\*\//g, (match) => {
+    result = result.replace(/\/\*[\s\S]*?\*\//g, () => {
       removedCount++
       return ''
     })
 
     // Remove single-line comments (// ...)
-    result = result.replace(/^\s*\/\/.*$/gm, (match) => {
+    result = result.replace(/^\s*\/\/.*$/gm, () => {
       removedCount++
       return ''
     })
@@ -67,19 +72,20 @@ class CodeFixer {
     let result = content
 
     // Remove console.log statements (debugging only)
-    result = result.replace(/^\s*console\.log\([^)]*\);?\s*$/gm, (match) => {
+    // Allow optional trailing inline comments so order with --comments is irrelevant
+    result = result.replace(/^\s*console\.log\([^)]*\);?(?:\s*\/\/.*)?\s*$/gm, () => {
       removedCount++
       return ''
     })
 
     // Remove console.debug statements
-    result = result.replace(/^\s*console\.debug\([^)]*\);?\s*$/gm, (match) => {
+    result = result.replace(/^\s*console\.debug\([^)]*\);?(?:\s*\/\/.*)?\s*$/gm, () => {
       removedCount++
       return ''
     })
 
     // Remove console.info statements
-    result = result.replace(/^\s*console\.info\([^)]*\);?\s*$/gm, (match) => {
+    result = result.replace(/^\s*console\.info\([^)]*\);?(?:\s*\/\/.*)?\s*$/gm, () => {
       removedCount++
       return ''
     })
@@ -214,6 +220,93 @@ class CodeFixer {
   }
 
   /**
+   * Delete a single path (file or directory) with safety checks
+   * @param {string} targetPath - Absolute or relative path
+   * @returns {boolean}
+   */
+  deletePath(targetPath) {
+    try {
+      if (!targetPath || typeof targetPath !== 'string') {
+        console.error('❌ Invalid path argument')
+        this.stats.errors++
+        return false
+      }
+
+      const abs = path.isAbsolute(targetPath)
+        ? path.normalize(targetPath)
+        : path.resolve(process.cwd(), targetPath)
+
+      // Safety: ensure inside repository and not the repo root itself
+      const relToRoot = path.relative(this.repoRoot, abs)
+      const isOutside = relToRoot.startsWith('..') || path.isAbsolute(relToRoot)
+      if (isOutside || abs === this.repoRoot) {
+        console.error(`⛔ Refused to delete outside repository root: ${abs}`)
+        this.stats.errors++
+        return false
+      }
+
+      if (!fs.existsSync(abs)) {
+        console.log(`⏭️  Skipped (missing): ${path.relative(process.cwd(), abs)}`)
+        this.stats.missingSkipped++
+        return true
+      }
+
+      const stat = fs.lstatSync(abs)
+
+      // Prefer fs.rmSync when available (Node 14+)
+      const rm = fs.rmSync || null
+      if (stat.isDirectory()) {
+        if (rm) {
+          rm.call(fs, abs, { recursive: true, force: true })
+        } else {
+          this._removeRecursively(abs)
+        }
+        console.log(`🗂️  Deleted directory: ${path.relative(process.cwd(), abs)}`)
+        this.stats.dirsDeleted++
+      } else {
+        fs.unlinkSync(abs)
+        console.log(`🗑️  Deleted file: ${path.relative(process.cwd(), abs)}`)
+        this.stats.filesDeleted++
+      }
+
+      return true
+    } catch (error) {
+      console.error(`❌ Error deleting ${targetPath}:`, error.message)
+      this.stats.errors++
+      return false
+    }
+  }
+
+  /**
+   * Fallback recursive removal for Node versions without fs.rmSync
+   * @param {string} p
+   */
+  _removeRecursively(p) {
+    if (!fs.existsSync(p)) return
+    const stat = fs.lstatSync(p)
+    if (stat.isDirectory()) {
+      for (const entry of fs.readdirSync(p)) {
+        this._removeRecursively(path.join(p, entry))
+      }
+      fs.rmdirSync(p)
+    } else {
+      fs.unlinkSync(p)
+    }
+  }
+
+  /**
+   * Delete multiple paths
+   * @param {string[]} paths
+   */
+  deletePaths(paths) {
+    console.log(`🚀 Starting deletion for ${paths.length} path(s)...\n`)
+    for (const p of paths) {
+      this.deletePath(p)
+    }
+    this.printSummary()
+  }
+
+  /**
    * Print processing summary
    */
   printSummary() {
@@ -222,6 +315,9 @@ class CodeFixer {
     console.log(`Files processed: ${this.stats.filesProcessed}`)
     console.log(`Comments removed: ${this.stats.commentsRemoved}`)
     console.log(`Console statements removed: ${this.stats.consoleStatementsRemoved}`)
+    console.log(`Files deleted: ${this.stats.filesDeleted}`)
+    console.log(`Directories deleted: ${this.stats.dirsDeleted}`)
+    console.log(`Missing skipped: ${this.stats.missingSkipped}`)
     console.log(`Errors: ${this.stats.errors}`)
 
     if (this.stats.errors === 0 && this.stats.filesProcessed > 0) {
@@ -232,35 +328,82 @@ class CodeFixer {
 
 function showUsage() {
   console.log(`
-🔧 Code Fix Tool
+🔧 Code Fix Tool — docs/scripts/code-fix.js
 
-Usage:
-  node code-fix.js --comments <file1> <file2> ...
-  node code-fix.js --console <file1> <file2> ...
+Automate removal of code comments and debug console statements; safely delete files/directories within the repository.
 
-Flags:
-  --comments    Remove all comments from specified files
-  --console     Remove console.log/debug/info statements from specified files
+USAGE
+  node docs/scripts/code-fix.js --help
+  node docs/scripts/code-fix.js --comments <file1> [file2 ...]
+  node docs/scripts/code-fix.js --console  <file1> [file2 ...]
+  node docs/scripts/code-fix.js --delete   <path1> [path2 ...]
+  node docs/scripts/code-fix.js --comments --console <file1> [file2 ...]
+  node docs/scripts/code-fix.js --console  --comments <file1> [file2 ...]
 
-Examples:
-  node code-fix.js --comments pages/api/rates/deploy.ts
-  node code-fix.js --console pages/api/rates/deploy.ts
-  node code-fix.js --comments file1.ts file2.ts file3.ts
+OPTIONS
+  --help, -h        Show this help and exit 0
 
-Features:
-  ✅ Removes JSDoc blocks (/** ... */)
-  ✅ Removes single-line comments (// ...)
-  ✅ Removes multi-line comments (/* ... */)
-  ✅ Removes console.log/debug/info statements
-  ✅ Preserves console.error/warn for manual review
+  --comments        Remove all comments from specified files
+                    • Supports: .ts .tsx .js .jsx
+                    • Removes: JSDoc (/** ... */), multi-line (/* ... */), single-line (// ...), and inline // while preserving code
 
-  ✅ Batch processing support
-  ✅ TypeScript/JavaScript file validation
-  ✅ Processing statistics
+  --console         Remove debug console statements from specified files
+                    • Removes: console.log, console.debug, console.info
+                    • Keeps:   console.warn, console.error (intentional — review manually)
 
-Safety:
-  - Only processes .ts, .js, .tsx, .jsx files
-  - Preserves code structure and spacing
+  --delete          Delete specified files/directories (scoped to repo root)
+                    • Safe-guards:
+                      - Refuses deletion outside repo root
+                      - Refuses deleting the repo root itself
+                      - Missing paths are logged as “Skipped (missing)”
+                    • Uses fs.rmSync({ recursive: true, force: true }) when available, otherwise a safe recursive fallback
+
+COMBINING OPERATIONS
+  • You can combine --comments and --console; order does not matter
+  • --delete cannot be combined with other flags and must be used alone
+
+OUTPUT
+  • Per-item progress logs
+  • Summary block:
+      Files processed
+      Comments removed
+      Console statements removed
+      Files deleted
+      Directories deleted
+      Missing skipped
+      Errors
+
+EXIT CODES
+  0  Success (including --help)
+  1  Misuse or error (e.g., unknown flag, missing arguments, unsupported file type, deletion safety violation)
+
+EXAMPLES
+  # Remove comments from files
+  node docs/scripts/code-fix.js --comments pages/api/rates/deploy.ts
+  node docs/scripts/code-fix.js --comments file1.ts file2.tsx file3.js
+
+  # Remove debug console statements
+  node docs/scripts/code-fix.js --console pages/api/rates/deploy.ts
+
+  # Combine operations (order agnostic)
+  node docs/scripts/code-fix.js --comments --console pages/api/rates/deploy.ts
+  node docs/scripts/code-fix.js --console --comments pages/api/rates/deploy.ts
+
+  # Delete files/dirs (Windows CMD without spaces)
+  node docs/scripts/code-fix.js --delete app/assessments hooks/useAssessments.ts
+
+  # Delete files/dirs with spaces (CMD/PowerShell)
+  node docs/scripts/code-fix.js --delete "lib/services/assessment-transformers-api.ts" "lib/types/assessment types.ts"
+
+NOTES
+  • Paths may be relative to the current working directory or absolute
+  • For fix operations, only .ts, .tsx, .js, .jsx are processed; other types are rejected
+  • Globs are not expanded by CMD — pass explicit paths
+  • Use "--" to stop flag parsing if a path starts with a dash (e.g., -- "--strange-file.ts")
+
+RECOMMENDED POST-RUN (production dirs: app/, components/, lib/, types/, hooks/)
+  # Validate changes meet code quality and TypeScript checks
+  node docs/scripts/code-review-analyzer.js <modified-files>
 `)
 }
 
@@ -273,32 +416,81 @@ function main() {
     process.exit(1)
   }
 
-  const flag = args[0]
-  const files = args.slice(1)
+  // Help flag can appear anywhere
+  if (args.some((a) => a === '--help' || a === '-h' || a === 'help' || a === '/?')) {
+    showUsage()
+    process.exit(0)
+  }
 
-  if (flag === '--comments') {
-    if (files.length === 0) {
-      console.error('❌ No files specified for comment removal')
-      console.error('   Usage: node code-fix.js --comments <file1> <file2> ...')
-      process.exit(1)
+  // Parse flags (ordered) and collect files
+  const ops = [] // ordered list of operation flags
+  const files = []
+  let parsingFlags = true
+  for (const a of args) {
+    if (parsingFlags) {
+      if (a === '--') { parsingFlags = false; continue }
+      if (a.startsWith('--')) {
+        if (a === '--comments' || a === '--console' || a === '--delete') {
+          if (!ops.includes(a)) ops.push(a)
+        } else if (a === '--help' || a === '-h') {
+          // already handled above, but keep for completeness
+          showUsage(); process.exit(0)
+        } else {
+          console.error(`❌ Unknown flag: ${a}`)
+          showUsage()
+          process.exit(1)
+        }
+      } else {
+        parsingFlags = false
+        files.push(a)
+      }
+    } else {
+      files.push(a)
     }
+  }
 
-    const fixer = new CodeFixer()
-    fixer.processFiles(files)
-  } else if (flag === '--console') {
-    if (files.length === 0) {
-      console.error('❌ No files specified for console statement removal')
-      console.error('   Usage: node code-fix.js --console <file1> <file2> ...')
-      process.exit(1)
-    }
-
-    const fixer = new CodeFixer()
-    fixer.processFilesForConsole(files)
-  } else {
-    console.error(`❌ Unknown flag: ${flag}`)
+  if (ops.length === 0) {
+    console.error('❌ No operation flag specified')
     showUsage()
     process.exit(1)
   }
+
+  const hasDelete = ops.includes('--delete')
+  if (hasDelete && ops.length > 1) {
+    console.error('❌ --delete cannot be combined with other flags')
+    showUsage()
+    process.exit(1)
+  }
+
+  if (files.length === 0) {
+    if (hasDelete) {
+      console.error('❌ No paths specified for deletion')
+      console.error('   Usage: node code-fix.js --delete <path1> <path2> ...')
+    } else {
+      console.error('❌ No files specified')
+      console.error('   Usage: node code-fix.js --comments [--console] <file1> <file2> ...')
+    }
+    process.exit(1)
+  }
+
+  const fixer = new CodeFixer()
+
+  if (hasDelete) {
+    fixer.deletePaths(files)
+    return
+  }
+
+  console.log(`🚀 Starting fix operations: ${ops.join(' ')} for ${files.length} file(s)...\n`)
+  for (const filePath of files) {
+    for (const op of ops) {
+      if (op === '--comments') {
+        fixer.processFile(filePath)
+      } else if (op === '--console') {
+        fixer.processFileForConsole(filePath)
+      }
+    }
+  }
+  fixer.printSummary()
 }
 
 // Run if called directly

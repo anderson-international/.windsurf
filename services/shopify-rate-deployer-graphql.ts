@@ -18,7 +18,7 @@ export class ShopifyRateDeployerGraphQL {
     rates: ShippingRate[],
     existingMethodDefinitionIds: string[],
     dryRun: boolean = false
-  ): Promise<void> {
+  ): Promise<{ mutation: string; variables: unknown; ratesCount: number } | void> {
     const mutation = `
       mutation deliveryProfileUpdate($id: ID!, $profile: DeliveryProfileInput!) {
         deliveryProfileUpdate(id: $id, profile: $profile) {
@@ -50,9 +50,11 @@ export class ShopifyRateDeployerGraphQL {
       console.log('🔍 DRY RUN - GraphQL Mutation:');
       console.log(mutation);
       console.log('🔍 DRY RUN - Variables:');
-      console.log(JSON.stringify({ id: profileId, profile: profileInput }, null, 2));
+      const variables = { id: profileId, profile: profileInput };
+      console.log(JSON.stringify(variables, null, 2));
       console.log('🔍 DRY RUN - Rates to deploy:', rates.length);
-      return; // Skip actual execution
+      // Return preview object for callers to consume in reports
+      return { mutation, variables, ratesCount: rates.length };
     }
 
     const response = await this.executeGraphQLQuery<DeliveryProfileUpdateResponse>(mutation, {

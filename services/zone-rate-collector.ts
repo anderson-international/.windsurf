@@ -23,14 +23,18 @@ export class ZoneRateCollector {
 
     // Get deployment exclusions for this zone
     const excludedCarrierIds = await this.getDeploymentExclusions(zoneName)
+    // Get carriers explicitly disabled for this zone
+    const disabledCarrierIds = await this.getDisabledCarriers(zoneName)
+    // Union both lists into a set for fast lookup
+    const blockedCarrierIds = new Set<number>([...excludedCarrierIds, ...disabledCarrierIds])
 
     // Group zone-specific tariffs by carrier ID
     const zoneTariffs = await this.tariffService.fetchZoneSpecificTariffs(zoneName)
     const zoneTariffsByCarrier = new Map<number, BaseTariff[]>()
     
     for (const zoneTariff of zoneTariffs) {
-      // Skip if this carrier is excluded from this zone
-      if (excludedCarrierIds.includes(zoneTariff.carrier_id)) {
+      // Skip if this carrier is excluded or disabled for this zone
+      if (blockedCarrierIds.has(zoneTariff.carrier_id)) {
         continue
       }
       
@@ -57,8 +61,8 @@ export class ZoneRateCollector {
     
     for (const universalTariff of universalTariffs) {
       if (!processedCarrierIds.has(universalTariff.carrier_id)) {
-        // Skip if this carrier is excluded from this zone
-        if (excludedCarrierIds.includes(universalTariff.carrier_id)) {
+        // Skip if this carrier is excluded or disabled for this zone
+        if (blockedCarrierIds.has(universalTariff.carrier_id)) {
           continue
         }
         
@@ -93,15 +97,29 @@ export class ZoneRateCollector {
   }
 
   private async getDeploymentExclusions(zoneName: string): Promise<number[]> {
+    // Return carrier_service_ids excluded for this zone
     const exclusions = await this.prisma.carrier_service_deployment_exclusions.findMany({
       where: {
-        excluded_zone_name: zoneName
+        excluded_zone_name: { equals: zoneName, mode: 'insensitive' }
       },
       select: {
         carrier_service_id: true
       }
     })
-    
-    return exclusions.map(exclusion => exclusion.carrier_service_id)
+    return exclusions.map(e => e.carrier_service_id)
+  }
+
+  private async getDisabledCarriers(zoneName: string): Promise<number[]> {
+    // Return carrier_service_ids with enabled=false for this zone
+    const rows = await this.prisma.carrier_service_zones.findMany({
+      where: {
+        zone_name: { equals: zoneName, mode: 'insensitive' },
+        enabled: false
+      },
+      select: {
+        carrier_service_id: true
+      }
+    })
+    return rows.map(r => r.carrier_service_id)
   }
 }

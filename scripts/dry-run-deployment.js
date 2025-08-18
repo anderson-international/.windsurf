@@ -8,7 +8,12 @@
  *   node scripts/dry-run-deployment.js  # Preview deployment without changes
  */
 
+require('dotenv').config();
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
+const { resolveShopifyTargetForScripts } = require('./resolve-shopify-target');
 
 // Configuration
 const CONFIG = {
@@ -85,6 +90,81 @@ function makeRequest(options, body = null) {
   });
 }
 
+// Formatting helpers for Markdown output
+function formatCurrencyGBP(amount) {
+  const num = Number(amount);
+  if (Number.isNaN(num)) return '£0.00';
+  return `£${num.toFixed(2)}`;
+}
+
+function formatWeightKg(value) {
+  const num = Number(value);
+  if (Number.isNaN(num)) return '0kg';
+  // Keep up to 2 decimals like Shopify UI examples
+  return `${Number(num.toFixed(2))}kg`;
+}
+
+function sanitizeTimestamp(ts) {
+  return ts.replace(/[:.]/g, '-');
+}
+
+function buildMarkdownReport(orchestrationResult, timestamp) {
+  const lines = [];
+  lines.push('# Shopify Shipping Rates Dry-Run Preview');
+  lines.push('');
+  lines.push(`- Generated: ${timestamp}`);
+  lines.push(`- Total zones analyzed: ${orchestrationResult.total_zones_processed}`);
+  lines.push(`- Zones ready: ${orchestrationResult.successful_deployments}`);
+  lines.push(`- Zones with issues: ${orchestrationResult.failed_deployments}`);
+  lines.push('');
+
+  if (!orchestrationResult.results || orchestrationResult.results.length === 0) {
+    lines.push('_No zones returned in dry-run result._');
+    return lines.join('\n');
+  }
+
+  for (const zoneResult of orchestrationResult.results) {
+    lines.push(`## Zone: ${zoneResult.zone_name}`);
+    const status = zoneResult.success ? '✅ Ready' : '❌ Issue';
+    lines.push(`- Status: ${status}`);
+    lines.push(`- Rates ready: ${zoneResult.rates_deployed} of ${zoneResult.total_rates_generated}`);
+    if (!zoneResult.success && zoneResult.error) {
+      lines.push(`- Issue: ${zoneResult.error}`);
+    }
+
+    const previewRates = zoneResult.preview?.rates || [];
+    if (previewRates.length > 0) {
+      // Group by title, then sort each group by weightMin asc
+      const byTitle = new Map();
+      for (const r of previewRates) {
+        const key = r.title || 'Untitled';
+        if (!byTitle.has(key)) byTitle.set(key, []);
+        byTitle.get(key).push(r);
+      }
+      const sortedTitles = Array.from(byTitle.keys()).sort();
+      for (const title of sortedTitles) {
+        const group = byTitle.get(title).slice().sort((a, b) => Number(a.weightMin) - Number(b.weightMin));
+        lines.push('');
+        lines.push(`### ${title}`);
+        lines.push('| Orders (kg) | Price |');
+        lines.push('|---|---|');
+        for (const r of group) {
+          const range = `${formatWeightKg(r.weightMin)}–${formatWeightKg(r.weightMax)}`;
+          const price = formatCurrencyGBP(r.price);
+          lines.push(`| ${range} | ${price} |`);
+        }
+        lines.push('');
+      }
+    } else {
+      lines.push('');
+      lines.push('_No per-rate preview available for this zone._');
+      lines.push('');
+    }
+  }
+
+  return lines.join('\n');
+}
+
 async function dryRunDeployment() {
   log('============================================================');
   log('🔍 SHOPIFY SHIPPING RATES DRY-RUN PREVIEW');
@@ -94,6 +174,17 @@ async function dryRunDeployment() {
   log('📋 This will show the exact GraphQL queries that would be executed\n');
 
   try {
+    // Resolve and confirm target
+    const { target, storeUrl } = resolveShopifyTargetForScripts();
+    log(`🎯 Target: ${target} — ${storeUrl}`);
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const answer = await new Promise(resolve => rl.question(`Proceed with DRY RUN against ${target} (${storeUrl})? [y/N] `, resolve));
+    rl.close();
+    if (!/^y(es)?$/i.test(String(answer).trim())) {
+      log('⚠️ Aborted by user.');
+      process.exit(0);
+    }
+
     log('📊 Analyzing deployment to all Shopify zones...');
     log('⏳ This may take a few minutes...\n');
 
@@ -134,6 +225,22 @@ async function dryRunDeployment() {
           log(`      Issue: ${zoneResult.error}`);
         }
       });
+    }
+
+    // Write Markdown report to scripts/dry-run-output
+    try {
+      const ts = new Date().toISOString();
+      const outDir = path.join(__dirname, 'dry-run-output');
+      const filename = `dry-run-${sanitizeTimestamp(ts)}.md`;
+      const outPath = path.join(outDir, filename);
+      if (!fs.existsSync(outDir)) {
+        fs.mkdirSync(outDir, { recursive: true });
+      }
+      const md = buildMarkdownReport(result, ts);
+      fs.writeFileSync(outPath, md, 'utf8');
+      log(`\n📝 Markdown report written to: ${outPath}`);
+    } catch (writeErr) {
+      log(`\n⚠️ Failed to write Markdown report: ${writeErr?.message || writeErr}`);
     }
 
     log('\n============================================================');

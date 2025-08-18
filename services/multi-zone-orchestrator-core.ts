@@ -1,20 +1,20 @@
 import { ShopifyZoneFetcher } from './shopify-zone-fetcher'
 import { ZoneProcessor } from './zone-processor'
 import { ShopifyConfig } from './shopify-config'
+import { resolveShopifyTarget } from './shopify-target-resolver'
 import { ShopifyZone, ZoneProcessingResult, OrchestrationResult } from '../types/multi-zone-types'
+import { ProgressReporter } from './progress-reporter'
 
 export class MultiZoneOrchestrator {
   private readonly shopifyConfig: ShopifyConfig
   private readonly zoneProcessor: ZoneProcessor
 
   constructor() {
-    this.shopifyConfig = {
-      storeUrl: process.env.SHOPIFY_STORE_URL!,
-      adminAccessToken: process.env.SHOPIFY_ACCESS_TOKEN!,
-      apiVersion: process.env.SHOPIFY_API_VERSION || '2025-01'
-    }
+    const resolved = resolveShopifyTarget()
+    this.shopifyConfig = resolved.config
     const baseUrl = process.env.BASE_URL || 'http://localhost:3000'
     this.zoneProcessor = new ZoneProcessor(baseUrl)
+    console.log(`🎯 Target: ${resolved.target} — ${this.shopifyConfig.storeUrl}`)
   }
 
   async orchestrateAllZones(dryRun: boolean = false): Promise<OrchestrationResult> {
@@ -30,6 +30,7 @@ export class MultiZoneOrchestrator {
         }
       }
 
+      ProgressReporter.markStart(zones.length)
       console.log(`📋 Processing ${zones.length} zones with fail-fast on first error...`)
       console.log(`📦 Zone contexts will be fetched once and cached automatically`)
       
@@ -38,8 +39,14 @@ export class MultiZoneOrchestrator {
       
       for (const zone of zones) {
         console.log(`🔍 Processing zone: ${zone.name}`)
+        const _start = Date.now()
         const result = await this.zoneProcessor.processZone(zone, dryRun)
+        const _end = Date.now()
+        // attach duration with minimal mutation
+        result.duration_ms = _end - _start
         results.push(result)
+        // publish progress snapshot for polling client
+        ProgressReporter.reportZone(result)
         
         if (!result.success) {
           // Fail fast on first error
@@ -56,6 +63,7 @@ export class MultiZoneOrchestrator {
           console.error(`❌ Error detected in zone '${zone.name}' - stopping processing`)
           console.error('Error details:', JSON.stringify(detailedError, null, 2))
           
+          ProgressReporter.markDone()
           return {
             total_zones_processed: results.length,
             successful_deployments: results.filter(r => r.success).length,
@@ -67,10 +75,14 @@ export class MultiZoneOrchestrator {
         
         console.log(`✅ Zone '${zone.name}' processed successfully`)
       }
-      return this.compileResults(results)
+      const compiled = this.compileResults(results)
+      ProgressReporter.markDone()
+      return compiled
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      // ensure we flip done for clients
+      try { ProgressReporter.markDone() } catch {}
       throw new Error(`Multi-zone orchestration failed: ${errorMessage}`)
     }
   }

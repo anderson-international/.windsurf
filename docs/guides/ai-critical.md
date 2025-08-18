@@ -21,14 +21,8 @@ Avoid: Exceeding file size limits, React infinite loops, Missing context
 **When exceeded**: Extract to custom hooks, services, repositories, or separate type files. Minimise all comments.
 
 **Immediate Verification Required**: After creating or modifying any file, immediately run:
-`cmd /c node docs/scripts/code-size.js [filename]` to verify size compliance
-
-## Dev Server Policy
-
-The USER creates and manages all development servers, NOT the AI.
-
-AI must never start or run development servers or long-running processes; only USER manages and initiates servers. AI should test only on USER-started servers and must prompt USER to start servers when needed. Violations include AI executing commands like `npm run dev`. This ensures USER control, avoids server conflicts, and maintains consistent environment management.
-
+- `cmd /c node docs/scripts/code-size.js [filename]` to verify size compliance
+- `cmd /c node docs/scripts/code-review-analyzer.js [filepath]` for code quality
 
 ## Thin Controller Pattern
 
@@ -36,7 +30,7 @@ AI must never start or run development servers or long-running processes; only U
 - Services: Business logic and orchestration
 - Repositories: Database queries and data access
 
-## React Loop Prevention (CRITICAL)
+## React Loop Prevention (MANDATORY)
 
 - Always wrap functions in useCallback
 - Always wrap expensive calculations in useMemo
@@ -57,38 +51,6 @@ const MyComponent = () => {
 
   return <button onClick={handleClick}>Click</button>;
 };
-```
-
-## Schema Loading Commands
-
-- **Index**: `cmd /c node docs/scripts/schema-query.js --index`
-- **Table**: `cmd /c node docs/scripts/schema-query.js --table specifications`
-- **Patterns**: `cmd /c node docs/scripts/schema-query.js --pattern spec_*` (no quotes)
-
-## Windows Command Syntax (CRITICAL)
-
-### Command Requirements
-
-- **Always use**: `cmd /c` prefix
-- **Always use**: Backslashes `\` for Windows paths
-- **Always use**: Relative paths when possible
-- **Always quote**: Paths containing spaces
-- **Always set**: SafeToAutoRun=true
-
-### Examples
-
-```bash
-# Correct
-cmd /c del docs\test\file.md
-cmd /c del "docs\folder with spaces\file.md"
-cmd /c node docs/scripts/schema-query.js --pattern spec_*
-
-# Wrong
-del docs\test\file.md                    # Missing cmd /c
-Remove-Item docs\test\file.md           # PowerShell syntax
-cmd /c del docs/test/file.md            # Unix slashes
-cmd /c node script.js --pattern "spec_*" # Quoted patterns
-```
 
 ## TypeScript Requirements (MANDATORY)
 
@@ -97,33 +59,43 @@ cmd /c node script.js --pattern "spec_*" # Quoted patterns
 - **React components**: Must return JSX.Element
 - **Async functions**: Must return Promise<Type>
 
-**Type Creation Protocol**: Before creating new types, analyze existing canonical types first:
-- Search codebase for similar interfaces/types that can be reused or extended
-- Prefer extending existing types over creating duplicates
-- Use type composition patterns when possible
+**Type Creation Protocol - MANDATORY VERIFICATION**: Before creating ANY new interface or type:
 
-## React Anti-Patterns (CRITICAL)
+1. **Search for Existing Types** (REQUIRED):
+   ```bash
+   cmd /c npx grep-search "interface.*ApiResponse|type.*ApiResponse" --include="*.ts" --include="*.tsx"
+   cmd /c npx grep-search "interface.*[YourTypeName]|type.*[YourTypeName]" --include="*.ts" --include="*.tsx"
+   ```
+
+2. **Verification Checklist** (ALL MUST PASS):
+   - [ ] Searched codebase with specific grep commands
+   - [ ] Confirmed no existing type matches functionality
+   - [ ] Confirmed no existing type can be extended/composed
+   - [ ] If similar type exists, documented why extension isn't viable
+
+3. **Type Duplication**: If ANY existing type covers >70% of your use case, you MUST extend it rather than create duplicate.
+
+## React Anti-Patterns (MANDATORY)
 
 - **Dual Fetching**: Don't fetch same data from component AND context
 - **Unstable Dependencies**: No functions returning new objects/arrays in deps
 - **Ignored Warnings**: Always address React Hook dependency warnings
 - **Missing Cleanup**: Always cleanup effects and subscriptions
 
-## API Error Handling (CRITICAL)
+## API Error Handling (MANDATORY)
 
 - **Retry**: 5xx errors, timeouts, 429 rate limits (max 3-5 attempts)
 - **Fail-fast**: 4xx errors, auth failures, validation errors
 - **Always**: Exponential backoff with jitter
 - **Never**: Retry 4xx client errors
 
-## Database Form Patterns
+## Database Form Patterns (MANDATORY)
 
 - **AI_TABLE_PURPOSE**: Defines form complexity (multi-step vs simple)
 - **Junction tables**: Always multi-select components
 - **// FORM: annotations**: Follow inline field guidance
 - **Atomic transactions**: All related data in single transaction
 
-## Ultra Minimalist Comments Policy
-
+## Ultra Minimalist Comments Policy (MANDATORY)
 - **Always**: Remove all comments before starting a task
 - **Never**: Add comments to code

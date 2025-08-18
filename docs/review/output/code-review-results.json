@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2025-08-18T22:35:53.330Z",
+  "args": [
+    "--porcelain"
+  ],
+  "options": {
+    "concurrency": 4,
+    "porcelainMode": true,
+    "noAutofix": false,
+    "debugMode": false,
+    "skipTsc": false
+  },
+  "timing": {
+    "autofixMs": 120,
+    "perFileMs": 2,
+    "repoMs": 6268,
+    "totalMs": 9622,
+    "eslintBatchMs": 2962,
+    "repoBreakdown": {
+      "jscpdMs": 342,
+      "tscMs": 2238,
+      "knipMs": 6268
+    }
+  },
+  "filesAnalyzed": 2,
+  "results": [],
+  "summary": {
+    "status": "fail",
+    "message": "Violations detected. Action required."
+  },
+  "repo": {
+    "knip": {
+      "unusedFiles": 162,
+      "unusedExports": 2,
+      "unusedTypes": 17,
+      "unusedEnumMembers": 0,
+      "unusedClassMembers": 0,
+      "unlistedDependencies": 0,
+      "unresolvedImports": 3
+    },
+    "jscpd": {
+      "groups": 0,
+      "duplicatedLines": 0,
+      "percentage": 0
+    },
+    "tsc": {
+      "totalErrors": 0,
+      "tsconfigPath": "c:\\Users\\Jonny\\Code\\shopify-shipping\\tsconfig.json"
+    }
+  }
+}

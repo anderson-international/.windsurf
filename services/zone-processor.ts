@@ -108,7 +108,8 @@ export class ZoneProcessor {
       rates_deployed: data.rates_deployed,
       total_rates_generated: data.total_rates_generated,
       message: data.message,
-      error: data.error
+      error: data.error,
+      preview: data.preview
     }
   }
 }

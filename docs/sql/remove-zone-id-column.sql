@@ -1,1 +1,0 @@
-DROP INDEX idx_generated_rates_zone_id;

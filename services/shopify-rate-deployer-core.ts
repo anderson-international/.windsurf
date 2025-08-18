@@ -10,7 +10,12 @@ export class ShopifyRateDeployer {
     this.graphqlService = new ShopifyRateDeployerGraphQL(config)
   }
 
-  async deployZoneRates(zoneId: string, rates: GeneratedRate[], context: ShopifyContext, dryRun: boolean = false): Promise<void> {
+  async deployZoneRates(
+    zoneId: string,
+    rates: GeneratedRate[],
+    context: ShopifyContext,
+    dryRun: boolean = false
+  ): Promise<{ graphqlPreview?: { mutation: string; variables: unknown; ratesCount: number } } | void> {
     const shippingRates: ShippingRate[] = rates.map((rate, index) => ({
       id: `${zoneId}-${index}`,
       title: rate.rate_title,
@@ -24,7 +29,7 @@ export class ShopifyRateDeployer {
       weightMax: Number(rate.weight_max)
     }))
 
-    await this.graphqlService.updateProfileWithRates(
+    const preview = await this.graphqlService.updateProfileWithRates(
       context.profileId, 
       context.locationGroupId, 
       zoneId, 
@@ -32,6 +37,10 @@ export class ShopifyRateDeployer {
       context.existingMethodDefinitionIds,
       dryRun
     )
+
+    if (dryRun && preview) {
+      return { graphqlPreview: preview }
+    }
   }
 
   async updateProfileWithRates(
@@ -42,7 +51,7 @@ export class ShopifyRateDeployer {
     existingMethodDefinitionIds: string[],
     dryRun: boolean = false
   ): Promise<void> {
-    return this.graphqlService.updateProfileWithRates(
+    await this.graphqlService.updateProfileWithRates(
       profileId,
       locationGroupId,
       zoneId,

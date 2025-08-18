@@ -11,6 +11,21 @@ export interface ZoneProcessingResult {
   total_rates_generated: number
   message: string
   error?: string
+  duration_ms?: number
+  
+  preview?: {
+    rates: Array<{
+      title: string
+      price: number
+      weightMin: number
+      weightMax: number
+    }>
+    graphql?: {
+      mutation: string
+      variables: unknown
+      ratesCount: number
+    }
+  }
 }
 
 export interface OrchestrationResult {

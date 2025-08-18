@@ -2,6 +2,7 @@ import { ShopifyDeliveryProfilesResponse } from '../types/shopify-query-response
 import { DeliveryProfileUpdateResponse } from '../types/shopify-mutation-responses'
 import { DeliveryProfileInput } from '../types/shopify-inputs'
 import { GET_DELIVERY_PROFILES_QUERY } from '../queries/delivery-profiles'
+import { resolveShopifyTarget } from './shopify-target-resolver'
 
 interface ShopifyConfig {
   storeUrl: string
@@ -19,11 +20,12 @@ class ShopifyAPIError extends Error {
 export class ShopifyService {
   private config: ShopifyConfig
 
-  constructor() {
-    this.config = {
-      storeUrl: process.env.SHOPIFY_STORE_URL || '',
-      adminAccessToken: process.env.SHOPIFY_ACCESS_TOKEN || '',
-      apiVersion: process.env.SHOPIFY_API_VERSION || '2025-01'
+  constructor(config?: ShopifyConfig) {
+    if (config) {
+      this.config = config
+    } else {
+      const resolved = resolveShopifyTarget()
+      this.config = resolved.config
     }
   }
 

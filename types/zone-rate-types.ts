@@ -5,4 +5,18 @@ export interface ZoneRateResponse {
   total_rates_generated: number
   message: string
   error?: string
+  
+  preview?: {
+    rates: Array<{
+      title: string
+      price: number
+      weightMin: number
+      weightMax: number
+    }>
+    graphql?: {
+      mutation: string
+      variables: unknown
+      ratesCount: number
+    }
+  }
 }

@@ -11,6 +11,7 @@
  */
 
 const { Client } = require('pg')
+const fs = require('fs')
 require('dotenv').config({ quiet: true })
 
 // Configuration
@@ -176,8 +177,8 @@ ${
 ### Junction Tables (${junctionTables.length} tables)
 ${
   junctionTables.length <= ITEMS_PER_PAGE
-    ? '- All tables: --pattern "spec_junction_*"'
-    : `- ${junctionPages} pages available: --pattern "spec_junction_*" --page 1`
+    ? '- All tables: --pattern junction_'
+    : `- ${junctionPages} pages available: --pattern junction_ --page 1`
 }
 
 ## Usage Examples
@@ -194,7 +195,7 @@ cmd /c node docs/scripts/schema-query.js --enums --page 1
 
 ### Load tables by pattern:
 \`\`\`bash
-cmd /c node docs/scripts/schema-query.js --pattern "*_enum_*" --page 1
+cmd /c node docs/scripts/schema-query.js --pattern _enum_ --page 1
 \`\`\`
 
 ## AI Instructions
@@ -277,7 +278,7 @@ Each command respects the 7,800 byte output limit and provides navigation for ad
     return doc
   }
 
-  generateColumnAIHints(tableName, column, constraints) {
+  generateColumnAIHints(_tableName, column, constraints) {
     const hints = []
 
     // Foreign key hints
@@ -335,73 +336,7 @@ Each command respects the 7,800 byte output limit and provides navigation for ad
     return output
   }
 
-  async queryEnums(page = 1) {
-    await this.connect()
-    const allTables = await this.getAllTables()
-    const enumTables = allTables.filter((t) => t.table_name.includes('_enum_'))
-
-    const startIndex = (page - 1) * ITEMS_PER_PAGE
-    const endIndex = startIndex + ITEMS_PER_PAGE
-    const pageEnums = enumTables.slice(startIndex, endIndex)
-
-    const totalPages = Math.ceil(enumTables.length / ITEMS_PER_PAGE)
-
-    let output = `# Enum Tables - Page ${page} of ${totalPages}\n\n`
-
-    for (const table of pageEnums) {
-      const tableData = await this.getTableData(table.table_name)
-      output += this.generateTableDocumentation(tableData) + '\n'
-    }
-
-    // Add navigation only if there are multiple pages
-    if (totalPages > 1) {
-      if (page < totalPages) {
-        // Action required - more data to load
-        output += `\n⚠️ **AI ACTION REQUIRED**: This output was truncated due to size limits.\n`
-        output += `**Execute immediately**: cmd /c node docs/scripts/schema-query.js --enums --page ${page + 1}\n`
-      } else if (page > 1) {
-        // Final page - just reference to previous
-        output += `\n**Previous page**: cmd /c node docs/scripts/schema-query.js --enums --page ${page - 1}\n`
-      }
-    }
-
-    this.validateOutputSize(output)
-    return output
-  }
-
-  async queryJunctions(page = 1) {
-    await this.connect()
-    const allTables = await this.getAllTables()
-    const junctionTables = allTables.filter((t) => t.table_name.startsWith('spec_junction_'))
-
-    const startIndex = (page - 1) * ITEMS_PER_PAGE
-    const endIndex = startIndex + ITEMS_PER_PAGE
-    const pageJunctions = junctionTables.slice(startIndex, endIndex)
-
-    const totalPages = Math.ceil(junctionTables.length / ITEMS_PER_PAGE)
-
-    let output = `# Junction Tables - Page ${page} of ${totalPages}\n\n`
-
-    for (const table of pageJunctions) {
-      const tableData = await this.getTableData(table.table_name)
-      output += this.generateTableDocumentation(tableData) + '\n'
-    }
-
-    // Add navigation only if there are multiple pages
-    if (totalPages > 1) {
-      if (page < totalPages) {
-        // Action required - more data to load
-        output += `\n⚠️ **AI ACTION REQUIRED**: This output was truncated due to size limits.\n`
-        output += `**Execute immediately**: cmd /c node docs/scripts/schema-query.js --junctions --page ${page + 1}\n`
-      } else if (page > 1) {
-        // Final page - just reference to previous
-        output += `\n**Previous page**: cmd /c node docs/scripts/schema-query.js --junctions --page ${page - 1}\n`
-      }
-    }
-
-    this.validateOutputSize(output)
-    return output
-  }
+  // Deprecated commands removed: use --pattern to filter tables (e.g., *_enum_* or spec_junction_)
 
   async queryPattern(pattern, page = 1) {
     await this.connect()
@@ -431,12 +366,129 @@ Each command respects the 7,800 byte output limit and provides navigation for ad
     if (totalPages > 1) {
       if (page < totalPages) {
         // Action required - more data to load
-        output += `\n⚠️ **AI ACTION REQUIRED**: This output was truncated due to size limits.\n`
-        output += `**Execute immediately**: cmd /c node docs/scripts/schema-query.js --pattern "${pattern}" --page ${page + 1}\n`
+        output += `\n⚠️ **AI ACTION REQUIRED**: More results available.\n`
+        output += `**Execute immediately**: cmd /c node docs/scripts/schema-query.js --pattern ${pattern} --page ${page + 1}\n`
       } else if (page > 1) {
         // Final page - just reference to previous
-        output += `\n**Previous page**: cmd /c node docs/scripts/schema-query.js --pattern "${pattern}" --page ${page - 1}\n`
+        output += `\n**Previous page**: cmd /c node docs/scripts/schema-query.js --pattern ${pattern} --page ${page - 1}\n`
       }
+    }
+
+    this.validateOutputSize(output)
+    return output
+  }
+
+  async querySql({ sql, page = 1, rows = ITEMS_PER_PAGE, source = 'inline', filePath, pageExplicit = false }) {
+    await this.connect()
+
+    const start = Date.now()
+    let result
+    try {
+      result = await this.client.query(sql)
+    } catch (error) {
+      throw new Error(`SQL execution failed: ${error.message}`)
+    }
+    const durationMs = Date.now() - start
+
+    const command = result.command || 'QUERY'
+    const hasFields = Array.isArray(result.fields) && result.fields.length > 0
+    const rowsArray = Array.isArray(result.rows) ? result.rows : []
+    const isRowResult = hasFields
+
+    // Identify source and prepare a compact SQL echo (normalize whitespace, truncate if long)
+    const sourceLabel = (source === 'file' && filePath) ? `file (${filePath})` : 'inline'
+    const normalizedSql = String(sql).replace(/\s+/g, ' ').trim()
+    const MAX_SQL_ECHO_CHARS = 500
+    const sqlEcho = normalizedSql.length > MAX_SQL_ECHO_CHARS
+      ? normalizedSql.slice(0, MAX_SQL_ECHO_CHARS) + `... [${normalizedSql.length} chars]`
+      : normalizedSql
+
+    // Non-row results
+    if (!isRowResult) {
+      const output = [
+        '# SQL Execution Result',
+        '',
+        `- Command: ${command}`,
+        `- Source: ${sourceLabel}`,
+        `- SQL: ${sqlEcho}`,
+        `- Duration: ${durationMs} ms` + (typeof result.rowCount === 'number' ? `\n- Rows Affected: ${result.rowCount}` : ''),
+        ''
+      ].join('\n')
+      this.validateOutputSize(output)
+      return output
+    }
+
+    // Row results (SELECT or RETURNING, including 0-row results)
+    const columns = result.fields.map((f) => f.name)
+    const totalRows = rowsArray.length
+    const rowsPerPage = Math.max(1, parseInt(rows) || ITEMS_PER_PAGE)
+    const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage))
+    const startIndex = Math.max(0, (Math.max(1, parseInt(page) || 1) - 1) * rowsPerPage)
+    const endIndexInitial = Math.min(startIndex + rowsPerPage, totalRows)
+    let pageRows = rowsArray.slice(startIndex, endIndexInitial)
+
+    const buildOutput = (subset) => {
+      let header = `# SQL Query Results - Page ${page} of ${totalPages}\n\n`
+      header += `- Command: ${command}\n`
+      header += `- Source: ${sourceLabel}\n`
+      header += `- SQL: ${sqlEcho}\n`
+      header += `- Duration: ${durationMs} ms\n`
+      header += `- Rows Returned: ${totalRows}\n`
+      header += `- Showing: ${totalRows === 0 ? '0-0' : `${startIndex + 1}-${startIndex + subset.length}`} of ${totalRows}\n`
+      header += `- Columns: ${JSON.stringify(columns)}\n\n`
+      header += `**Rows:**\n`
+
+      let body = ''
+      for (const row of subset) {
+        const arr = columns.map((c) => row[c])
+        body += `${JSON.stringify(arr)}\n`
+      }
+
+      // Navigation
+      if (totalPages > 1) {
+        if (page < totalPages) {
+          const plannedCount = endIndexInitial - startIndex
+          const isTrimmed = subset.length < plannedCount
+          // Only show next-page prompts if the user explicitly requested paging or we had to trim due to size limits
+          if (pageExplicit || isTrimmed) {
+            if (source === 'file' && filePath) {
+              if (isTrimmed) {
+                body += `\n⚠️ **AI ACTION REQUIRED**: This output was truncated due to size limits.\n`
+              } else {
+                body += `\n⚠️ **AI ACTION REQUIRED**: More results available.\n`
+              }
+              body += `**Execute immediately**: cmd /c node docs/scripts/schema-query.js --sql-file ${filePath} --page ${Number(page) + 1} --rows ${rowsPerPage}\n`
+            } else {
+              if (isTrimmed) {
+                body += `\n⚠️ **AI ACTION REQUIRED**: This output was truncated due to size limits. Re-run the same command with --page ${Number(page) + 1} --rows ${rowsPerPage}\n`
+              } else {
+                body += `\n⚠️ **AI ACTION REQUIRED**: More results available. Re-run the same command with --page ${Number(page) + 1} --rows ${rowsPerPage}\n`
+              }
+            }
+          }
+        } else if (page > 1) {
+          // Only show previous page when paging is explicit
+          if (pageExplicit) {
+            if (source === 'file' && filePath) {
+              body += `\n**Previous page**: cmd /c node docs/scripts/schema-query.js --sql-file ${filePath} --page ${Number(page) - 1} --rows ${rowsPerPage}\n`
+            } else {
+              body += `\n**Previous page**: Re-run the same command with --page ${Number(page) - 1} --rows ${rowsPerPage}\n`
+            }
+          }
+        }
+      }
+
+      return header + body
+    }
+
+    // Fit within MAX_OUTPUT_BYTES by reducing rows on the current page if needed
+    let output = buildOutput(pageRows)
+    let size = Buffer.byteLength(output, 'utf8')
+    while (size > MAX_OUTPUT_BYTES && pageRows.length > 1) {
+      const newLen = Math.max(1, Math.floor(pageRows.length / 2))
+      pageRows = pageRows.slice(0, newLen)
+      output = buildOutput(pageRows)
+      size = Buffer.byteLength(output, 'utf8')
     }
 
     this.validateOutputSize(output)
@@ -452,7 +504,55 @@ async function main() {
   try {
     let output = ''
 
-    if (args.includes('--index')) {
+    if (args.includes('--sql-file')) {
+      const sqlFileIndex = args.indexOf('--sql-file')
+      const filePath = args[sqlFileIndex + 1]
+      if (!filePath) {
+        throw new Error('--sql-file requires a path to a file')
+      }
+      let sql
+      try {
+        sql = fs.readFileSync(filePath, 'utf8')
+      } catch (e) {
+        throw new Error(`Failed to read SQL file: ${e.message}`)
+      }
+      const pageIndex = args.indexOf('--page')
+      const rowsIndex = args.indexOf('--rows')
+      const page = pageIndex !== -1 ? parseInt(args[pageIndex + 1]) || 1 : 1
+      const pageExplicit = pageIndex !== -1
+      const rows = rowsIndex !== -1 ? parseInt(args[rowsIndex + 1]) || ITEMS_PER_PAGE : ITEMS_PER_PAGE
+      output = await tool.querySql({ sql, page, rows, source: 'file', filePath, pageExplicit })
+    } else if (args.includes('--sql')) {
+      const sqlIndex = args.indexOf('--sql')
+      // Collect all tokens after --sql until the next option (token starting with --)
+      const after = args.slice(sqlIndex + 1)
+      const sqlTokens = []
+      for (const t of after) {
+        if (typeof t === 'string' && t.startsWith('--')) break
+        sqlTokens.push(t)
+      }
+      let rawSql = (sqlTokens.join(' ') || '').trim()
+      if (!rawSql) {
+        throw new Error('--sql requires a SQL statement')
+      }
+      // Strip outer double quotes if present (Windows cmd sometimes passes them through)
+      const stripOuterDoubleQuotes = (s) => {
+        let r = String(s).trim()
+        if (r.startsWith('"') && r.endsWith('"') && r.length >= 2) {
+          r = r.slice(1, -1).trim()
+        }
+        if (r.startsWith('"')) r = r.slice(1).trim()
+        if (r.endsWith('"')) r = r.slice(0, -1).trim()
+        return r
+      }
+      const sql = stripOuterDoubleQuotes(rawSql)
+      const pageIndex = args.indexOf('--page')
+      const rowsIndex = args.indexOf('--rows')
+      const page = pageIndex !== -1 ? parseInt(args[pageIndex + 1]) || 1 : 1
+      const pageExplicit = pageIndex !== -1
+      const rows = rowsIndex !== -1 ? parseInt(args[rowsIndex + 1]) || ITEMS_PER_PAGE : ITEMS_PER_PAGE
+      output = await tool.querySql({ sql, page, rows, source: 'inline', pageExplicit })
+    } else if (args.includes('--index')) {
       output = await tool.queryIndex()
     } else if (args.includes('--table')) {
       const tableIndex = args.indexOf('--table')
@@ -461,14 +561,6 @@ async function main() {
         throw new Error('--table requires a table name')
       }
       output = await tool.queryTable(tableName)
-    } else if (args.includes('--enums')) {
-      const pageIndex = args.indexOf('--page')
-      const page = pageIndex !== -1 ? parseInt(args[pageIndex + 1]) || 1 : 1
-      output = await tool.queryEnums(page)
-    } else if (args.includes('--junctions')) {
-      const pageIndex = args.indexOf('--page')
-      const page = pageIndex !== -1 ? parseInt(args[pageIndex + 1]) || 1 : 1
-      output = await tool.queryJunctions(page)
     } else if (args.includes('--pattern')) {
       const patternIndex = args.indexOf('--pattern')
       const pattern = args[patternIndex + 1]
@@ -496,23 +588,37 @@ function showUsage() {
   console.log(`
 Schema Query Tool - Size-aware database schema information
 
-Usage: node schema-query.js [options]
+Usage: node docs/scripts/schema-query.js [options]
 
 Options:
-  --index              Show table index and navigation (default)
-  --table <name>       Show detailed information for specific table
-  --enums [--page N]   Show enum tables (paginated)
-  --junctions [--page N] Show junction tables (paginated)
-  --pattern <pattern>  Show tables matching pattern (supports *)
-  --page <N>           Page number for paginated results
+  --index                  Show table index and navigation (default)
+  --table <name>           Show detailed information for specific table
+  --pattern <pattern>      Show tables matching pattern (supports *)
+  --sql "<statement>"      Execute a SQL statement (inline; SQL is echoed)
+  --sql-file <path>        Execute SQL loaded from a file (SQL is echoed)
+  --rows <N>               Rows per page for SQL results (default ${ITEMS_PER_PAGE})
+  --page <N>               Page number for paginated results
+
+Quoting on Windows CMD (important):
+  - You may pass inline SQL either quoted or unquoted:
+    node docs/scripts/schema-query.js --sql "SELECT i AS n, 'jonny' AS name FROM generate_series(1,25) g(i)" --rows 5 --page 1
+    node docs/scripts/schema-query.js --sql SELECT i AS n, 'jonny' AS name FROM generate_series(1,25) g(i) --rows 5 --page 1
+  - Use single quotes for string literals inside SQL (e.g., 'jonny').
+  - Avoid wrapping the entire SQL in single quotes; use double quotes if quoting the whole statement.
+  - For complex SQL or newlines, prefer --sql-file.
+  - Pagination/navigation prompts intentionally omit quotes for --sql-file and --pattern. Run them as shown.
+
+Paging & navigation:
+  - No banner is shown when you only specify --rows and do not pass --page (unless the page was size-trimmed).
+  - Banners appear when you pass --page or when the current page was size-trimmed to fit output limits.
 
 Examples:
-  node schema-query.js --index
-  node schema-query.js --table specifications
-  node schema-query.js --enums --page 1
-  node schema-query.js --junctions --page 1
-  node schema-query.js --pattern "*_enum_*"
-  node schema-query.js --pattern "spec_junction_*" --page 1
+  node docs/scripts/schema-query.js --index
+  node docs/scripts/schema-query.js --table specifications
+  node docs/scripts/schema-query.js --pattern *_enum_* --page 1
+  node docs/scripts/schema-query.js --pattern spec_junction_ --page 1
+  node docs/scripts/schema-query.js --sql-file docs/test/queries/series.sql --page 2 --rows 5
+  node docs/scripts/schema-query.js --sql "SELECT count(*) AS total FROM specifications" --rows 5
 
 Output limit: ${MAX_OUTPUT_BYTES} bytes (auto-paginated)
 `)
