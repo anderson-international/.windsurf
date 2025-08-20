@@ -12,8 +12,11 @@ export interface ProgressSnapshot {
     duration_ms?: number
     rates_deployed?: number
     error?: string
+    preview?: ZoneProcessingResult['preview']
   }>
   done: boolean
+  aborted?: boolean
+  abort_reason?: string
 }
 
 const initialSnapshot: ProgressSnapshot = {
@@ -61,13 +64,22 @@ function reportZone(result: ZoneProcessingResult) {
     success: result.success,
     duration_ms: result.duration_ms,
     rates_deployed: result.rates_deployed,
-    error: result.error
+    error: result.error,
+    preview: result.preview
   })
   s.last_update = nowIso()
 }
 
 function markDone() {
   const s = ensureSnapshot()
+  s.done = true
+  s.last_update = nowIso()
+}
+
+function markAborted(reason: string) {
+  const s = ensureSnapshot()
+  s.aborted = true
+  s.abort_reason = reason
   s.done = true
   s.last_update = nowIso()
 }
@@ -86,6 +98,7 @@ export const ProgressReporter = {
   markStart,
   reportZone,
   markDone,
+  markAborted,
   reset,
   getSnapshot
 }

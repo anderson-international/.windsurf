@@ -1,0 +1,22 @@
+.wrap{display:flex;flex-direction:column;gap:12px}
+.item{display:flex;justify-content:space-between;align-items:center;padding:10px;border:1px solid var(--card-border);border-radius:8px;gap:6px;flex-wrap:wrap}
+.meta{display:flex;flex-direction:column;gap:4px}
+.zone{font-weight:600}
+.small{font-size:.9rem;color:var(--muted)}
+.ok{color:#6ad66a;display:flex;align-items:center;gap:6px;white-space:nowrap;margin-left:auto;flex-shrink:0}
+.fail{color:#ff6b6b;display:flex;align-items:center;gap:6px;white-space:nowrap;margin-left:auto;flex-shrink:0}
+.right{display:flex;align-items:center;gap:6px;margin-left:auto;flex:0 0 auto;width:100%;max-width:220px}
+.tick{}
+.okText{color:#6ad66a;white-space:nowrap;margin-left:auto}
+.failText{color:#ff6b6b;white-space:nowrap}
+.nowrap{white-space:nowrap}
+
+.expand{margin-top:10px;padding-top:8px;border-top:none;display:flex;flex-direction:column;gap:6px;width:100%}
+.expandRow{display:flex;justify-content:space-between;align-items:center}
+.serviceRow{padding:8px 10px;border:1px solid var(--card-border);border-radius:6px;margin:6px 0;cursor:pointer}
+.serviceRow:focus{outline:2px solid var(--focus);outline-offset:2px}
+.ratesList{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.rateRow{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border:1px solid var(--card-border);border-radius:6px}
+.rateDesc{display:flex;flex-direction:column;gap:2px}
+.price{font-weight:600;white-space:nowrap}
+.count{font-weight:600}

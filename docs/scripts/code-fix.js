@@ -326,6 +326,48 @@ class CodeFixer {
   }
 }
 
+/**
+ * Recursively discover TypeScript files in valid directories.
+ * Mirrors docs/review filter scope: include roots app/, components/, lib/, hooks/, types/;
+ * include .ts and .tsx; exclude .d.ts; skip docs/, test/, .windsurf/, node_modules/, .git.
+ * @returns {string[]} absolute file paths
+ */
+function discoverRepoTypeScriptFiles(repoRoot) {
+  const includeRoots = ['app', 'components', 'lib', 'hooks', 'types']
+  const excludeDirs = new Set(['node_modules', '.git', 'docs', 'test', '.windsurf'])
+  const results = []
+
+  /** @param {string} dir */
+  function walk(dir) {
+    let entries
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true })
+    } catch (_) {
+      return
+    }
+    for (const ent of entries) {
+      const full = path.join(dir, ent.name)
+      if (ent.isDirectory()) {
+        if (excludeDirs.has(ent.name)) continue
+        walk(full)
+      } else {
+        if (/\.(ts|tsx)$/i.test(ent.name) && !/\.d\.ts$/i.test(ent.name)) {
+          results.push(full)
+        }
+      }
+    }
+  }
+
+  for (const root of includeRoots) {
+    const p = path.join(repoRoot, root)
+    if (fs.existsSync(p) && fs.statSync(p).isDirectory()) {
+      walk(p)
+    }
+  }
+
+  return results
+}
+
 function showUsage() {
   console.log(`
 🔧 Code Fix Tool — docs/scripts/code-fix.js
@@ -339,6 +381,8 @@ USAGE
   node docs/scripts/code-fix.js --delete   <path1> [path2 ...]
   node docs/scripts/code-fix.js --comments --console <file1> [file2 ...]
   node docs/scripts/code-fix.js --console  --comments <file1> [file2 ...]
+  # Auto-discover all TS/TSX files in app/, components/, lib/, hooks/, types/ when no files are provided
+  node docs/scripts/code-fix.js --comments --console
 
 OPTIONS
   --help, -h        Show this help and exit 0
@@ -361,6 +405,12 @@ OPTIONS
 COMBINING OPERATIONS
   • You can combine --comments and --console; order does not matter
   • --delete cannot be combined with other flags and must be used alone
+
+AUTO-DISCOVERY (no files provided)
+  • When no files are specified (and not using --delete), the tool auto-discovers all .ts/.tsx files
+    under: app/, components/, lib/, hooks/, types/
+  • Excludes: node_modules/, .git/, docs/, test/, .windsurf/
+  • Skips .d.ts files
 
 OUTPUT
   • Per-item progress logs
@@ -462,26 +512,32 @@ function main() {
     process.exit(1)
   }
 
-  if (files.length === 0) {
-    if (hasDelete) {
-      console.error('❌ No paths specified for deletion')
-      console.error('   Usage: node code-fix.js --delete <path1> <path2> ...')
-    } else {
-      console.error('❌ No files specified')
-      console.error('   Usage: node code-fix.js --comments [--console] <file1> <file2> ...')
+  // Auto-discover files when none provided (except for --delete)
+  let inputFiles = files
+  if (!hasDelete && inputFiles.length === 0) {
+    const all = discoverRepoTypeScriptFiles(path.resolve(__dirname, '../../'))
+    if (all.length === 0) {
+      console.error('❌ No reviewable TypeScript files found in app/, components/, lib/, hooks/, types/')
+      process.exit(1)
     }
-    process.exit(1)
+    console.log(`🔎 Auto-discovered ${all.length} TypeScript file(s) in valid directories`)
+    inputFiles = all
   }
 
   const fixer = new CodeFixer()
 
   if (hasDelete) {
-    fixer.deletePaths(files)
+    if (inputFiles.length === 0) {
+      console.error('❌ No paths specified for deletion')
+      console.error('   Usage: node code-fix.js --delete <path1> <path2> ...')
+      process.exit(1)
+    }
+    fixer.deletePaths(inputFiles)
     return
   }
 
-  console.log(`🚀 Starting fix operations: ${ops.join(' ')} for ${files.length} file(s)...\n`)
-  for (const filePath of files) {
+  console.log(`🚀 Starting fix operations: ${ops.join(' ')} for ${inputFiles.length} file(s)...\n`)
+  for (const filePath of inputFiles) {
     for (const op of ops) {
       if (op === '--comments') {
         fixer.processFile(filePath)

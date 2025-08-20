@@ -1,38 +1,703 @@
 {
-  "generatedAt": "2025-08-18T22:35:53.330Z",
+  "generatedAt": "2025-08-19T13:49:11.970Z",
   "args": [
-    "--porcelain"
+    "--no-autofix",
+    "--debug"
   ],
   "options": {
     "concurrency": 4,
-    "porcelainMode": true,
-    "noAutofix": false,
-    "debugMode": false,
+    "porcelainMode": false,
+    "noAutofix": true,
+    "debugMode": true,
     "skipTsc": false
   },
   "timing": {
-    "autofixMs": 120,
-    "perFileMs": 2,
-    "repoMs": 6268,
-    "totalMs": 9622,
-    "eslintBatchMs": 2962,
+    "autofixMs": 0,
+    "perFileMs": 6,
+    "repoMs": 2413,
+    "totalMs": 5608,
+    "eslintBatchMs": 3185,
     "repoBreakdown": {
-      "jscpdMs": 342,
-      "tscMs": 2238,
-      "knipMs": 6268
+      "jscpdMs": 159,
+      "tscMs": 1941,
+      "knipMs": 2413
     }
   },
-  "filesAnalyzed": 2,
-  "results": [],
+  "filesAnalyzed": 14,
+  "results": [
+    {
+      "filePath": "C:\\Users\\Jonny\\Code\\shopify-shipping\\components\\DeployControls.tsx",
+      "relPath": "components\\DeployControls.tsx",
+      "fileType": "components",
+      "size": {
+        "lines": 56,
+        "limit": 150,
+        "status": "PASS"
+      },
+      "comments": {
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": true,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 2,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS",
+        "details": []
+      },
+      "fallbackData": {
+        "violations": [
+          {
+            "type": "or_fallback",
+            "line": 23,
+            "content": "value={target || ''}",
+            "advice": "Throw composed error instead of silent fallback. This pattern hides missing required data. Recommend deeper analysis: Is this data truly optional, or should upstream validation catch this?"
+          },
+          {
+            "type": "or_fallback",
+            "line": 28,
+            "content": "{(targets.length ? targets : [{ key: target || '', storeUrl: '' }]).map((t) => (",
+            "advice": "Throw composed error instead of silent fallback. This pattern hides missing required data. Recommend deeper analysis: Is this data truly optional, or should upstream validation catch this?"
+          },
+          {
+            "type": "ternary_fallback",
+            "line": 28,
+            "content": "{(targets.length ? targets : [{ key: target || '', storeUrl: '' }]).map((t) => (",
+            "advice": "Throw composed error instead of default value. Ternary fallbacks mask validation failures. Consider: What makes this condition invalid? Should upstream code prevent this state?"
+          }
+        ],
+        "count": 3,
+        "status": "FAIL"
+      },
+      "timing": {
+        "linesMs": 0,
+        "commentsMs": 0,
+        "reactMs": 0,
+        "consoleMs": 0,
+        "eslintMs": 0,
+        "typescriptMs": 1,
+        "fallbackMs": 1
+      },
+      "typescriptCompiler": {
+        "errorCount": 0,
+        "errors": [],
+        "status": "PASS"
+      },
+      "deadCode": {
+        "unusedExports": 0,
+        "unusedTypes": 0,
+        "unusedEnumMembers": 0,
+        "unusedClassMembers": 0,
+        "unlistedDependencies": 0,
+        "unresolvedImports": 0,
+        "status": "PASS",
+        "recommendations": []
+      },
+      "duplicates": {
+        "count": 0,
+        "segments": [],
+        "status": "PASS",
+        "recommendations": []
+      }
+    },
+    {
+      "filePath": "C:\\Users\\Jonny\\Code\\shopify-shipping\\components\\DeployProgressList.tsx",
+      "relPath": "components\\DeployProgressList.tsx",
+      "fileType": "components",
+      "size": {
+        "lines": 87,
+        "limit": 150,
+        "status": "PASS"
+      },
+      "comments": {
+        "count": 1,
+        "status": "FAIL"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": true,
+        "hasUseEffect": false,
+        "hasHooks": true,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": [
+          {
+            "line": 16,
+            "column": 31,
+            "message": "Unexpected any. Specify a different type."
+          }
+        ]
+      },
+      "typescript": {
+        "totalFunctions": 4,
+        "missingReturnTypes": 1,
+        "hasExplicitTypes": false,
+        "status": "FAIL",
+        "details": [
+          {
+            "name": "ms",
+            "line": 5,
+            "kind": "function-declaration",
+            "signaturePreview": "function ms(sec: number | undefined) {"
+          }
+        ]
+      },
+      "fallbackData": {
+        "violations": [
+          {
+            "type": "return_null",
+            "line": 25,
+            "content": "if (state === 'idle') return null",
+            "advice": "Throw composed error instead of null return. Null returns mask invalid states and prevent proper error handling. Consider: What upstream validation failed? Why is this data missing?"
+          },
+          {
+            "type": "or_fallback",
+            "line": 42,
+            "content": "{(snapshot?.completed || []).map((z) => {",
+            "advice": "Throw composed error instead of silent fallback. This pattern hides missing required data. Recommend deeper analysis: Is this data truly optional, or should upstream validation catch this?"
+          },
+          {
+            "type": "optional_chaining_fallback",
+            "line": 42,
+            "content": "{(snapshot?.completed || []).map((z) => {",
+            "advice": "Throw composed error instead of defensive fallback. Optional chaining with fallbacks suggests unclear data contracts. Recommend deeper analysis: Should this property be guaranteed? Is validation missing?"
+          },
+          {
+            "type": "or_fallback",
+            "line": 65,
+            "content": "{z.success ? `✅ ${z.rates_deployed ?? 0} rates` : `❌ ${z.error || 'Failed'}`}",
+            "advice": "Throw composed error instead of silent fallback. This pattern hides missing required data. Recommend deeper analysis: Is this data truly optional, or should upstream validation catch this?"
+          }
+        ],
+        "count": 4,
+        "status": "FAIL"
+      },
+      "timing": {
+        "linesMs": 0,
+        "commentsMs": 0,
+        "reactMs": 0,
+        "consoleMs": 0,
+        "eslintMs": 0,
+        "typescriptMs": 1,
+        "fallbackMs": 0
+      },
+      "typescriptCompiler": {
+        "errorCount": 0,
+        "errors": [],
+        "status": "PASS"
+      },
+      "deadCode": {
+        "unusedExports": 0,
+        "unusedTypes": 0,
+        "unusedEnumMembers": 0,
+        "unusedClassMembers": 0,
+        "unlistedDependencies": 0,
+        "unresolvedImports": 0,
+        "status": "PASS",
+        "recommendations": []
+      },
+      "duplicates": {
+        "count": 0,
+        "segments": [],
+        "status": "PASS",
+        "recommendations": []
+      }
+    },
+    {
+      "filePath": "C:\\Users\\Jonny\\Code\\shopify-shipping\\components\\SummaryCard.tsx",
+      "relPath": "components\\SummaryCard.tsx",
+      "fileType": "components",
+      "size": {
+        "lines": 44,
+        "limit": 150,
+        "status": "PASS"
+      },
+      "comments": {
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": true,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 2,
+        "missingReturnTypes": 1,
+        "hasExplicitTypes": false,
+        "status": "FAIL",
+        "details": [
+          {
+            "name": "t",
+            "line": 20,
+            "kind": "const-arrow",
+            "signaturePreview": "const t = targets.find((x) => x.key === target)"
+          }
+        ]
+      },
+      "fallbackData": {
+        "violations": [
+          {
+            "type": "return_null",
+            "line": 6,
+            "content": "if (state === 'idle') return null",
+            "advice": "Throw composed error instead of null return. Null returns mask invalid states and prevent proper error handling. Consider: What upstream validation failed? Why is this data missing?"
+          }
+        ],
+        "count": 1,
+        "status": "FAIL"
+      },
+      "timing": {
+        "linesMs": 0,
+        "commentsMs": 0,
+        "reactMs": 0,
+        "consoleMs": 0,
+        "eslintMs": 0,
+        "typescriptMs": 0,
+        "fallbackMs": 0
+      },
+      "typescriptCompiler": {
+        "errorCount": 0,
+        "errors": [],
+        "status": "PASS"
+      },
+      "deadCode": {
+        "unusedExports": 0,
+        "unusedTypes": 0,
+        "unusedEnumMembers": 0,
+        "unusedClassMembers": 0,
+        "unlistedDependencies": 0,
+        "unresolvedImports": 0,
+        "status": "PASS",
+        "recommendations": []
+      },
+      "duplicates": {
+        "count": 0,
+        "segments": [],
+        "status": "PASS",
+        "recommendations": []
+      }
+    },
+    {
+      "filePath": "C:\\Users\\Jonny\\Code\\shopify-shipping\\lib\\api\\rates.ts",
+      "relPath": "lib\\api\\rates.ts",
+      "fileType": "utils",
+      "size": {
+        "lines": 71,
+        "limit": 50,
+        "status": "FAIL"
+      },
+      "comments": {
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 3,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS",
+        "details": []
+      },
+      "fallbackData": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "timing": {
+        "linesMs": 0,
+        "commentsMs": 0,
+        "reactMs": 0,
+        "consoleMs": 0,
+        "eslintMs": 0,
+        "typescriptMs": 0,
+        "fallbackMs": 0
+      },
+      "typescriptCompiler": {
+        "errorCount": 0,
+        "errors": [],
+        "status": "PASS"
+      },
+      "deadCode": {
+        "unusedExports": 0,
+        "unusedTypes": 0,
+        "unusedEnumMembers": 0,
+        "unusedClassMembers": 0,
+        "unlistedDependencies": 0,
+        "unresolvedImports": 0,
+        "status": "PASS",
+        "recommendations": []
+      },
+      "duplicates": {
+        "count": 0,
+        "segments": [],
+        "status": "PASS",
+        "recommendations": []
+      }
+    },
+    {
+      "filePath": "C:\\Users\\Jonny\\Code\\shopify-shipping\\types\\api.ts",
+      "relPath": "types\\api.ts",
+      "fileType": "types",
+      "size": {
+        "lines": 58,
+        "limit": 100,
+        "status": "PASS"
+      },
+      "comments": {
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS",
+        "details": []
+      },
+      "fallbackData": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "timing": {
+        "linesMs": 0,
+        "commentsMs": 0,
+        "reactMs": 0,
+        "consoleMs": 1,
+        "eslintMs": 0,
+        "typescriptMs": 0,
+        "fallbackMs": 0
+      },
+      "typescriptCompiler": {
+        "errorCount": 0,
+        "errors": [],
+        "status": "PASS"
+      },
+      "deadCode": {
+        "unusedExports": 0,
+        "unusedTypes": 5,
+        "unusedEnumMembers": 0,
+        "unusedClassMembers": 0,
+        "unlistedDependencies": 0,
+        "unresolvedImports": 0,
+        "status": "FAIL",
+        "recommendations": [
+          "Remove unused type(s) or inline where needed."
+        ]
+      },
+      "duplicates": {
+        "count": 0,
+        "segments": [],
+        "status": "PASS",
+        "recommendations": []
+      }
+    },
+    {
+      "filePath": "C:\\Users\\Jonny\\Code\\shopify-shipping\\types\\rate-generation.ts",
+      "relPath": "types\\rate-generation.ts",
+      "fileType": "types",
+      "size": {
+        "lines": 74,
+        "limit": 100,
+        "status": "PASS"
+      },
+      "comments": {
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 2,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS",
+        "details": []
+      },
+      "fallbackData": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "timing": {
+        "linesMs": 0,
+        "commentsMs": 0,
+        "reactMs": 0,
+        "consoleMs": 0,
+        "eslintMs": 0,
+        "typescriptMs": 0,
+        "fallbackMs": 0
+      },
+      "typescriptCompiler": {
+        "errorCount": 0,
+        "errors": [],
+        "status": "PASS"
+      },
+      "deadCode": {
+        "unusedExports": 0,
+        "unusedTypes": 3,
+        "unusedEnumMembers": 0,
+        "unusedClassMembers": 0,
+        "unlistedDependencies": 0,
+        "unresolvedImports": 0,
+        "status": "FAIL",
+        "recommendations": [
+          "Remove unused type(s) or inline where needed."
+        ]
+      },
+      "duplicates": {
+        "count": 0,
+        "segments": [],
+        "status": "PASS",
+        "recommendations": []
+      }
+    },
+    {
+      "filePath": "C:\\Users\\Jonny\\Code\\shopify-shipping\\types\\shopify-inputs.ts",
+      "relPath": "types\\shopify-inputs.ts",
+      "fileType": "types",
+      "size": {
+        "lines": 51,
+        "limit": 100,
+        "status": "PASS"
+      },
+      "comments": {
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS",
+        "details": []
+      },
+      "fallbackData": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "timing": {
+        "linesMs": 0,
+        "commentsMs": 0,
+        "reactMs": 0,
+        "consoleMs": 0,
+        "eslintMs": 0,
+        "typescriptMs": 0,
+        "fallbackMs": 0
+      },
+      "typescriptCompiler": {
+        "errorCount": 0,
+        "errors": [],
+        "status": "PASS"
+      },
+      "deadCode": {
+        "unusedExports": 0,
+        "unusedTypes": 6,
+        "unusedEnumMembers": 0,
+        "unusedClassMembers": 0,
+        "unlistedDependencies": 0,
+        "unresolvedImports": 0,
+        "status": "FAIL",
+        "recommendations": [
+          "Remove unused type(s) or inline where needed."
+        ]
+      },
+      "duplicates": {
+        "count": 0,
+        "segments": [],
+        "status": "PASS",
+        "recommendations": []
+      }
+    },
+    {
+      "filePath": "C:\\Users\\Jonny\\Code\\shopify-shipping\\types\\shopify-mutation-responses.ts",
+      "relPath": "types\\shopify-mutation-responses.ts",
+      "fileType": "types",
+      "size": {
+        "lines": 21,
+        "limit": 100,
+        "status": "PASS"
+      },
+      "comments": {
+        "count": 0,
+        "status": "PASS"
+      },
+      "react": {
+        "hasReactImport": false,
+        "hasUseCallback": false,
+        "hasUseMemo": false,
+        "hasUseEffect": false,
+        "hasHooks": false,
+        "issues": []
+      },
+      "consoleErrors": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "eslint": {
+        "errors": [],
+        "warnings": []
+      },
+      "typescript": {
+        "totalFunctions": 0,
+        "missingReturnTypes": 0,
+        "hasExplicitTypes": true,
+        "status": "PASS",
+        "details": []
+      },
+      "fallbackData": {
+        "violations": [],
+        "count": 0,
+        "status": "PASS"
+      },
+      "timing": {
+        "linesMs": 0,
+        "commentsMs": 0,
+        "reactMs": 0,
+        "consoleMs": 0,
+        "eslintMs": 0,
+        "typescriptMs": 0,
+        "fallbackMs": 0
+      },
+      "typescriptCompiler": {
+        "errorCount": 0,
+        "errors": [],
+        "status": "PASS"
+      },
+      "deadCode": {
+        "unusedExports": 0,
+        "unusedTypes": 1,
+        "unusedEnumMembers": 0,
+        "unusedClassMembers": 0,
+        "unlistedDependencies": 0,
+        "unresolvedImports": 0,
+        "status": "FAIL",
+        "recommendations": [
+          "Remove unused type(s) or inline where needed."
+        ]
+      },
+      "duplicates": {
+        "count": 0,
+        "segments": [],
+        "status": "PASS",
+        "recommendations": []
+      }
+    }
+  ],
   "summary": {
     "status": "fail",
     "message": "Violations detected. Action required."
   },
   "repo": {
     "knip": {
-      "unusedFiles": 162,
+      "unusedFiles": 159,
       "unusedExports": 2,
-      "unusedTypes": 17,
+      "unusedTypes": 19,
       "unusedEnumMembers": 0,
       "unusedClassMembers": 0,
       "unlistedDependencies": 0,
@@ -45,7 +710,7 @@
     },
     "tsc": {
       "totalErrors": 0,
-      "tsconfigPath": "c:\\Users\\Jonny\\Code\\shopify-shipping\\tsconfig.json"
+      "tsconfigPath": "C:\\Users\\Jonny\\Code\\shopify-shipping\\tsconfig.json"
     }
   }
 }

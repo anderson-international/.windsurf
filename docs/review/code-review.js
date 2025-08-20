@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const path = require('path');
+const fs = require('fs');
 const { execSync } = require('child_process');
 
 const { ROOT_DIR, OUTPUT_DIR, RESULTS_FILE, toRepoRelative, ensureDir } = require('./components/utils/paths');
@@ -51,6 +52,10 @@ function printUsage() {
     '  --tsconfig <path>          Use a specific tsconfig.json (default: repo root tsconfig.json)',
     '  --skip-tsc                 Skip TypeScript compiler checks',
     '',
+    'Default behavior:',
+    '  • If no files are specified (and not in --porcelain mode), all valid TypeScript files are analyzed',
+    '    under: app/, components/, lib/, hooks/, types/ (excluding .d.ts and excluded dirs)',
+    '',
     'Exit codes:',
     '  0  All checks passed',
     '  1  One or more violations found or write error',
@@ -66,6 +71,42 @@ function formatMs(ms) {
   const seconds = totalSeconds % 60;
   const ss = String(seconds).padStart(2, '0');
   return `${minutes}m ${ss}s`;
+}
+
+// Auto-discover reviewable TS/TSX files across valid repo roots
+function discoverReviewableTypeScriptFiles() {
+  const includeRoots = ['app', 'components', 'lib', 'hooks', 'types'];
+  const excludeDirs = new Set(['node_modules', '.git', 'docs', 'test', '.windsurf']);
+  const out = [];
+
+  function walk(dirAbs) {
+    let entries;
+    try {
+      entries = fs.readdirSync(dirAbs, { withFileTypes: true });
+    } catch (_) {
+      return;
+    }
+    for (const ent of entries) {
+      const full = path.join(dirAbs, ent.name);
+      if (ent.isDirectory()) {
+        if (excludeDirs.has(ent.name)) continue;
+        walk(full);
+      } else {
+        // Build repo-relative path and reuse isReviewablePath()
+        const rel = path.relative(ROOT_DIR, full).replace(/\\/g, '/');
+        if (isReviewablePath(rel)) out.push(full);
+      }
+    }
+  }
+
+  for (const root of includeRoots) {
+    const abs = path.join(ROOT_DIR, root);
+    try {
+      if (fs.existsSync(abs) && fs.statSync(abs).isDirectory()) walk(abs);
+    } catch (_) {}
+  }
+
+  return out;
 }
 
 async function main() {
@@ -159,8 +200,14 @@ async function main() {
         process.exit(1);
       }
     }
-    console.error('Usage: node docs/review/code-review.js <file1> <file2> ...');
-    process.exit(1);
+    // Auto-discover all reviewable TypeScript files under valid roots
+    const discovered = discoverReviewableTypeScriptFiles();
+    if (debugMode) console.log(`Auto-discovered ${discovered.length} reviewable file(s).`);
+    if (discovered.length === 0) {
+      console.error('No reviewable TypeScript files found under app/, components/, lib/, hooks/, types/.');
+      process.exit(1);
+    }
+    for (const f of discovered) files.push(f);
   }
 
   // Delete stale legacy reports

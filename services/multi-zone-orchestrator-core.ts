@@ -4,13 +4,14 @@ import { ShopifyConfig } from './shopify-config'
 import { resolveShopifyTarget } from './shopify-target-resolver'
 import { ShopifyZone, ZoneProcessingResult, OrchestrationResult } from '../types/multi-zone-types'
 import { ProgressReporter } from './progress-reporter'
+import { AbortFlag } from './abort-flag'
 
 export class MultiZoneOrchestrator {
   private readonly shopifyConfig: ShopifyConfig
   private readonly zoneProcessor: ZoneProcessor
 
-  constructor() {
-    const resolved = resolveShopifyTarget()
+  constructor(target?: string) {
+    const resolved = resolveShopifyTarget(target)
     this.shopifyConfig = resolved.config
     const baseUrl = process.env.BASE_URL || 'http://localhost:3000'
     this.zoneProcessor = new ZoneProcessor(baseUrl)
@@ -19,6 +20,8 @@ export class MultiZoneOrchestrator {
 
   async orchestrateAllZones(dryRun: boolean = false): Promise<OrchestrationResult> {
     try {
+      // fresh run setup
+      AbortFlag.reset()
       const zones = await this.fetchShopifyZones()
       
       if (zones.length === 0) {
@@ -38,6 +41,25 @@ export class MultiZoneOrchestrator {
       const results: ZoneProcessingResult[] = []
       
       for (const zone of zones) {
+        if (AbortFlag.isAborted()) {
+          const reason = AbortFlag.getReason() || 'Aborted by user'
+          console.warn(`⛔ Aborting before processing next zone: ${reason}`)
+          ProgressReporter.markAborted(reason)
+          return {
+            total_zones_processed: results.length,
+            successful_deployments: results.filter(r => r.success).length,
+            failed_deployments: results.filter(r => !r.success).length,
+            results,
+            systematic_error: {
+              systematic_issue_detected: true,
+              failed_zone: zone.name,
+              error_details: reason,
+              diagnostic_message: 'Deployment aborted by user',
+              total_zones_available: zones.length,
+              recommendation: 'Re-run deployment when ready'
+            }
+          }
+        }
         console.log(`🔍 Processing zone: ${zone.name}`)
         const _start = Date.now()
         const result = await this.zoneProcessor.processZone(zone, dryRun)
@@ -74,6 +96,25 @@ export class MultiZoneOrchestrator {
         }
         
         console.log(`✅ Zone '${zone.name}' processed successfully`)
+        if (AbortFlag.isAborted()) {
+          const reason = AbortFlag.getReason() || 'Aborted by user'
+          console.warn(`⛔ Aborting after processing zone '${zone.name}': ${reason}`)
+          ProgressReporter.markAborted(reason)
+          return {
+            total_zones_processed: results.length,
+            successful_deployments: results.filter(r => r.success).length,
+            failed_deployments: results.filter(r => !r.success).length,
+            results,
+            systematic_error: {
+              systematic_issue_detected: true,
+              failed_zone: zone.name,
+              error_details: reason,
+              diagnostic_message: 'Deployment aborted by user',
+              total_zones_available: zones.length,
+              recommendation: 'Re-run deployment when ready'
+            }
+          }
+        }
       }
       const compiled = this.compileResults(results)
       ProgressReporter.markDone()
