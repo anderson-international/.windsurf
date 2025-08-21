@@ -9,29 +9,29 @@ auto_execution_mode: 1
 ### Correct Examples  
 ```bash
 # File operations  
-cmd /c del docs\test\file.md  
-cmd /c del "docs\folder with spaces\file.md"  
+cmd /c del ai-subtree\test\file.md  
+cmd /c del "ai-subtree\folder with spaces\file.md"  
 cmd /c copy source.txt dest.txt  
 cmd /c move old.txt new.txt  
 
 # Directory operations  
-cmd /c mkdir docs\new-folder  
-cmd /c rmdir docs\test  
+cmd /c mkdir ai-subtree\new-folder  
+cmd /c rmdir ai-subtree\test  
 ```
 
 ### Common Mistakes  
 ```bash
 # ❌ Missing `cmd /c` prefix  
-del docs\\test\\file.md  
+del ai-subtree\\test\\file.md  
 
 # ❌ Using PowerShell syntax instead of cmd  
-Remove-Item docs\\test\\file.md  
+Remove-Item ai-subtree\\test\\file.md  
 
 # ❌ Using Unix-style forward slashes in paths  
-cmd /c del docs/test/file.md  
+cmd /c del ai-subtree/test/file.md  
 
 # ❌ Unquoted paths with spaces  
-cmd /c del docs\folder with spaces\file.md 
+cmd /c del ai-subtree\folder with spaces\file.md 
 ```
 
 ### Key Rules  
