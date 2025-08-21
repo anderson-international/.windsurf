@@ -20,6 +20,19 @@ cmd /c npm run tsc               // TypeScript diagnostics only (noEmit)
 cmd /c npm run lint:repo         // ESLint only, repo-wide
 ```
 
+From repo root, you can also use `--prefix`:
+```cmd
+cmd /c npm --prefix ai-subtree\review run review:repo -- --help
+```
+
+### Troubleshooting
+- **Error: `npm error Missing script: "review:repo"`**
+  - Cause: running from repo root without `--prefix`.
+  - Fix: either run within `ai-subtree\review\`, or from root with:
+    ```cmd
+    cmd /c npm --prefix ai-subtree\review run review:porcelain
+    ```
+
 If dependencies are missing, install locally:
 ```cmd
 cmd /c npm ci
