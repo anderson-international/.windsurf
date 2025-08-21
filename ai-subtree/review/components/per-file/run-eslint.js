@@ -1,11 +1,16 @@
  const { execSync, exec } = require('child_process');
- const { promisify } = require('util');
- const execAsync = promisify(exec);
- const path = require('path');
+const { promisify } = require('util');
+const execAsync = promisify(exec);
+const path = require('path');
+const { ROOT_DIR } = require('../utils/paths');
 
 function runEslint(filePath) {
   try {
-    execSync(`npx eslint "${filePath}" --max-warnings=0 --no-ignore`, { stdio: 'pipe' });
+    const reviewDir = path.join(ROOT_DIR, 'ai-subtree', 'review');
+    const configPath = path.join(reviewDir, '.eslintrc.review.cjs');
+    const q = (s) => `"${String(s).replace(/"/g, '\\"')}"`;
+    const cmd = `npx --prefix ${q(reviewDir)} eslint --config ${q(configPath)} --resolve-plugins-relative-to ${q(reviewDir)} --cache --cache-location ${q(path.join(reviewDir, '.eslintcache'))} --max-warnings=0 --no-ignore ${q(filePath)}`;
+    execSync(cmd, { stdio: 'pipe', cwd: ROOT_DIR });
     return { errors: [], warnings: [] };
   } catch (error) {
     const output = error.stdout?.toString() || error.stderr?.toString() || '';
@@ -39,10 +44,18 @@ async function runEslintBatch(filePaths) {
   try {
     const files = Array.isArray(filePaths) ? filePaths.filter(Boolean) : [];
     if (files.length === 0) return resultMap;
-    const quoted = files.map(fp => `"${String(fp).replace(/"/g, '\\"')}"`).join(' ');
-    const cmd = `npx eslint --format json --no-ignore --max-warnings=0 ${quoted}`;
+    // Pre-populate map with empty results to avoid per-file fallback when batch output has no findings
+    const normalized = files.map(fp => path.resolve(fp));
+    for (const abs of normalized) {
+      resultMap[abs] = { errors: [], warnings: [] };
+    }
+    const reviewDir = path.join(ROOT_DIR, 'ai-subtree', 'review');
+    const configPath = path.join(reviewDir, '.eslintrc.review.cjs');
+    const q = (s) => `"${String(s).replace(/"/g, '\\"')}"`;
+    const quoted = files.map(fp => q(fp)).join(' ');
+    const cmd = `npx --prefix ${q(reviewDir)} eslint --format json --no-ignore --max-warnings=0 --cache --cache-location ${q(path.join(reviewDir, '.eslintcache'))} --config ${q(configPath)} --resolve-plugins-relative-to ${q(reviewDir)} ${quoted}`;
     try {
-      const { stdout, stderr } = await execAsync(cmd, { maxBuffer: 64 * 1024 * 1024 });
+      const { stdout, stderr } = await execAsync(cmd, { cwd: ROOT_DIR, maxBuffer: 64 * 1024 * 1024 });
       const raw = String(stdout || stderr || '[]');
       let arr;
       try { arr = JSON.parse(raw); } catch { arr = []; }
@@ -76,7 +89,7 @@ async function runEslintBatch(filePaths) {
           }
         }
       } catch (_) {
-        // If JSON parse fails, fall back to empty results
+        // If JSON parse fails, fall back to pre-populated empty results
       }
     }
   } catch (_) {}
@@ -84,3 +97,4 @@ async function runEslintBatch(filePaths) {
 }
 
 module.exports = { runEslint, runEslintBatch };
+

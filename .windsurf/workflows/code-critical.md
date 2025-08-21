@@ -17,7 +17,7 @@ cmd /c node ai-subtree/tools/schema-query.js --help
 ```
 
 ```bash
-cmd /c node ai-subtree/review/code-review.js --help
+cmd /c npm run review:repo -- --help
 ```
 
 ## SECOND: Run critical workflows

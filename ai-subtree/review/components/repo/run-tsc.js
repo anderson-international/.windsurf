@@ -12,9 +12,11 @@ async function runTsc(tsconfigPathArg) {
   const reviewTsconfig = path.join(ROOT_DIR, 'ai-subtree', 'review', 'tsconfig.review.json');
   const defaultTsconfig = fs.existsSync(reviewTsconfig) ? reviewTsconfig : path.join(ROOT_DIR, 'tsconfig.json');
   const tsconfigPathUsed = tsconfigPathArg || defaultTsconfig;
+  const reviewDir = path.join(ROOT_DIR, 'ai-subtree', 'review');
+  const prefix = `npx --prefix "${reviewDir.replace(/"/g, '\\"')}"`;
   const cmd = fs.existsSync(tsconfigPathUsed)
-    ? `npx tsc --noEmit --pretty false -p "${tsconfigPathUsed.replace(/"/g, '\\"')}"`
-    : 'npx tsc --noEmit --pretty false';
+    ? `${prefix} tsc --noEmit --pretty false -p "${tsconfigPathUsed.replace(/"/g, '\\"')}"`
+    : `${prefix} tsc --noEmit --pretty false`;
   try {
     // Success: no compiler errors
     await execAsync(cmd, { cwd: ROOT_DIR, maxBuffer: 64 * 1024 * 1024 });

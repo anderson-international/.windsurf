@@ -43,7 +43,7 @@ function printUsage() {
     '',
     'Flags:',
     '  --porcelain                Auto-select changed TS/TSX files via git porcelain',
-    '  --concurrency <n>          Limit per-file parallelism (default 4)',
+    '  --concurrency <n>          Limit per-file parallelism (default 8)',
     '  --jscpd-min-tokens <n>     Set JSCPD min tokens (default 50)',
     '  --jscpd-include <dirs>     Comma-separated include roots (default: app,components,lib,hooks,types; use "." for repo)',
     '  --no-autofix               Disable default auto-fix of comments/console lines',
@@ -117,7 +117,7 @@ async function main() {
   }
 
   // Parse args
-  let concurrency = 4;
+  let concurrency = 8;
   let jscpdMinTokens = undefined;
   let jscpdIncludeRoots = undefined;
   let debugMode = false;

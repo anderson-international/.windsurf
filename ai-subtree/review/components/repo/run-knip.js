@@ -1,14 +1,14 @@
 const { exec } = require('child_process');
 const { promisify } = require('util');
 const execAsync = promisify(exec);
+const path = require('path');
 const { ROOT_DIR } = require('../utils/paths');
 
 async function runKnip() {
   try {
-    const { stdout, stderr } = await execAsync('npx knip --reporter json --no-progress --config ai-subtree/review/knip.config.js --tsConfig ai-subtree/review/tsconfig.review.json', {
-      cwd: ROOT_DIR,
-      maxBuffer: 64 * 1024 * 1024
-    });
+    const reviewDir = path.join(ROOT_DIR, 'ai-subtree', 'review');
+    const cmd = `npx --prefix "${reviewDir.replace(/"/g, '\\"')}" knip --reporter json --no-progress --config ai-subtree/review/knip.config.js --tsConfig ai-subtree/review/tsconfig.review.json`;
+    const { stdout, stderr } = await execAsync(cmd, { cwd: ROOT_DIR, maxBuffer: 64 * 1024 * 1024 });
     const output = String(stdout || stderr || '');
     return JSON.parse(output);
   } catch (error) {

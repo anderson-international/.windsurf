@@ -12,6 +12,7 @@ async function runJscpd(apiOpts = {}) {
   } catch (_) {}
 
   const tmpScript = path.join(tmpDir, 'inline-jscpd.js');
+  const reviewDir = path.join(ROOT_DIR, 'ai-subtree', 'review');
   const includeRoots = Array.isArray(apiOpts.includeRoots) && apiOpts.includeRoots.length > 0
     ? apiOpts.includeRoots
     : ["app", "components", "lib", "hooks", "types"]; // default project roots only
@@ -19,7 +20,11 @@ async function runJscpd(apiOpts = {}) {
     ? apiOpts.minTokens
     : 50; // default threshold
   const scriptSource = [
-    "const { detectClones } = require('jscpd');",
+    "const path = require('path');",
+    "const { createRequire } = require('module');",
+    `const reviewDir = ${JSON.stringify(reviewDir)};`,
+    "const reviewRequire = createRequire(path.join(reviewDir, 'package.json'));",
+    "const { detectClones } = reviewRequire('jscpd');",
     '(async () => {',
     `  const includeRoots = ${JSON.stringify(includeRoots)};`,
     `  const minTokens = ${JSON.stringify(minTokens)};`,
@@ -34,7 +39,7 @@ async function runJscpd(apiOpts = {}) {
     '    silent: true,',
     '    reporters: ["silent"]',
     '  };',
-    '  const files = require("@jscpd/finder").getFilesToDetect(opts);',
+    "  const files = reviewRequire('@jscpd/finder').getFilesToDetect(opts);",
     '  const debug = { filesCount: Array.isArray(files) ? files.length : 0, samplePaths: (Array.isArray(files) ? files.slice(0,5).map(f => f.path) : []), includeRoots, minTokens };',
     '  const hc = { log: console.log, info: console.info, warn: console.warn };',
     '  let clones;',
