@@ -1,5 +1,6 @@
 ---
 description: Unified code review + fix loop (seek approval once, then iterate to PASS)
+auto_execution_mode: 1
 ---
 
 ## Unified Code Review + Fix Loop
@@ -26,7 +27,7 @@ Purpose: Run the single source-of-truth analyzer `ai-subtree/review/code-review.
 
 // turbo
 ```bash
-cmd /c node ai-subtree\review\code-review.js --porcelain
+cmd /c npm run review:porcelain
 ```
 
 - The tool prints a minimal summary and writes JSON to `ai-subtree/review/output/code-review-results.json`.
@@ -62,7 +63,7 @@ cmd /c node ai-subtree\tools\file-delete.js path\to\dead-file.ts path\to\stale-d
 Validate after each small batch (keep JSON current):
 // turbo
 ```bash
-cmd /c node ai-subtree\review\code-review.js --porcelain
+cmd /c npm run review:porcelain
 ```
 
 Optional diagnostics while editing (advisory only; always confirm with the analyzer):
@@ -74,7 +75,7 @@ cmd /c npx eslint app/ components/ lib/ types/ hooks/ --max-warnings=0
 Milestone validation (cross-file effects, repo checks):
 // turbo
 ```bash
-cmd /c node ai-subtree\review\code-review.js
+cmd /c npm run review:repo
 ```
 
 ---
@@ -83,12 +84,7 @@ cmd /c node ai-subtree\review\code-review.js
 
 // turbo
 ```bash
-cmd /c node ai-subtree\review\code-review.js
-```
-
-// turbo
-```bash
-cmd /c git status --porcelain
+cmd /c npm run review:repo
 ```
 
 Completion checklist:
