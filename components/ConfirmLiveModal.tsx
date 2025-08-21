@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactElement } from 'react'
 import styles from './ConfirmLiveModal.module.css'
 
 export default function ConfirmLiveModal({
@@ -13,9 +13,9 @@ export default function ConfirmLiveModal({
   titleSuffix?: string
   onCancel: () => void
   onConfirm: () => void
-}) {
+}): ReactElement | null {
   const [text, setText] = useState('')
-  const [pressing, setPressing] = useState(false)
+  const [_pressing, setPressing] = useState(false)
 
   useEffect(() => {
     if (!open) setText('')

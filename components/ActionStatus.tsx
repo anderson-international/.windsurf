@@ -4,7 +4,6 @@ import { useDeploy } from '../context/DeployContext'
 export default function ActionStatus() {
   const { state, dryRun, aborting } = useDeploy()
 
-  // Only visible while action is occurring
   const running = state === 'running'
   const visible = running || aborting
   if (!visible) return null

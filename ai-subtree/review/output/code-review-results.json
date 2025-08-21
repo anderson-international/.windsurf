@@ -1,0 +1,57 @@
+{
+  "generatedAt": "2025-08-21T17:41:50.289Z",
+  "args": [],
+  "options": {
+    "concurrency": 4,
+    "porcelainMode": false,
+    "noAutofix": false,
+    "debugMode": false,
+    "skipTsc": false
+  },
+  "timing": {
+    "autofixMs": 5,
+    "perFileMs": 6,
+    "repoMs": 4238,
+    "totalMs": 4249,
+    "eslintBatchMs": 4139,
+    "repoBreakdown": {
+      "jscpdMs": 743,
+      "tscMs": 2226,
+      "knipMs": 3540
+    }
+  },
+  "reviewMode": "Full Project Scan",
+  "filesAnalyzed": 18,
+  "results": [],
+  "summary": {
+    "status": "pass",
+    "noViolations": true,
+    "message": "No violations detected. No further action required."
+  },
+  "repo": {
+    "knip": {
+      "unusedFiles": 0,
+      "unusedExports": 0,
+      "unusedTypes": 0,
+      "unusedEnumMembers": 0,
+      "unusedClassMembers": 0,
+      "unlistedDependencies": 0,
+      "unresolvedImports": 0
+    },
+    "knipDetails": {
+      "unresolvedImports": [],
+      "unlistedDependencies": [],
+      "unusedFiles": [],
+      "unusedExports": []
+    },
+    "jscpd": {
+      "groups": 0,
+      "duplicatedLines": 0,
+      "percentage": 0
+    },
+    "tsc": {
+      "totalErrors": 0,
+      "tsconfigPath": "c:\\Users\\Jonny\\Code\\shopify-shipping\\ai-subtree\\review\\tsconfig.review.json"
+    }
+  }
+}

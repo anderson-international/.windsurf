@@ -1,34 +1,14 @@
 import styles from './DeployProgressList.module.css'
 import { useDeploy } from '../context/DeployContext'
 import { useMemo, useState } from 'react'
-
-function ms(sec: number | undefined) {
-  if (!sec) return ''
-  const s = (sec / 1000).toFixed(1)
-  return `${s}s`
-}
-
-function formatWeightRange(min: unknown, max: unknown) {
-  const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v as number)
-  if (!isNum(min) || !isNum(max)) return ''
-  const to2 = (n: number) => n.toFixed(2)
-  return `${to2(min)} to ${to2(max)} kg`
-}
-
-const gbpFmt = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' })
-function formatGBP(value: unknown) {
-  const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v as number)
-  if (!isNum(value)) return ''
-  return gbpFmt.format(value)
-}
-
+import { ms, formatWeightRange, formatGBP } from '../utils/format'
 export default function DeployProgressList() {
   const { snapshot, result, state } = useDeploy()
   const [open, setOpen] = useState<Record<string, boolean>>({})
   const [serviceOpen, setServiceOpen] = useState<Record<string, boolean>>({})
-  // Build a map for final results to access preview.rates (post-deploy details)
+
   const resultByZoneId = useMemo(() => {
-    const map: Record<string, any> = {}
+    const map: Record<string, unknown> = {}
     if (result) {
       for (const r of result.results) {
         map[r.zone_id] = r
@@ -36,9 +16,9 @@ export default function DeployProgressList() {
     }
     return map
   }, [result])
-  // Build a map for snapshot-completed zones to access preview before final result
+
   const snapshotByZoneId = useMemo(() => {
-    const map: Record<string, any> = {}
+    const map: Record<string, unknown> = {}
     if (snapshot) {
       for (const c of snapshot.completed) {
         if (c.preview) map[c.zone_id] = c
@@ -47,9 +27,22 @@ export default function DeployProgressList() {
     return map
   }, [snapshot])
 
-  if (state === 'idle') return null
+  if (state === 'idle') {
+    return (
+      <div className={`card ${styles.wrap}`}>
+        <div className={styles.item}>
+          <div className={styles.meta}>
+            <div className={styles.zone}>Idle</div>
+            <div className={styles.small}>No deployment activity yet</div>
+          </div>
+          <div className={styles.small}>—</div>
+        </div>
+      </div>
+    )
+  }
 
-  const hasAny = !!snapshot && snapshot.completed.length > 0
+  const completed = snapshot?.completed
+  const hasAny = Array.isArray(completed) && completed.length > 0
   const showPreparing = !hasAny && state === 'running'
 
   return (
@@ -65,10 +58,12 @@ export default function DeployProgressList() {
           <div className={styles.small}>—</div>
         </div>
       ) : null}
-      {(snapshot?.completed || []).map((z) => {
+      {hasAny ? completed!.map((z) => {
         const isOpen = !!open[z.zone_id]
-        const details = resultByZoneId[z.zone_id] || snapshotByZoneId[z.zone_id]
-        const rates = details?.preview?.rates as Array<{ title: string }> | undefined
+        const details = (resultByZoneId[z.zone_id] || snapshotByZoneId[z.zone_id]) as
+          | { preview?: { rates?: Array<{ title: string; price: number; weightMin?: number; weightMax?: number }> } }
+          | undefined
+        const rates = details?.preview?.rates as Array<{ title: string; price: number; weightMin?: number; weightMax?: number }> | undefined
         const groups: Array<{ title: string; count: number }> = (() => {
           if (!rates) return []
           const map = new Map<string, number>()
@@ -93,7 +88,10 @@ export default function DeployProgressList() {
                 <span className={styles.tick}>✅</span>
               </div>
             ) : (
-              <div className={styles.fail}>{`❌ ${z.error || 'Failed'}`}</div>
+              <div className={styles.fail}>
+                <div>❌ Failed</div>
+                {z.error ? <div className={styles.small}>{z.error}</div> : null}
+              </div>
             )}
             {isOpen ? (
               <div className={styles.expand}>
@@ -101,7 +99,7 @@ export default function DeployProgressList() {
                   groups.map((g) => {
                     const key = `${z.zone_id}::${g.title}`
                     const svcOpen = !!serviceOpen[key]
-                    const svcRates = (rates || []).filter(r => r.title === g.title)
+                    const svcRates = rates!.filter(r => r.title === g.title)
                     return (
                       <div key={g.title}>
                         <div
@@ -122,8 +120,8 @@ export default function DeployProgressList() {
                               <div key={idx} className={styles.rateRow}>
                                 <div className={styles.rateDesc}>
                                   <span className={styles.small}>{r.title}</span>
-                                  {formatWeightRange((r as any).weightMin, (r as any).weightMax) ? (
-                                    <span className={styles.small}>{formatWeightRange((r as any).weightMin, (r as any).weightMax)}</span>
+                                  {formatWeightRange(r.weightMin, r.weightMax) ? (
+                                    <span className={styles.small}>{formatWeightRange(r.weightMin, r.weightMax)}</span>
                                   ) : null}
                                 </div>
                                 <div className={styles.price}>{formatGBP(r.price)}</div>
@@ -141,7 +139,7 @@ export default function DeployProgressList() {
             ) : null}
           </div>
         )
-      })}
+      }) : null}
     </div>
   )
 }

@@ -9,22 +9,16 @@ This workflow loads the most critical constraints and patterns that AIs regularl
 ## FIRST: Understand your core tools
 
 ```bash
-cmd /c node docs/scripts/docs-loader.js --help
+cmd /c node ai-subtree/tools/ai-subtree-loader.js --help
 ```
 
 ```bash
-cmd /c node docs/scripts/schema-query.js --help
+cmd /c node ai-subtree/tools/schema-query.js --help
 ```
 
 ```bash
-cmd /c node docs/review/code-review.js --help
+cmd /c node ai-subtree/review/code-review.js --help
 ```
-
-```bash
-cmd /c node docs/scripts/code-fix.js --help
-```
-
-Note: `docs/scripts/code-fix.js` is a fallback utility. The orchestrator (`docs/review/code-review.js`) performs comment and console removals by default before analysis.
 
 ## SECOND: Run critical workflows
 **Execute these - do not skip**
@@ -35,11 +29,11 @@ Note: `docs/scripts/code-fix.js` is a fallback utility. The orchestrator (`docs/
 **Load context directly**
 
 ```bash
-cmd /c node docs/scripts/docs-loader.js ai-critical
+cmd /c node ai-subtree/tools/ai-subtree-loader.js ai-critical
 ```
 
 ## Load Current Schema Index
 
 ```bash
-cmd /c node docs/scripts/schema-query.js --index
+cmd /c node ai-subtree/tools/schema-query.js --index
 ```

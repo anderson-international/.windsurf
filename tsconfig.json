@@ -5,7 +5,9 @@
       "dom.iterable",
       "esnext"
     ],
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -37,7 +39,7 @@
   ],
   "exclude": [
     "node_modules",
-    "docs",
+    "ai-subtree",
     ".windsurf"
   ]
 }
