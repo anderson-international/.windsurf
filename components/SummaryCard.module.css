@@ -1,4 +1,0 @@
-.wrap{display:flex;flex-direction:column;gap:8px}
-.row{display:flex;justify-content:space-between}
-.count{font-weight:700}
-.small{font-size:.9rem;color:var(--muted)}
