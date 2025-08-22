@@ -5,7 +5,7 @@ auto_execution_mode: 1
 
 # Continuous Code Validation (During Development)
 
-Purpose: While developing new code, run the single source-of-truth analyzer `ai-subtree/review/code-review.js` regularly to catch and fix issues early. Keep the JSON report current and prevent tech debt from accumulating.
+Purpose: While developing new code, run the single source-of-truth analyzer `.windsurf/review/code-review.js` regularly to catch and fix issues early. Keep the JSON report current and prevent tech debt from accumulating.
 
 ---
 ## Enforce Windows command syntax
@@ -42,7 +42,7 @@ Interpret results:
   - For broader work, run the unified fix workflow: `/run code-review-fix` (seeks approval once, then iterates autonomously until PASS).
 
 Keep the JSON report current:
-- Re-run porcelain after each small batch to refresh `ai-subtree/review/output/code-review-results.json`.
+- Re-run porcelain after each small batch to refresh `.windsurf/review/output/code-review-results.json`.
 
 ---
 ## Milestone Checks (cross-file effects, repo-wide)
@@ -59,7 +59,7 @@ Use a Full Project Scan when finishing a feature, after large refactors, or befo
   - `REVIEW: <mode>` (per-file)
   - `REVIEW: Repo Wide` (knip/jscpd/tsc)
   - `REVIEW RESULTS` (Status with icon + Total Time)
-- JSON report is always written to `ai-subtree/review/output/code-review-results.json`.
+- JSON report is always written to `.windsurf/review/output/code-review-results.json`.
   - Passing files are omitted by default (no `--report-all`).
 
 ---
@@ -80,7 +80,7 @@ cmd /c npx eslint app/ components/ lib/ types/ hooks/ --max-warnings=0
 ## Safe File/Directory Deletions
 Use the guarded deletion tool when removing dead code:
 ```bash
-cmd /c node ai-subtree\tools\file-delete.js path\to\dead-file.ts path\to\stale-dir
+cmd /c node .windsurf\tools\file-delete.js path\to\dead-file.ts path\to\stale-dir
 ```
 
 - Refuses deletion outside the repo root

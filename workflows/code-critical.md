@@ -9,11 +9,11 @@ This workflow loads the most critical constraints and patterns that AIs regularl
 ## FIRST: Understand your core tools
 
 ```bash
-cmd /c node ai-subtree/tools/ai-subtree-loader.js --help
+cmd /c node .windsurf\tools\docs-loader.js --help
 ```
 
 ```bash
-cmd /c node ai-subtree/tools/schema-query.js --help
+cmd /c node .windsurf\tools\schema-query.js --help
 ```
 
 ```bash
@@ -29,11 +29,10 @@ cmd /c npm run review:repo -- --help
 **Load context directly**
 
 ```bash
-cmd /c node ai-subtree/tools/ai-subtree-loader.js ai-critical
+cmd /c node .windsurf\tools\docs-loader.js ai-critical
 ```
 
 ## Load Current Schema Index
 
 ```bash
-cmd /c node ai-subtree/tools/schema-query.js --index
-```
+cmd /c node .windsurf\tools\schema-query.js --index

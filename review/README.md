@@ -1,16 +1,16 @@
 # Review Subtree
 
-Self-contained code review tooling located in `ai-subtree/review/`. All dependencies and configs are local to this folder for subtree portability.
+Self-contained code review tooling located in `.windsurf/review/`. All dependencies and configs are local to this folder for subtree portability.
 
 ## Highlights
 - Type-aware ESLint with local config: `.eslintrc.review.cjs`
 - Inlined TypeScript configs: `tsconfig.eslint.json`, `tsconfig.review.json` (no root extends)
 - Repo-wide analyzers: ESLint, TSC, Knip, JSCPD
-- Analyzer writes report to: `ai-subtree/review/output/code-review-results.json`
+- Analyzer writes report to: `.windsurf/review/output/code-review-results.json`
 - Policy: ESLint warnings are treated as failures (`--max-warnings=0`)
 
 ## Running (Windows cmd)
-Use these npm scripts from `ai-subtree/review/`:
+Use these npm scripts from `.windsurf/review/`:
 
 ```cmd
 cmd /c npm run review:porcelain  // Changed TS/TSX files only (git porcelain)
@@ -22,15 +22,15 @@ cmd /c npm run lint:repo         // ESLint only, repo-wide
 
 From repo root, you can also use `--prefix`:
 ```cmd
-cmd /c npm --prefix ai-subtree\review run review:repo -- --help
+cmd /c npm --prefix .windsurf\review run review:repo -- --help
 ```
 
 ### Troubleshooting
 - **Error: `npm error Missing script: "review:repo"`**
   - Cause: running from repo root without `--prefix`.
-  - Fix: either run within `ai-subtree\review\`, or from root with:
+  - Fix: either run within `.windsurf\review\`, or from root with:
     ```cmd
-    cmd /c npm --prefix ai-subtree\review run review:porcelain
+    cmd /c npm --prefix .windsurf\review run review:porcelain
     ```
 
 If dependencies are missing, install locally:
@@ -41,14 +41,14 @@ cmd /c npm ci
 ## ESLint cache
 ESLint caching is enabled for both batch and per-file runs to speed up repeat analyses.
 
-- Cache location: `ai-subtree/review/.eslintcache`
-- VCS: the cache file is ignored by `ai-subtree/review/.gitignore`
+- Cache location: `.windsurf/review/.eslintcache`
+- VCS: the cache file is ignored by `.windsurf/review/.gitignore`
 - Effect: unchanged files are skipped by ESLint on subsequent runs
 
 Clear the cache if needed:
 
 ```cmd
-cmd /c del ai-subtree\review\.eslintcache
+cmd /c del .windsurf\review\.eslintcache
 ```
 
 ## Performance tips

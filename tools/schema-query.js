@@ -185,17 +185,17 @@ ${
 
 ### Load specific table with full details:
 \`\`\`bash
-cmd /c node ai-subtree/tools/schema-query.js --table specifications
+cmd /c node .windsurf\\tools\\schema-query.js --table specifications
 \`\`\`
 
 ### Load enum tables (paginated):
 \`\`\`bash
-cmd /c node ai-subtree/tools/schema-query.js --enums --page 1
+cmd /c node .windsurf\\tools\\schema-query.js --enums --page 1
 \`\`\`
 
 ### Load tables by pattern:
 \`\`\`bash
-cmd /c node ai-subtree/tools/schema-query.js --pattern _enum_ --page 1
+cmd /c node .windsurf\\tools\\schema-query.js --pattern _enum_ --page 1
 \`\`\`
 
 ## AI Instructions
@@ -367,10 +367,10 @@ Each command respects the 7,800 byte output limit and provides navigation for ad
       if (page < totalPages) {
         // Action required - more data to load
         output += `\n⚠️ **AI ACTION REQUIRED**: More results available.\n`
-        output += `**Execute immediately**: cmd /c node ai-subtree/tools/schema-query.js --pattern ${pattern} --page ${page + 1}\n`
+        output += `**Execute immediately**: cmd /c node .windsurf\\tools\\schema-query.js --pattern ${pattern} --page ${page + 1}\n`
       } else if (page > 1) {
         // Final page - just reference to previous
-        output += `\n**Previous page**: cmd /c node ai-subtree/tools/schema-query.js --pattern ${pattern} --page ${page - 1}\n`
+        output += `\n**Previous page**: cmd /c node .windsurf\\tools\\schema-query.js --pattern ${pattern} --page ${page - 1}\n`
       }
     }
 
@@ -457,7 +457,7 @@ Each command respects the 7,800 byte output limit and provides navigation for ad
               } else {
                 body += `\n⚠️ **AI ACTION REQUIRED**: More results available.\n`
               }
-              body += `**Execute immediately**: cmd /c node ai-subtree/tools/schema-query.js --sql-file ${filePath} --page ${Number(page) + 1} --rows ${rowsPerPage}\n`
+              body += `**Execute immediately**: cmd /c node .windsurf\\tools\\schema-query.js --sql-file ${filePath} --page ${Number(page) + 1} --rows ${rowsPerPage}\n`
             } else {
               if (isTrimmed) {
                 body += `\n⚠️ **AI ACTION REQUIRED**: This output was truncated due to size limits. Re-run the same command with --page ${Number(page) + 1} --rows ${rowsPerPage}\n`
@@ -470,7 +470,7 @@ Each command respects the 7,800 byte output limit and provides navigation for ad
           // Only show previous page when paging is explicit
           if (pageExplicit) {
             if (source === 'file' && filePath) {
-              body += `\n**Previous page**: cmd /c node ai-subtree/tools/schema-query.js --sql-file ${filePath} --page ${Number(page) - 1} --rows ${rowsPerPage}\n`
+              body += `\n**Previous page**: cmd /c node .windsurf\\tools\\schema-query.js --sql-file ${filePath} --page ${Number(page) - 1} --rows ${rowsPerPage}\n`
             } else {
               body += `\n**Previous page**: Re-run the same command with --page ${Number(page) - 1} --rows ${rowsPerPage}\n`
             }
@@ -588,7 +588,7 @@ function showUsage() {
   console.log(`
 Schema Query Tool - Size-aware database schema information
 
-Usage: node ai-subtree/tools/schema-query.js [options]
+Usage: cmd /c node .windsurf\\tools\\schema-query.js [options]
 
 Options:
   --index                  Show table index and navigation (default)
@@ -601,8 +601,8 @@ Options:
 
 Quoting on Windows CMD (important):
   - You may pass inline SQL either quoted or unquoted:
-    node ai-subtree/tools/schema-query.js --sql "SELECT i AS n, 'jonny' AS name FROM generate_series(1,25) g(i)" --rows 5 --page 1
-    node ai-subtree/tools/schema-query.js --sql SELECT i AS n, 'jonny' AS name FROM generate_series(1,25) g(i) --rows 5 --page 1
+    cmd /c node .windsurf\\tools\\schema-query.js --sql "SELECT i AS n, 'jonny' AS name FROM generate_series(1,25) g(i)" --rows 5 --page 1
+    cmd /c node .windsurf\\tools\\schema-query.js --sql SELECT i AS n, 'jonny' AS name FROM generate_series(1,25) g(i) --rows 5 --page 1
   - Use single quotes for string literals inside SQL (e.g., 'jonny').
   - Avoid wrapping the entire SQL in single quotes; use double quotes if quoting the whole statement.
   - For complex SQL or newlines, prefer --sql-file.
@@ -613,12 +613,12 @@ Paging & navigation:
   - Banners appear when you pass --page or when the current page was size-trimmed to fit output limits.
 
 Examples:
-  node ai-subtree/tools/schema-query.js --index
-  node ai-subtree/tools/schema-query.js --table specifications
-  node ai-subtree/tools/schema-query.js --pattern *_enum_* --page 1
-  node ai-subtree/tools/schema-query.js --pattern spec_junction_ --page 1
-  node ai-subtree/tools/schema-query.js --sql-file ai-subtree/test/queries/series.sql --page 2 --rows 5
-  node ai-subtree/tools/schema-query.js --sql "SELECT count(*) AS total FROM specifications" --rows 5
+  cmd /c node .windsurf\\tools\\schema-query.js --index
+  cmd /c node .windsurf\\tools\\schema-query.js --table specifications
+  cmd /c node .windsurf\\tools\\schema-query.js --pattern *_enum_* --page 1
+  cmd /c node .windsurf\\tools\\schema-query.js --pattern spec_junction_ --page 1
+  cmd /c node .windsurf\\tools\\schema-query.js --sql-file .windsurf\\test\\queries\\series.sql --page 2 --rows 5
+  cmd /c node .windsurf\\tools\\schema-query.js --sql "SELECT count(*) AS total FROM specifications" --rows 5
 
 Output limit: ${MAX_OUTPUT_BYTES} bytes (auto-paginated)
 `)

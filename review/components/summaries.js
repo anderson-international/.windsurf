@@ -342,7 +342,7 @@ function generateMinimalSummary(results, opts = {}) {
 
   const status = (failedFiles.length > 0 || hasRepoViolations) ? 'FAIL' : 'PASS';
   const reviewMode = opts.reviewMode || 'Full Project Scan';
-  const reportPath = opts.reportPath || 'ai-subtree/review/output/code-review-results.json';
+  const reportPath = opts.reportPath || '.windsurf/review/output/code-review-results.json';
 
   const passedText = passedFiles > 0 ? `✅ ${passedFiles} passed` : `${passedFiles} passed`;
   const failedText = failedFiles.length > 0 ? `❌ ${failedFiles.length} failed` : `${failedFiles.length} failed`;

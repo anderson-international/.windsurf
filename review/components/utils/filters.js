@@ -28,7 +28,6 @@ function isReviewablePath(relPath) {
   try {
     const n = String(relPath || '').replace(/\\/g, '/').replace(/^\.\/+/, '');
     if (!/^(app|components|lib|hooks|types)\//.test(n)) return false;
-    if (/^ai-subtree\//.test(n)) return false;
     if (/^test\//.test(n)) return false;
     if (/^\.windsurf\//.test(n)) return false;
     if (/node_modules\//.test(n)) return false;

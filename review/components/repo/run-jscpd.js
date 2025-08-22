@@ -12,7 +12,7 @@ async function runJscpd(apiOpts = {}) {
   } catch (_) {}
 
   const tmpScript = path.join(tmpDir, 'inline-jscpd.js');
-  const reviewDir = path.join(ROOT_DIR, 'ai-subtree', 'review');
+  const reviewDir = path.join(ROOT_DIR, '.windsurf', 'review');
   const includeRoots = Array.isArray(apiOpts.includeRoots) && apiOpts.includeRoots.length > 0
     ? apiOpts.includeRoots
     : ["app", "components", "lib", "hooks", "types"]; // default project roots only

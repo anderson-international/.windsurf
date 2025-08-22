@@ -5,7 +5,7 @@ auto_execution_mode: 1
 
 ## Unified Code Review + Fix Loop
 
-Purpose: Run the single source-of-truth analyzer `ai-subtree/review/code-review.js` and iterate fixes until a clean PASS. This workflow seeks approval once, then explicitly suspends the approval cycle while the fix-and-review loop runs to completion.
+Purpose: Run the single source-of-truth analyzer `.windsurf/review/code-review.js` and iterate fixes until a clean PASS. This workflow seeks approval once, then explicitly suspends the approval cycle while the fix-and-review loop runs to completion.
 
 ---
 ## 🚦 Start: Enforce Windows command syntax
@@ -30,13 +30,13 @@ Purpose: Run the single source-of-truth analyzer `ai-subtree/review/code-review.
 cmd /c npm run review:porcelain
 ```
 
-- The tool prints a minimal summary and writes JSON to `ai-subtree/review/output/code-review-results.json`.
+- The tool prints a minimal summary and writes JSON to `.windsurf/review/output/code-review-results.json`.
 - Do not use `--report-all` by default (keeps JSON focused on failing files).
 - If summary shows PASS, stop here. Otherwise continue to Fix Loop.
 
 To view the JSON report:
 ```bash
-view_line_range ai-subtree/review/output/code-review-results.json
+view_line_range .windsurf/review/output/code-review-results.json
 ```
 
 ---
@@ -57,7 +57,7 @@ Typical categories (driven by report content):
 
 Safe file/dir deletions when required (guarded to repo root):
 ```bash
-cmd /c node ai-subtree\tools\file-delete.js path\to\dead-file.ts path\to\stale-dir
+cmd /c node .windsurf\tools\file-delete.js path\to\dead-file.ts path\to\stale-dir
 ```
 
 Validate after each small batch (keep JSON current):

@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 
-// Resolve repo root relative to this file: ai-subtree/review/components/utils -> ../../../..
+// Resolve repo root relative to this file: .windsurf/review/components/utils -> ../../../..
 const ROOT_DIR = path.join(__dirname, '..', '..', '..', '..');
 
 function toRepoRelative(p) {
@@ -13,11 +13,11 @@ function toRepoRelative(p) {
   }
 }
 
-const OUTPUT_DIR = path.join(ROOT_DIR, 'ai-subtree', 'review', 'output');
+const OUTPUT_DIR = path.join(ROOT_DIR, '.windsurf', 'review', 'output');
 const RESULTS_FILE = path.join(OUTPUT_DIR, 'code-review-results.json');
 // Legacy report files from the monolithic analyzer
 const OLD_ANALYSIS_FILE = path.join(OUTPUT_DIR, 'code_review_analysis.json');
-const LEGACY_ANALYSIS_FILE = path.join(ROOT_DIR, 'ai-subtree', 'review', 'code_review.json');
+const LEGACY_ANALYSIS_FILE = path.join(ROOT_DIR, '.windsurf', 'review', 'code_review.json');
 const TMP_JSCPD_DIR = path.join(OUTPUT_DIR, '.tmp', 'jscpd');
 
 function ensureDir(dirPath) {

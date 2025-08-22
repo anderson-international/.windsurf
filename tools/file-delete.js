@@ -13,12 +13,12 @@ const repoRoot = path.resolve(__dirname, '..', '..');
 
 function printUsage() {
   console.log(`
-🗑️  File/Directory Delete Tool — ai-subtree/tools/file-delete.js
+🗑️  File/Directory Delete Tool — .windsurf/tools/file-delete.js
 
 Safely delete files and directories inside the repository root.
 
 USAGE
-  node ai-subtree/tools/file-delete.js <path1> [path2 ...]
+  cmd /c node .windsurf\\tools\\file-delete.js <path1> [path2 ...]
 
 NOTES
   • Paths may be relative to the current working directory or absolute

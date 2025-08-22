@@ -6,7 +6,7 @@ const { ROOT_DIR } = require('../utils/paths');
 
 function runEslint(filePath) {
   try {
-    const reviewDir = path.join(ROOT_DIR, 'ai-subtree', 'review');
+    const reviewDir = path.join(ROOT_DIR, '.windsurf', 'review');
     const configPath = path.join(reviewDir, '.eslintrc.review.cjs');
     const q = (s) => `"${String(s).replace(/"/g, '\\"')}"`;
     const cmd = `npx --prefix ${q(reviewDir)} eslint --config ${q(configPath)} --resolve-plugins-relative-to ${q(reviewDir)} --cache --cache-location ${q(path.join(reviewDir, '.eslintcache'))} --max-warnings=0 --no-ignore ${q(filePath)}`;
@@ -49,7 +49,7 @@ async function runEslintBatch(filePaths) {
     for (const abs of normalized) {
       resultMap[abs] = { errors: [], warnings: [] };
     }
-    const reviewDir = path.join(ROOT_DIR, 'ai-subtree', 'review');
+    const reviewDir = path.join(ROOT_DIR, '.windsurf', 'review');
     const configPath = path.join(reviewDir, '.eslintrc.review.cjs');
     const q = (s) => `"${String(s).replace(/"/g, '\\"')}"`;
     const quoted = files.map(fp => q(fp)).join(' ');

@@ -2,7 +2,7 @@
   "name": "ai-subtree",
   "version": "1.0.0",
   "private": true,
-  "description": "Self-contained analyzer dependencies for the ai-subtree code review tools",
+  "description": "Self-contained analyzer dependencies for the .windsurf code review tools",
   "license": "UNLICENSED",
   "scripts": {
     "review:porcelain": "node code-review.js --porcelain",

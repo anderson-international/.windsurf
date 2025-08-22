@@ -72,4 +72,4 @@ const createSpecificationWithRelations = async (data: SpecificationFormData) => 
 
 For junction table data transformation patterns and detailed implementation, see `db-enums.md` section "Junction Table Data Transformation".
 
-_Database schema annotations are maintained in `ai-subtree/project/db-schema.md`. Update annotations when schema changes to maintain form implementation guidance._
+_Database schema annotations are maintained in `.windsurf/project/db-schema.md`. Update annotations when schema changes to maintain form implementation guidance._

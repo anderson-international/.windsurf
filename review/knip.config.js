@@ -21,7 +21,6 @@ module.exports = {
     '!.next/**',
     '!dist/**',
     '!build/**',
-    '!ai-subtree/**',
     '!test/**',
     '!.windsurf/**',
   ],

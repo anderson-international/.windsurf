@@ -9,10 +9,10 @@ const { ROOT_DIR, toRepoRelative } = require('../utils/paths');
 async function runTsc(tsconfigPathArg) {
   const byFile = {};
   let totalErrors = 0;
-  const reviewTsconfig = path.join(ROOT_DIR, 'ai-subtree', 'review', 'tsconfig.review.json');
+  const reviewTsconfig = path.join(ROOT_DIR, '.windsurf', 'review', 'tsconfig.review.json');
   const defaultTsconfig = fs.existsSync(reviewTsconfig) ? reviewTsconfig : path.join(ROOT_DIR, 'tsconfig.json');
   const tsconfigPathUsed = tsconfigPathArg || defaultTsconfig;
-  const reviewDir = path.join(ROOT_DIR, 'ai-subtree', 'review');
+  const reviewDir = path.join(ROOT_DIR, '.windsurf', 'review');
   const prefix = `npx --prefix "${reviewDir.replace(/"/g, '\\"')}"`;
   const cmd = fs.existsSync(tsconfigPathUsed)
     ? `${prefix} tsc --noEmit --pretty false -p "${tsconfigPathUsed.replace(/"/g, '\\"')}"`

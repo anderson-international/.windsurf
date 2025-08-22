@@ -27,7 +27,7 @@ const { generateCompactSummary, generateBatchSummary, generateMinimalSummary } =
 
 function printUsage() {
   const usage = [
-    'Usage: cmd /c node ai-subtree/review/code-review.js <file1> [file2 ...]',
+    'Usage: cmd /c node .windsurf/review/code-review.js <file1> [file2 ...]',
     '',
     'Description:',
     '  Modular code review analyzer for TypeScript/TSX files:',
@@ -76,7 +76,7 @@ function formatMs(ms) {
 // Auto-discover reviewable TS/TSX files across valid repo roots
 function discoverReviewableTypeScriptFiles() {
   const includeRoots = ['app', 'components', 'lib', 'hooks', 'types'];
-  const excludeDirs = new Set(['node_modules', '.git', 'ai-subtree', 'test', '.windsurf']);
+  const excludeDirs = new Set(['node_modules', '.git', '.windsurf', 'test']);
   const out = [];
 
   function walk(dirAbs) {
