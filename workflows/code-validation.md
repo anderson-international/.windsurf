@@ -32,7 +32,7 @@ Purpose: While developing new code, run the single source-of-truth analyzer `.wi
 ## Development Loop (Porcelain by default)
 // turbo
 ```bash
-cmd /c npm run review:porcelain
+cmd /c npm run --prefix .windsurf\review review:porcelain
 ```
 
 Interpret results:
@@ -48,7 +48,7 @@ Keep the JSON report current:
 ## Milestone Checks (cross-file effects, repo-wide)
 // turbo
 ```bash
-cmd /c npm run review:repo
+cmd /c npm run --prefix .windsurf\review review:repo
 ```
 
 Use a Full Project Scan when finishing a feature, after large refactors, or before merging.
@@ -100,5 +100,5 @@ cmd /c node .windsurf\tools\file-delete.js path\to\dead-file.ts path\to\stale-di
 ## Pre-Commit/Pre-Push Gate (recommended)
 Ensure a clean PASS before committing or pushing:
 ```bash
-cmd /c npm run review:porcelain
+cmd /c npm run --prefix .windsurf\review review:porcelain
 ```

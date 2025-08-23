@@ -377,9 +377,7 @@ function generateMinimalSummary(results, opts = {}) {
   summary += `Checks: ${repoChecksTotal} total, ${repoPassedText}, ${repoFailedText}` + "\n";
   summary += `Status: ${repoStatus}` + "\n\n";
 
-  // Footer: Overall results and total time
-  summary += `REVIEW RESULTS` + "\n";
-  summary += `Status: ${overallStatusIcon}` + "\n";
+  // Footer: Total time only (omit redundant overall header/status lines)
   if (opts && opts.timing) {
     const f = (ms) => formatMs(ms);
     summary += `Total Time: ${f(opts.timing.totalMs)}` + "\n\n";

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-08-21T22:31:30.066Z",
+  "generatedAt": "2025-08-23T16:32:56.446Z",
   "args": [
     "--porcelain"
   ],
@@ -10,43 +10,144 @@
     "debugMode": false,
     "skipTsc": false
   },
-  "timing": {
-    "autofixMs": 0,
-    "perFileMs": 0,
-    "repoMs": 0,
-    "totalMs": 233
-  },
-  "reviewMode": "Touched Files Only",
-  "filesAnalyzed": 0,
-  "results": [],
   "summary": {
-    "status": "pass",
-    "noViolations": true,
-    "porcelainNoFiles": true,
-    "message": "No files selected by porcelain. No analysis performed. No further action required."
+    "status": "fail",
+    "message": "Violations detected. Action required.",
+    "totalMs": 5184,
+    "totalHuman": "0m 05s"
   },
+  "results": [],
   "repo": {
-    "knip": {
-      "unusedFiles": 0,
-      "unusedExports": 0,
-      "unusedTypes": 0,
-      "unusedEnumMembers": 0,
-      "unusedClassMembers": 0,
-      "unlistedDependencies": 0,
-      "unresolvedImports": 0
-    },
-    "knipDetails": {
-      "unresolvedImports": [],
-      "unlistedDependencies": []
-    },
-    "jscpd": {
-      "groups": 0,
-      "duplicatedLines": 0,
-      "percentage": 0
-    },
     "tsc": {
       "totalErrors": 0,
-      "tsconfigPath": "C:\\Users\\Jonny\\Code\\shopify-shipping\\tsconfig.json"
-    }
+      "tsconfigPath": "c:\\Users\\Jonny\\Code\\shopify-shipping\\.windsurf\\review\\tsconfig.review.json",
+      "suppressed": [
+        {
+          "file": "services\\universal-tariff-service.ts",
+          "count": 5
+        }
+      ],
+      "guidance": "TypeScript errors for files reported as unused by Knip are suppressed at repo level to prioritize actionable fixes. Run npx tsc --noEmit and resolve remaining errors."
+    },
+    "knip": {
+      "unusedFileDetails": [
+        ".windsurf\\review\\error\\deploy-zone-error-handler.ts",
+        ".windsurf\\review\\lib\\db.ts",
+        ".windsurf\\review\\queries\\delivery-profiles.ts",
+        ".windsurf\\review\\services\\carrier-service-info-service.ts",
+        ".windsurf\\review\\services\\shipping-rates-profile-builders.ts",
+        ".windsurf\\review\\services\\shipping-rates-replacement-core.ts",
+        ".windsurf\\review\\services\\shopify.ts",
+        ".windsurf\\review\\services\\universal-tariff-service.ts",
+        ".windsurf\\review\\services\\zone-matcher-graphql.ts",
+        ".windsurf\\review\\services\\zone-matcher-types.ts",
+        ".windsurf\\review\\utils\\shopify-transformers.ts",
+        ".windsurf\\review\\types\\css-modules.ts",
+        ".windsurf\\review\\types\\deployment-summary.ts"
+      ],
+      "unusedExportDetails": [
+        {
+          "file": ".windsurf\\review\\services\\profile-utils.ts",
+          "names": [
+            "findProfileById",
+            "extractAllMethodDefinitionIds"
+          ]
+        }
+      ],
+      "unusedTypeDetails": [
+        {
+          "file": ".windsurf\\review\\context\\DeployContext.tsx",
+          "names": [
+            "DeployState"
+          ]
+        },
+        {
+          "file": ".windsurf\\review\\types\\admin.ts",
+          "names": [
+            "ZoneTariffDTO",
+            "DeploymentExclusionDTO"
+          ]
+        },
+        {
+          "file": ".windsurf\\review\\services\\progress-reporter.ts",
+          "names": [
+            "ProgressSnapshot"
+          ]
+        },
+        {
+          "file": ".windsurf\\review\\services\\shopify-target-resolver.ts",
+          "names": [
+            "ResolvedShopifyTarget"
+          ]
+        },
+        {
+          "file": ".windsurf\\review\\types\\shopify-inputs.ts",
+          "names": [
+            "DeliveryProfileLocationGroupInput",
+            "DeliveryLocationGroupZoneInput",
+            "DeliveryRateDefinitionInput",
+            "DeliveryWeightConditionInput",
+            "WeightInput",
+            "MoneyInput"
+          ]
+        },
+        {
+          "file": ".windsurf\\review\\types\\api.ts",
+          "names": [
+            "ApiResponse",
+            "ShippingZone",
+            "DeliveryProfile",
+            "CsvRateRow",
+            "BulkOperationResult"
+          ]
+        },
+        {
+          "file": ".windsurf\\review\\types\\rate-generation.ts",
+          "names": [
+            "GenerationResult",
+            "GenerationStats",
+            "RateGenerationConfig"
+          ]
+        },
+        {
+          "file": ".windsurf\\review\\services\\shopify-context-resolver-core.ts",
+          "names": [
+            "ShopifyContextMap"
+          ]
+        },
+        {
+          "file": ".windsurf\\review\\types\\shopify-mutation-responses.ts",
+          "names": [
+            "DeliveryRateCreateResponse"
+          ]
+        },
+        {
+          "file": ".windsurf\\review\\types\\admin-core.ts",
+          "names": [
+            "ID",
+            "CarrierDTO",
+            "CreateCarrierInput",
+            "UpdateCarrierInput",
+            "ZoneScope",
+            "CarrierServiceDTO",
+            "CreateCarrierServiceInput",
+            "UpdateCarrierServiceInput",
+            "ServiceZoneDTO",
+            "ZoneTariffDTO",
+            "DeploymentExclusionDTO",
+            "EnumsResponse",
+            "CreateZoneTariffInput",
+            "UpdateZoneTariffInput"
+          ]
+        }
+      ],
+      "unusedFiles": 13,
+      "unusedExports": 2,
+      "unusedTypes": 35,
+      "guidance": "Remove unused files/exports. Fix unresolved imports (paths/aliases). Add missing deps to package.json or remove usage."
+    },
+    "actions": [
+      "Delete unused files/exports identified by knip"
+    ]
   }
 }

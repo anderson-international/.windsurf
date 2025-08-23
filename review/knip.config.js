@@ -1,20 +1,14 @@
 module.exports = {
   entry: [
-    // Main application entry points
+    // Next.js runtime roots (do NOT include entire repo here)
     'app/**/*.{ts,tsx}',
-    'components/**/*.{ts,tsx}',
-    'lib/**/*.{ts,tsx}',
-    'hooks/**/*.{ts,tsx}',
-    'types/**/*.{ts,tsx}',
+    'pages/**/*.{ts,tsx}',
+    'next-env.d.ts',
   ],
 
   project: [
-    // Include primary source and explicit test/scripts
-    'app/**/*.{ts,tsx,js}',
-    'components/**/*.{ts,tsx,js}',
-    'lib/**/*.{ts,tsx,js}',
-    'hooks/**/*.{ts,tsx,js}',
-    'types/**/*.{ts,tsx,js}',
+    // Project-wide TypeScript with excludes
+    '**/*.{ts,tsx}',
 
     // Excludes
     '!node_modules/**',

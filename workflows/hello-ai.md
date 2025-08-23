@@ -14,6 +14,7 @@ Perform the steps below sequentially. Do not skip any steps. Do not rely on memo
 # **REQUIRED** - Do not skip these steps
 
 ##Step 1 - Load Critical Conext
+- Set the project working directory
 - Load critical guidance and tool usage
 /run code-critical
 - Load code quality validation guidance and tool usage

@@ -378,7 +378,7 @@ Each command respects the 7,800 byte output limit and provides navigation for ad
     return output
   }
 
-  async querySql({ sql, page = 1, rows = ITEMS_PER_PAGE, source = 'inline', filePath, pageExplicit = false }) {
+  async querySql({ sql, page = 1, pageSize = ITEMS_PER_PAGE, source = 'inline', filePath, pageExplicit = false, pageSizeExplicit = false }) {
     await this.connect()
 
     const start = Date.now()
@@ -421,7 +421,7 @@ Each command respects the 7,800 byte output limit and provides navigation for ad
     // Row results (SELECT or RETURNING, including 0-row results)
     const columns = result.fields.map((f) => f.name)
     const totalRows = rowsArray.length
-    const rowsPerPage = Math.max(1, parseInt(rows) || ITEMS_PER_PAGE)
+    const rowsPerPage = Math.max(1, parseInt(pageSize) || ITEMS_PER_PAGE)
     const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage))
     const startIndex = Math.max(0, (Math.max(1, parseInt(page) || 1) - 1) * rowsPerPage)
     const endIndexInitial = Math.min(startIndex + rowsPerPage, totalRows)
@@ -435,6 +435,7 @@ Each command respects the 7,800 byte output limit and provides navigation for ad
       header += `- Duration: ${durationMs} ms\n`
       header += `- Rows Returned: ${totalRows}\n`
       header += `- Showing: ${totalRows === 0 ? '0-0' : `${startIndex + 1}-${startIndex + subset.length}`} of ${totalRows}\n`
+      header += `- Page Size: ${rowsPerPage}${pageSizeExplicit ? '' : ' (default)'}\n`
       header += `- Columns: ${JSON.stringify(columns)}\n\n`
       header += `**Rows:**\n`
 
@@ -457,12 +458,12 @@ Each command respects the 7,800 byte output limit and provides navigation for ad
               } else {
                 body += `\n⚠️ **AI ACTION REQUIRED**: More results available.\n`
               }
-              body += `**Execute immediately**: cmd /c node .windsurf\\tools\\schema-query.js --sql-file ${filePath} --page ${Number(page) + 1} --rows ${rowsPerPage}\n`
+              body += `**Execute immediately**: cmd /c node .windsurf\\tools\\schema-query.js --sql-file ${filePath} --page ${Number(page) + 1} --page-size ${rowsPerPage}\n`
             } else {
               if (isTrimmed) {
-                body += `\n⚠️ **AI ACTION REQUIRED**: This output was truncated due to size limits. Re-run the same command with --page ${Number(page) + 1} --rows ${rowsPerPage}\n`
+                body += `\n⚠️ **AI ACTION REQUIRED**: This output was truncated due to size limits. Re-run the same command with --page ${Number(page) + 1} --page-size ${rowsPerPage}\n`
               } else {
-                body += `\n⚠️ **AI ACTION REQUIRED**: More results available. Re-run the same command with --page ${Number(page) + 1} --rows ${rowsPerPage}\n`
+                body += `\n⚠️ **AI ACTION REQUIRED**: More results available. Re-run the same command with --page ${Number(page) + 1} --page-size ${rowsPerPage}\n`
               }
             }
           }
@@ -470,9 +471,9 @@ Each command respects the 7,800 byte output limit and provides navigation for ad
           // Only show previous page when paging is explicit
           if (pageExplicit) {
             if (source === 'file' && filePath) {
-              body += `\n**Previous page**: cmd /c node .windsurf\\tools\\schema-query.js --sql-file ${filePath} --page ${Number(page) - 1} --rows ${rowsPerPage}\n`
+              body += `\n**Previous page**: cmd /c node .windsurf\\tools\\schema-query.js --sql-file ${filePath} --page ${Number(page) - 1} --page-size ${rowsPerPage}\n`
             } else {
-              body += `\n**Previous page**: Re-run the same command with --page ${Number(page) - 1} --rows ${rowsPerPage}\n`
+              body += `\n**Previous page**: Re-run the same command with --page ${Number(page) - 1} --page-size ${rowsPerPage}\n`
             }
           }
         }
@@ -517,11 +518,12 @@ async function main() {
         throw new Error(`Failed to read SQL file: ${e.message}`)
       }
       const pageIndex = args.indexOf('--page')
-      const rowsIndex = args.indexOf('--rows')
+      const pageSizeIndex = args.indexOf('--page-size')
       const page = pageIndex !== -1 ? parseInt(args[pageIndex + 1]) || 1 : 1
       const pageExplicit = pageIndex !== -1
-      const rows = rowsIndex !== -1 ? parseInt(args[rowsIndex + 1]) || ITEMS_PER_PAGE : ITEMS_PER_PAGE
-      output = await tool.querySql({ sql, page, rows, source: 'file', filePath, pageExplicit })
+      const pageSize = pageSizeIndex !== -1 ? parseInt(args[pageSizeIndex + 1]) || ITEMS_PER_PAGE : ITEMS_PER_PAGE
+      const pageSizeExplicit = pageSizeIndex !== -1
+      output = await tool.querySql({ sql, page, pageSize, source: 'file', filePath, pageExplicit, pageSizeExplicit })
     } else if (args.includes('--sql')) {
       const sqlIndex = args.indexOf('--sql')
       // Collect all tokens after --sql until the next option (token starting with --)
@@ -547,11 +549,12 @@ async function main() {
       }
       const sql = stripOuterDoubleQuotes(rawSql)
       const pageIndex = args.indexOf('--page')
-      const rowsIndex = args.indexOf('--rows')
+      const pageSizeIndex = args.indexOf('--page-size')
       const page = pageIndex !== -1 ? parseInt(args[pageIndex + 1]) || 1 : 1
       const pageExplicit = pageIndex !== -1
-      const rows = rowsIndex !== -1 ? parseInt(args[rowsIndex + 1]) || ITEMS_PER_PAGE : ITEMS_PER_PAGE
-      output = await tool.querySql({ sql, page, rows, source: 'inline', pageExplicit })
+      const pageSize = pageSizeIndex !== -1 ? parseInt(args[pageSizeIndex + 1]) || ITEMS_PER_PAGE : ITEMS_PER_PAGE
+      const pageSizeExplicit = pageSizeIndex !== -1
+      output = await tool.querySql({ sql, page, pageSize, source: 'inline', pageExplicit, pageSizeExplicit })
     } else if (args.includes('--index')) {
       output = await tool.queryIndex()
     } else if (args.includes('--table')) {
@@ -596,20 +599,20 @@ Options:
   --pattern <pattern>      Show tables matching pattern (supports *)
   --sql "<statement>"      Execute a SQL statement (inline; SQL is echoed)
   --sql-file <path>        Execute SQL loaded from a file (SQL is echoed)
-  --rows <N>               Rows per page for SQL results (default ${ITEMS_PER_PAGE})
+  --page-size <N>          Page size for SQL results (default ${ITEMS_PER_PAGE})
   --page <N>               Page number for paginated results
 
 Quoting on Windows CMD (important):
   - You may pass inline SQL either quoted or unquoted:
-    cmd /c node .windsurf\\tools\\schema-query.js --sql "SELECT i AS n, 'jonny' AS name FROM generate_series(1,25) g(i)" --rows 5 --page 1
-    cmd /c node .windsurf\\tools\\schema-query.js --sql SELECT i AS n, 'jonny' AS name FROM generate_series(1,25) g(i) --rows 5 --page 1
+    cmd /c node .windsurf\\tools\\schema-query.js --sql "SELECT i AS n, 'jonny' AS name FROM generate_series(1,25) g(i)" --page-size 5 --page 1
+    cmd /c node .windsurf\\tools\\schema-query.js --sql SELECT i AS n, 'jonny' AS name FROM generate_series(1,25) g(i) --page-size 5 --page 1
   - Use single quotes for string literals inside SQL (e.g., 'jonny').
   - Avoid wrapping the entire SQL in single quotes; use double quotes if quoting the whole statement.
   - For complex SQL or newlines, prefer --sql-file.
   - Pagination/navigation prompts intentionally omit quotes for --sql-file and --pattern. Run them as shown.
 
 Paging & navigation:
-  - No banner is shown when you only specify --rows and do not pass --page (unless the page was size-trimmed).
+  - No banner is shown when you only specify --page-size and do not pass --page (unless the page was size-trimmed).
   - Banners appear when you pass --page or when the current page was size-trimmed to fit output limits.
 
 Examples:
@@ -617,8 +620,8 @@ Examples:
   cmd /c node .windsurf\\tools\\schema-query.js --table specifications
   cmd /c node .windsurf\\tools\\schema-query.js --pattern *_enum_* --page 1
   cmd /c node .windsurf\\tools\\schema-query.js --pattern spec_junction_ --page 1
-  cmd /c node .windsurf\\tools\\schema-query.js --sql-file .windsurf\\test\\queries\\series.sql --page 2 --rows 5
-  cmd /c node .windsurf\\tools\\schema-query.js --sql "SELECT count(*) AS total FROM specifications" --rows 5
+  cmd /c node .windsurf\\tools\\schema-query.js --sql-file .windsurf\\test\\queries\\series.sql --page 2 --page-size 5
+  cmd /c node .windsurf\\tools\\schema-query.js --sql "SELECT count(*) AS total FROM specifications" --page-size 5
 
 Output limit: ${MAX_OUTPUT_BYTES} bytes (auto-paginated)
 `)

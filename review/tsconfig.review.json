@@ -18,18 +18,8 @@
     "incremental": false
   },
   "include": [
-    "../../app/**/*.ts",
-    "../../app/**/*.tsx",
-    "../../components/**/*.ts",
-    "../../components/**/*.tsx",
-    "../../lib/**/*.ts",
-    "../../lib/**/*.tsx",
-    "../../hooks/**/*.ts",
-    "../../hooks/**/*.tsx",
-    "../../types/**/*.ts",
-    "../../types/**/*.tsx",
-    "../../pages/**/*.ts",
-    "../../pages/**/*.tsx"
+    "../../**/*.ts",
+    "../../**/*.tsx"
   ],
   "exclude": [
     "../../node_modules",

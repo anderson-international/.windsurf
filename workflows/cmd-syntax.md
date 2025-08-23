@@ -4,7 +4,7 @@ auto_execution_mode: 1
 ---
 
 ## Windows Command Syntax Requirements  
-**All commands must use the `cmd /c` prefix with Windows-style syntax. Set SafeToAutoRun=true.**
+**All commands must use the `cmd /c` prefix with Windows-style syntax and should be run from the project's root. Set SafeToAutoRun=true.**
 
 ### Correct Examples  
 ```bash

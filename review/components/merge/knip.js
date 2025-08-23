@@ -20,7 +20,10 @@ function applyKnipToResults(results, knipData) {
     unresolvedImports: [], // { file, specifiers: string[] }
     unlistedDependencies: [], // { file, modules: string[] }
     unusedFiles: [], // string[] repo-relative paths
-    unusedExports: [] // { file, names: string[] }
+    unusedExports: [], // { file, names: string[] }
+    unusedTypes: [], // { file, names: string[] }
+    unusedEnumMembers: [], // { file, enums: Array<{ enum, members: string[] }> }
+    unusedClassMembers: [] // { file, classes: Array<{ class, members: string[] }> }
   };
 
   const issues = Array.isArray(knipData?.issues) ? knipData.issues : [];
@@ -32,6 +35,16 @@ function applyKnipToResults(results, knipData) {
       if (rel) details.unusedFiles.push(rel);
     }
   }
+  const toName = (e) => {
+    if (typeof e === 'string') return e;
+    if (e && typeof e === 'object') {
+      if ('name' in e && typeof e.name === 'string') return e.name;
+      if ('symbol' in e && typeof e.symbol === 'string') return e.symbol;
+      try { return JSON.stringify(e); } catch (_) { return String(e); }
+    }
+    return String(e);
+  };
+
   for (const item of issues) {
     const fileKey = toRepoRelative(item.file || '');
     const counts = {
@@ -65,14 +78,26 @@ function applyKnipToResults(results, knipData) {
       const unresolvedList = unresolvedListRaw.map(u => (u && typeof u === 'object' && 'name' in u) ? u.name : String(u));
       const unlistedList = Array.isArray(item.unlisted) ? item.unlisted.slice() : [];
 
-      r.deadCode = {
+      // Build per-file deadCode with conditional details
+      const dc = {
         ...counts,
-        // arrays with specifiers/modules (do not override numeric counts)
-        unresolvedImportSpecifiers: unresolvedList,
-        unlistedDependencyModules: unlistedList,
         status: any ? 'FAIL' : 'PASS',
         recommendations: recs
       };
+      if (counts.unresolvedImports > 0) dc.unresolvedImportSpecifiers = unresolvedList;
+      if (counts.unlistedDependencies > 0) dc.unlistedDependencyModules = unlistedList;
+      if (counts.unusedExports > 0) dc.unusedExportNames = Array.isArray(item.exports) ? item.exports.map(toName) : [];
+      if (counts.unusedTypes > 0) dc.unusedTypeNames = Array.isArray(item.types) ? item.types.map(toName) : [];
+      if (counts.unusedEnumMembers > 0 && item.enumMembers) {
+        const enums = Object.entries(item.enumMembers).map(([enm, members]) => ({ enum: enm, members: Array.isArray(members) ? members.map(toName) : [] }));
+        dc.unusedEnumMemberNames = enums.filter(e => e.members.length > 0);
+      }
+      if (counts.unusedClassMembers > 0 && item.classMembers) {
+        const classes = Object.entries(item.classMembers).map(([cls, members]) => ({ class: cls, members: Array.isArray(members) ? members.map(toName) : [] }));
+        dc.unusedClassMemberNames = classes.filter(c => c.members.length > 0);
+      }
+
+      r.deadCode = dc;
 
     }
 
@@ -85,8 +110,22 @@ function applyKnipToResults(results, knipData) {
       details.unlistedDependencies.push({ file: fileKey, modules: item.unlisted.slice() });
     }
     if (Array.isArray(item.exports) && item.exports.length > 0) {
-      const names = item.exports.map(e => (typeof e === 'string') ? e : String(e));
+      const names = item.exports.map(toName);
       details.unusedExports.push({ file: fileKey, names });
+    }
+    if (Array.isArray(item.types) && item.types.length > 0) {
+      const names = item.types.map(toName);
+      details.unusedTypes.push({ file: fileKey, names });
+    }
+    if (item.enumMembers && typeof item.enumMembers === 'object') {
+      const enums = Object.entries(item.enumMembers).map(([enm, members]) => ({ enum: enm, members: Array.isArray(members) ? members.map(toName) : [] }));
+      const filtered = enums.filter(e => e.members.length > 0);
+      if (filtered.length > 0) details.unusedEnumMembers.push({ file: fileKey, enums: filtered });
+    }
+    if (item.classMembers && typeof item.classMembers === 'object') {
+      const classes = Object.entries(item.classMembers).map(([cls, members]) => ({ class: cls, members: Array.isArray(members) ? members.map(toName) : [] }));
+      const filtered = classes.filter(c => c.members.length > 0);
+      if (filtered.length > 0) details.unusedClassMembers.push({ file: fileKey, classes: filtered });
     }
   }
 

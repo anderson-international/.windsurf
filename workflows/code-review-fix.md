@@ -27,7 +27,7 @@ Purpose: Run the single source-of-truth analyzer `.windsurf/review/code-review.j
 
 // turbo
 ```bash
-cmd /c npm run review:porcelain
+cmd /c npm run --prefix .windsurf\review review:porcelain
 ```
 
 - The tool prints a minimal summary and writes JSON to `.windsurf/review/output/code-review-results.json`.
@@ -45,7 +45,6 @@ Principles:
 - Use the analyzer’s JSON and stdout summary as the single source of truth.
 - Work in small, logical batches (by category or small file sets).
 - After each batch, re-run porcelain analysis to keep the report current.
-- Run full scan at milestones (after completing a major category or broad refactor).
 
 Typical categories (driven by report content):
 - TypeScript (compiler + analyzer)
@@ -63,7 +62,7 @@ cmd /c node .windsurf\tools\file-delete.js path\to\dead-file.ts path\to\stale-di
 Validate after each small batch (keep JSON current):
 // turbo
 ```bash
-cmd /c npm run review:porcelain
+cmd /c npm run --prefix .windsurf\review review:porcelain
 ```
 
 Optional diagnostics while editing (advisory only; always confirm with the analyzer):
@@ -72,19 +71,13 @@ cmd /c npx tsc --noEmit --project tsconfig.json
 cmd /c npx eslint app/ components/ lib/ types/ hooks/ --max-warnings=0
 ```
 
-Milestone validation (cross-file effects, repo checks):
-// turbo
-```bash
-cmd /c npm run review:repo
-```
-
 ---
 ## 4) Final Validation & Completion
 - Require a clean PASS in the minimal summary and an empty `results` array in the JSON (since `--report-all` is off).
 
 // turbo
 ```bash
-cmd /c npm run review:repo
+cmd /c npm run --prefix .windsurf\review review:repo
 ```
 
 Completion checklist:
@@ -92,12 +85,3 @@ Completion checklist:
 - JSON `summary.status` is `pass` and `results` is empty
 - Repo-wide checks all pass (Knip, JSCPD, TSC)
 - No unintended changes pending in Git
-
----
-## Flags reference (for convenience)
-- `--porcelain` Select changed TS/TSX files automatically (default mode for speed)
-- `--no-autofix` Disable default comment/console cleanup
-- `--tsconfig <path>` Use specific tsconfig; `--skip-tsc` to skip repo TSC if necessary
-- `--jscpd-min-tokens <n>` and `--jscpd-include <dirs>` to tune duplicates scan
-- `--debug` Print extra timing/debug info
-- `--report-all` Include passing files in JSON (OFF by default; for full inventory snapshots only)

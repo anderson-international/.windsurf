@@ -22,14 +22,15 @@ function runEslint(filePath) {
         return;
       }
       if (line.includes('error')) {
-        const match = line.match(/(\d+):(\d+)\s+error\s+(.+)/);
+        // Try to capture: "line:col  error  message  rule"
+        let match = line.match(/(\d+):(\d+)\s+error\s+(.+?)(?:\s{2,}([@\w-\/]+))?\s*$/);
         if (match) {
-          errors.push({ line: parseInt(match[1]), column: parseInt(match[2]), message: match[3].trim() });
+          errors.push({ line: parseInt(match[1]), column: parseInt(match[2]), message: match[3].trim(), rule: match[4] || null });
         }
       } else if (line.includes('warning')) {
-        const match = line.match(/(\d+):(\d+)\s+warning\s+(.+)/);
+        let match = line.match(/(\d+):(\d+)\s+warning\s+(.+?)(?:\s{2,}([@\w-\/]+))?\s*$/);
         if (match) {
-          warnings.push({ line: parseInt(match[1]), column: parseInt(match[2]), message: match[3].trim() });
+          warnings.push({ line: parseInt(match[1]), column: parseInt(match[2]), message: match[3].trim(), rule: match[4] || null });
         }
       }
     });
@@ -66,7 +67,15 @@ async function runEslintBatch(filePaths) {
         const warnings = [];
         const msgs = Array.isArray(item.messages) ? item.messages : [];
         for (const m of msgs) {
-          const entry = { line: m.line || 0, column: m.column || 0, message: (m.message || '').trim() };
+          const entry = {
+            line: m.line || 0,
+            column: m.column || 0,
+            endLine: m.endLine || undefined,
+            endColumn: m.endColumn || undefined,
+            message: (m.message || '').trim(),
+            rule: m.ruleId || null,
+            fixable: !!m.fix
+          };
           if (m.severity === 2) errors.push(entry); else if (m.severity === 1) warnings.push(entry);
         }
         resultMap[key] = { errors, warnings };
@@ -82,7 +91,15 @@ async function runEslintBatch(filePaths) {
             const warnings = [];
             const msgs = Array.isArray(item.messages) ? item.messages : [];
             for (const m of msgs) {
-              const entry = { line: m.line || 0, column: m.column || 0, message: (m.message || '').trim() };
+              const entry = {
+                line: m.line || 0,
+                column: m.column || 0,
+                endLine: m.endLine || undefined,
+                endColumn: m.endColumn || undefined,
+                message: (m.message || '').trim(),
+                rule: m.ruleId || null,
+                fixable: !!m.fix
+              };
               if (m.severity === 2) errors.push(entry); else if (m.severity === 1) warnings.push(entry);
             }
             resultMap[key] = { errors, warnings };
