@@ -1,11 +1,9 @@
 {
-  "generatedAt": "2025-08-23T16:32:56.446Z",
-  "args": [
-    "--porcelain"
-  ],
+  "generatedAt": "2025-08-23T17:48:49.273Z",
+  "args": [],
   "options": {
     "concurrency": 8,
-    "porcelainMode": true,
+    "porcelainMode": false,
     "noAutofix": false,
     "debugMode": false,
     "skipTsc": false
@@ -13,75 +11,40 @@
   "summary": {
     "status": "fail",
     "message": "Violations detected. Action required.",
-    "totalMs": 5184,
+    "totalMs": 5804,
     "totalHuman": "0m 05s"
   },
   "results": [],
   "repo": {
-    "tsc": {
-      "totalErrors": 0,
-      "tsconfigPath": "c:\\Users\\Jonny\\Code\\shopify-shipping\\.windsurf\\review\\tsconfig.review.json",
-      "suppressed": [
-        {
-          "file": "services\\universal-tariff-service.ts",
-          "count": 5
-        }
-      ],
-      "guidance": "TypeScript errors for files reported as unused by Knip are suppressed at repo level to prioritize actionable fixes. Run npx tsc --noEmit and resolve remaining errors."
-    },
     "knip": {
-      "unusedFileDetails": [
-        ".windsurf\\review\\error\\deploy-zone-error-handler.ts",
-        ".windsurf\\review\\lib\\db.ts",
-        ".windsurf\\review\\queries\\delivery-profiles.ts",
-        ".windsurf\\review\\services\\carrier-service-info-service.ts",
-        ".windsurf\\review\\services\\shipping-rates-profile-builders.ts",
-        ".windsurf\\review\\services\\shipping-rates-replacement-core.ts",
-        ".windsurf\\review\\services\\shopify.ts",
-        ".windsurf\\review\\services\\universal-tariff-service.ts",
-        ".windsurf\\review\\services\\zone-matcher-graphql.ts",
-        ".windsurf\\review\\services\\zone-matcher-types.ts",
-        ".windsurf\\review\\utils\\shopify-transformers.ts",
-        ".windsurf\\review\\types\\css-modules.ts",
-        ".windsurf\\review\\types\\deployment-summary.ts"
-      ],
-      "unusedExportDetails": [
-        {
-          "file": ".windsurf\\review\\services\\profile-utils.ts",
-          "names": [
-            "findProfileById",
-            "extractAllMethodDefinitionIds"
-          ]
-        }
-      ],
       "unusedTypeDetails": [
         {
-          "file": ".windsurf\\review\\context\\DeployContext.tsx",
+          "file": "context/DeployContext.tsx",
           "names": [
             "DeployState"
           ]
         },
         {
-          "file": ".windsurf\\review\\types\\admin.ts",
+          "file": "types/admin.ts",
           "names": [
             "ZoneTariffDTO",
             "DeploymentExclusionDTO"
           ]
         },
         {
-          "file": ".windsurf\\review\\services\\progress-reporter.ts",
+          "file": "services/progress-reporter.ts",
           "names": [
             "ProgressSnapshot"
           ]
         },
         {
-          "file": ".windsurf\\review\\services\\shopify-target-resolver.ts",
+          "file": "services/shopify-target-resolver.ts",
           "names": [
             "ResolvedShopifyTarget"
           ]
         },
         {
-          "file": ".windsurf\\review\\types\\shopify-inputs.ts",
+          "file": "types/shopify-inputs.ts",
           "names": [
             "DeliveryProfileLocationGroupInput",
             "DeliveryLocationGroupZoneInput",
@@ -92,7 +55,7 @@
           ]
         },
         {
-          "file": ".windsurf\\review\\types\\api.ts",
+          "file": "types/api.ts",
           "names": [
             "ApiResponse",
             "ShippingZone",
@@ -102,7 +65,7 @@
           ]
         },
         {
-          "file": ".windsurf\\review\\types\\rate-generation.ts",
+          "file": "types/rate-generation.ts",
           "names": [
             "GenerationResult",
             "GenerationStats",
@@ -110,19 +73,25 @@
           ]
         },
         {
-          "file": ".windsurf\\review\\services\\shopify-context-resolver-core.ts",
+          "file": "types/shopify-query-responses.ts",
+          "names": [
+            "ShopifyDeliveryProfilesResponse"
+          ]
+        },
+        {
+          "file": "services/shopify-context-resolver-core.ts",
           "names": [
             "ShopifyContextMap"
           ]
         },
         {
-          "file": ".windsurf\\review\\types\\shopify-mutation-responses.ts",
+          "file": "types/shopify-mutation-responses.ts",
           "names": [
             "DeliveryRateCreateResponse"
           ]
         },
         {
-          "file": ".windsurf\\review\\types\\admin-core.ts",
+          "file": "types/admin-core.ts",
           "names": [
             "ID",
             "CarrierDTO",
@@ -139,15 +108,16 @@
             "CreateZoneTariffInput",
             "UpdateZoneTariffInput"
           ]
+        },
+        {
+          "file": "types/shopify-core.ts",
+          "names": [
+            "DeliveryProfile"
+          ]
         }
       ],
-      "unusedFiles": 13,
-      "unusedExports": 2,
-      "unusedTypes": 35,
+      "unusedTypes": 37,
       "guidance": "Remove unused files/exports. Fix unresolved imports (paths/aliases). Add missing deps to package.json or remove usage."
-    },
-    "actions": [
-      "Delete unused files/exports identified by knip"
-    ]
+    }
   }
 }

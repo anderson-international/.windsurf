@@ -1,5 +1,5 @@
 {
-  "name": "ai-subtree",
+  "name": ".windsurf",
   "version": "1.0.0",
   "private": true,
   "description": "Self-contained analyzer dependencies for the .windsurf code review tools",

@@ -173,47 +173,17 @@ async function main() {
   }
 
   if (files.length === 0) {
-    if (porcelainMode) {
-      // Minimal report for porcelain with no selected files
-      try {
-        ensureDir(OUTPUT_DIR);
-        const tNow = Date.now();
-        const timing = { autofixMs: 0, perFileMs: 0, repoMs: 0, totalMs: (tNow - t0) };
-        const reviewMode = 'Touched Files Only';
-        const payload = {
-          generatedAt: new Date().toISOString(),
-          args: process.argv.slice(2),
-          options: { concurrency, jscpdMinTokens, jscpdIncludeRoots, porcelainMode, noAutofix, debugMode, tsconfigOverride, skipTsc },
-          timing,
-          reviewMode,
-          filesAnalyzed: 0,
-          results: [],
-          summary: { status: 'pass', noViolations: true, porcelainNoFiles: true, message: 'No files selected by porcelain. No analysis performed. No further action required.' },
-          repo: {
-            knip: { unusedFiles: 0, unusedExports: 0, unusedTypes: 0, unusedEnumMembers: 0, unusedClassMembers: 0, unlistedDependencies: 0, unresolvedImports: 0 },
-            knipDetails: { unresolvedImports: [], unlistedDependencies: [] },
-            jscpd: { groups: 0, duplicatedLines: 0, percentage: 0 },
-            tsc: { totalErrors: 0, tsconfigPath: tsconfigOverride || path.join(ROOT_DIR, 'tsconfig.json') }
-          }
-        };
-        writeJson(RESULTS_FILE, payload);
-        const repoSummary = { knip: payload.repo.knip, jscpd: payload.repo.jscpd, tsc: payload.repo.tsc };
-        const minimal = generateMinimalSummary([], { timing, debugMode, repo: repoSummary, reportPath: toRepoRelative(RESULTS_FILE), reviewMode });
-        console.log(minimal);
-        process.exit(0);
-      } catch (err) {
-        console.error(`Failed to write porcelain no-files report: ${err && err.message}`);
+    if (!porcelainMode) {
+      // Auto-discover all reviewable TypeScript files under valid roots (non-porcelain mode)
+      const discovered = discoverReviewableTypeScriptFiles();
+      if (debugMode) console.log(`Auto-discovered ${discovered.length} reviewable file(s).`);
+      if (discovered.length === 0) {
+        console.error('No reviewable TypeScript files found under app/, components/, lib/, hooks/, types/.');
         process.exit(1);
       }
+      for (const f of discovered) files.push(f);
     }
-    // Auto-discover all reviewable TypeScript files under valid roots
-    const discovered = discoverReviewableTypeScriptFiles();
-    if (debugMode) console.log(`Auto-discovered ${discovered.length} reviewable file(s).`);
-    if (discovered.length === 0) {
-      console.error('No reviewable TypeScript files found under app/, components/, lib/, hooks/, types/.');
-      process.exit(1);
-    }
-    for (const f of discovered) files.push(f);
+    // In porcelain mode with zero files, proceed with empty per-file set but still run repo analyzers.
   }
 
   // Delete stale legacy reports
@@ -361,7 +331,7 @@ async function main() {
     const norm = String(file || '').replace(/\\/g, '/');
     if (knipUnusedSet.has(norm)) {
       const count = Array.isArray(errs) ? errs.length : 0;
-      if (count > 0) suppressed.push({ file: file, count });
+      if (count > 0) suppressed.push({ file: norm, count });
       continue;
     }
     filteredByFile[file] = errs;
@@ -384,7 +354,7 @@ async function main() {
   const repoSummary = {
     knip: knipAgg.summary,
     jscpd: jscpdAgg.summary,
-    tsc: { totalErrors: filteredTotalErrors, tsconfigPath: tscData.tsconfigPath || null }
+    tsc: { totalErrors: filteredTotalErrors, tsconfigPath: (tscData.tsconfigPath ? String(tscData.tsconfigPath).replace(/\\/g, '/') : null) }
   };
 
   // Summaries and result JSON (with timing)
@@ -616,7 +586,7 @@ async function main() {
     if ((filteredTotalErrors || 0) > 0 || suppressed.length > 0) {
       const tscOut = {
         totalErrors: filteredTotalErrors || 0,
-        tsconfigPath: tscData.tsconfigPath || null,
+        tsconfigPath: (tscData.tsconfigPath ? String(tscData.tsconfigPath).replace(/\\/g, '/') : null),
         suppressed: suppressed,
         guidance: 'TypeScript errors for files reported as unused by Knip are suppressed at repo level to prioritize actionable fixes. Run npx tsc --noEmit and resolve remaining errors.'
       };
@@ -641,34 +611,48 @@ async function main() {
     if (knipFail) {
       const knip = {};
       const d = knipAgg.details || {};
+      // Normalize repo-detail paths: forward slashes and strip leading '.windsurf/review/' (and optional './')
+      const _normRepoPath = (p) => {
+        let s = String(p || '').replace(/\\/g, '/');
+        if (s.startsWith('./.windsurf/review/')) s = s.slice('./.windsurf/review/'.length);
+        else if (s.startsWith('.windsurf/review/')) s = s.slice('.windsurf/review/'.length);
+        else if (s.startsWith('./')) s = s.slice(2);
+        return s;
+      };
+      const _normFileObjArr = (arr) => Array.isArray(arr)
+        ? arr.map(x => ({ ...x, file: _normRepoPath(x.file) }))
+        : arr;
+      const _normFileStrArr = (arr) => Array.isArray(arr)
+        ? arr.map(p => _normRepoPath(p))
+        : arr;
       // Deduplicate: exclude files already represented per-file for the same category
       if (Array.isArray(d.unresolvedImports) && d.unresolvedImports.length) {
         const arr = d.unresolvedImports.filter(x => !perFileCategorySets.unresolvedImports.has(x.file));
-        if (arr.length) knip.unresolvedImportDetails = arr;
+        if (arr.length) knip.unresolvedImportDetails = _normFileObjArr(arr);
       }
       if (Array.isArray(d.unlistedDependencies) && d.unlistedDependencies.length) {
         const arr = d.unlistedDependencies.filter(x => !perFileCategorySets.unlistedDependencies.has(x.file));
-        if (arr.length) knip.unlistedDependencyDetails = arr;
+        if (arr.length) knip.unlistedDependencyDetails = _normFileObjArr(arr);
       }
       if (Array.isArray(d.unusedFiles) && d.unusedFiles.length) {
         // unusedFiles has only file paths; leave as-is (not duplicated per-file)
-        knip.unusedFileDetails = d.unusedFiles;
+        knip.unusedFileDetails = _normFileStrArr(d.unusedFiles);
       }
       if (Array.isArray(d.unusedExports) && d.unusedExports.length) {
         const arr = d.unusedExports.filter(x => !perFileCategorySets.unusedExports.has(x.file));
-        if (arr.length) knip.unusedExportDetails = arr;
+        if (arr.length) knip.unusedExportDetails = _normFileObjArr(arr);
       }
       if (Array.isArray(d.unusedTypes) && d.unusedTypes.length) {
         const arr = d.unusedTypes.filter(x => !perFileCategorySets.unusedTypes.has(x.file));
-        if (arr.length) knip.unusedTypeDetails = arr;
+        if (arr.length) knip.unusedTypeDetails = _normFileObjArr(arr);
       }
       if (Array.isArray(d.unusedEnumMembers) && d.unusedEnumMembers.length) {
         const arr = d.unusedEnumMembers.filter(x => !perFileCategorySets.unusedEnumMembers.has(x.file));
-        if (arr.length) knip.unusedEnumMemberDetails = arr;
+        if (arr.length) knip.unusedEnumMemberDetails = _normFileObjArr(arr);
       }
       if (Array.isArray(d.unusedClassMembers) && d.unusedClassMembers.length) {
         const arr = d.unusedClassMembers.filter(x => !perFileCategorySets.unusedClassMembers.has(x.file));
-        if (arr.length) knip.unusedClassMemberDetails = arr;
+        if (arr.length) knip.unusedClassMemberDetails = _normFileObjArr(arr);
       }
       // After dedupe, recompute counts from details to keep repo-level counts consistent with what is shown
       const sumNames = (arr) => Array.isArray(arr) ? arr.reduce((sum, x) => sum + (Array.isArray(x.names) ? x.names.length : 0), 0) : 0;
