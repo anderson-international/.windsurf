@@ -42,7 +42,7 @@ function printUsage() {
     '  - Duplicate code (via jscpd)',
     '',
     'Flags:',
-    '  --porcelain                Auto-select changed TS/TSX files via git porcelain',
+    '  --porcelain                Auto-select changed TS/TSX files via git porcelain (if no changed files are detected, per-file analyzers are skipped but repo-wide analyzers still run)',
     '  --concurrency <n>          Limit per-file parallelism (default 8)',
     '  --jscpd-min-tokens <n>     Set JSCPD min tokens (default 50)',
     '  --jscpd-include <dirs>     Comma-separated include roots (default: app,components,lib,hooks,types; use "." for repo)',
@@ -50,11 +50,17 @@ function printUsage() {
     '  --debug                    Print extra debug details; summaries always include total time',
     '  --report-all               Include all files in JSON report if report is written',
     '  --tsconfig <path>          Use a specific tsconfig.json (default: repo root tsconfig.json)',
+    '  --ts-scope <auto|project|subtree>  Control TSC config source (default auto: synthesize by merging project + subtree)',
     '  --skip-tsc                 Skip TypeScript compiler checks',
     '',
     'Default behavior:',
     '  • If no files are specified (and not in --porcelain mode), all valid TypeScript files are analyzed',
     '    under: app/, components/, lib/, hooks/, types/ (excluding .d.ts and excluded dirs)',
+    '  • A JSON report is always written to .windsurf/review/output/code-review-results.json.',
+    '    By default it includes only violating files; use --report-all to include all analyzed files.',
+    '    When no violations are found, the report contains a pass summary and guidance (results: []).',
+    '  • --ts-scope=auto (default) creates a temporary merged tsconfig for analysis by combining the project',
+    '    tsconfig.json with .windsurf/review/tsconfig.eslint.json (project options have precedence).',
     '',
     'Exit codes:',
     '  0  All checks passed',
@@ -126,6 +132,7 @@ async function main() {
   let skipTsc = false;
   let porcelainMode = false;
   let noAutofix = false;
+  let tsScope = 'auto'; // auto|project|subtree
   // actionable output is always on; no flag needed
 
   const files = [];
@@ -154,6 +161,8 @@ async function main() {
     // actionable flags removed; always actionable
     if (a === '--tsconfig') { const v = args[++i]; if (typeof v === 'string') tsconfigOverride = path.isAbsolute(v) ? v : path.join(ROOT_DIR, v); continue; }
     if (a.startsWith('--tsconfig=')) { const v = a.split('=')[1]; if (typeof v === 'string') tsconfigOverride = path.isAbsolute(v) ? v : path.join(ROOT_DIR, v); continue; }
+    if (a === '--ts-scope') { const v = String(args[++i] || '').trim(); if (v === 'auto' || v === 'project' || v === 'subtree') tsScope = v; continue; }
+    if (a.startsWith('--ts-scope=')) { const v = String(a.split('=')[1] || '').trim(); if (v === 'auto' || v === 'project' || v === 'subtree') tsScope = v; continue; }
     if (a === '--skip-tsc') { skipTsc = true; continue; }
     if (a === '--porcelain') { porcelainMode = true; continue; }
     files.push(a);
@@ -209,6 +218,91 @@ async function main() {
   }
   const tAutofix1 = Date.now();
 
+  // Resolve tsconfig for TSC based on scope/settings
+  function readJsonSafe(p) {
+    try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch (_) { return undefined; }
+  }
+  function uniq(arr) { return Array.from(new Set((Array.isArray(arr) ? arr : []).filter(Boolean))); }
+  function writeSyntheticTsconfig(baseTsconfigPath, subtreeTsconfigPath) {
+    const outDir = path.join(OUTPUT_DIR, '.tmp', 'tsc');
+    ensureDir(outDir);
+    const synthPath = path.join(outDir, 'tsconfig.runtime.json');
+    const baseJson = baseTsconfigPath ? readJsonSafe(baseTsconfigPath) : {};
+    const subtreeJson = subtreeTsconfigPath ? readJsonSafe(subtreeTsconfigPath) : {};
+    const baseCO = (baseJson && baseJson.compilerOptions) || {};
+    const subtreeCO = (subtreeJson && subtreeJson.compilerOptions) || {};
+    // Build compilerOptions: subtree wins on conflicts, otherwise include keys from either
+    const mergedCO = { ...baseCO, ...subtreeCO };
+    const prefixToRoot = path.relative(outDir, ROOT_DIR).replace(/\\/g, '/');
+    const normalizeJoin = (base, rel) => {
+      const pathPosix = require('path').posix;
+      const b = String(base || '').replace(/\\/g, '/');
+      let r = String(rel || '').replace(/\\/g, '/');
+      if (!r) return r;
+      if (/^[A-Za-z]:/.test(r)) return r; // absolute windows path
+      // strip leading ./ and ../ segments so we always anchor to repo root prefix
+      while (r.startsWith('./')) r = r.slice(2);
+      while (r.startsWith('../')) r = r.slice(3);
+      if (r.startsWith('/')) r = r.slice(1);
+      // join and normalize using posix semantics
+      const joined = b ? pathPosix.join(b, r) : r;
+      return pathPosix.normalize(joined);
+    };
+    const ensurePrefixed = (pat) => normalizeJoin(prefixToRoot, pat);
+
+    // Includes: intelligent union. Start with union(project, subtree) and essential entries.
+    const projectInclude = Array.isArray(baseJson?.include) ? baseJson.include : [];
+    const subtreeInclude = Array.isArray(subtreeJson?.include) ? subtreeJson.include : [];
+    let includeUnion = uniq([...projectInclude, ...subtreeInclude, 'next-env.d.ts', '.next/types/**/*.ts']);
+    const hasAllTs = includeUnion.some((p) => String(p).includes('**/*.ts'));
+    const hasAllTsx = includeUnion.some((p) => String(p).includes('**/*.tsx'));
+    includeUnion = includeUnion.filter((p) => {
+      const s = String(p || '');
+      if (s === 'next-env.d.ts' || s === '.next/types/**/*.ts') return true;
+      if (hasAllTs && s !== '**/*.ts' && s.includes('**/*.ts')) return false;
+      if (hasAllTsx && s !== '**/*.tsx' && s.includes('**/*.tsx')) return false;
+      return true;
+    });
+    let include = includeUnion.map(ensurePrefixed);
+    include = uniq(include);
+    if (!include.length) include = [ensurePrefixed('**/*.ts'), ensurePrefixed('**/*.tsx')];
+
+    // Excludes: union(project, subtree) plus enforced minimum set
+    const projectExclude = Array.isArray(baseJson?.exclude) ? baseJson.exclude : [];
+    const subtreeExclude = Array.isArray(subtreeJson?.exclude) ? subtreeJson.exclude : [];
+    const enforced = ['node_modules', '.windsurf', '.next', 'dist', 'build'];
+    let exclude = uniq([...projectExclude, ...subtreeExclude, ...enforced]).map(ensurePrefixed);
+    exclude = uniq(exclude);
+
+    // Ensure baseUrl when paths exist but baseUrl is missing
+    const hasPaths = mergedCO && mergedCO.paths && Object.keys(mergedCO.paths).length > 0;
+    if (hasPaths) {
+      // Always force baseUrl to repo root for correctness in standalone synthetic config
+      mergedCO.baseUrl = prefixToRoot || '.';
+    }
+
+    // Write standalone synthetic config (no extends)
+    const synthetic = {};
+    if (Object.keys(mergedCO).length) synthetic.compilerOptions = mergedCO;
+    if (include.length) synthetic.include = include;
+    if (exclude.length) synthetic.exclude = exclude;
+    fs.writeFileSync(synthPath, JSON.stringify(synthetic, null, 2), 'utf8');
+    return synthPath;
+  }
+  function resolveTsconfigPath() {
+    if (tsconfigOverride) return tsconfigOverride;
+    const projectTs = path.join(ROOT_DIR, 'tsconfig.json');
+    const subtreeTs = path.join(ROOT_DIR, '.windsurf', 'review', 'tsconfig.eslint.json');
+    const hasProject = (() => { try { return fs.existsSync(projectTs); } catch (_) { return false; } })();
+    const hasSubtree = (() => { try { return fs.existsSync(subtreeTs); } catch (_) { return false; } })();
+    if (tsScope === 'project') return hasProject ? projectTs : (hasSubtree ? subtreeTs : undefined);
+    if (tsScope === 'subtree') return hasSubtree ? subtreeTs : (hasProject ? projectTs : undefined);
+    // auto: synthesize merged (project preferred)
+    if (hasProject || hasSubtree) return writeSyntheticTsconfig(hasProject ? projectTs : undefined, hasSubtree ? subtreeTs : undefined);
+    return undefined;
+  }
+  const resolvedTsconfigPath = resolveTsconfigPath();
+
   // Start repo-wide analyzers concurrently right after autofix (they will run in parallel with ESLint batch and per-file work)
   const tRepo0 = Date.now();
   const repoBreakdown = {};
@@ -227,8 +321,8 @@ async function main() {
   const pTsc = (async () => {
     const s = Date.now();
     const d = skipTsc
-      ? { byFile: {}, totalErrors: 0, tsconfigPath: (tsconfigOverride || path.join(ROOT_DIR, 'tsconfig.json')) }
-      : await runTsc(tsconfigOverride);
+      ? { byFile: {}, totalErrors: 0, tsconfigPath: (resolvedTsconfigPath || path.join(ROOT_DIR, 'tsconfig.json')) }
+      : await runTsc(resolvedTsconfigPath);
     repoBreakdown.tscMs = Date.now() - s;
     return d;
   })();
@@ -309,8 +403,8 @@ async function main() {
     }
   } catch (_) {}
 
-  // Merge repo-wide results
-  const knipAgg = applyKnipToResults(results, knipData || {});
+  // Merge repo-wide results (knip merge is async due to bounded file scans)
+  const knipAgg = await applyKnipToResults(results, knipData || {}, { concurrency });
   const jscpdAgg = applyJscpdToResults(results, jscpdData || {});
 
   // Compute suppression of TSC errors for files Knip marks as unused
@@ -343,6 +437,7 @@ async function main() {
     (knipAgg.summary.unusedFiles > 0 ||
      knipAgg.summary.unusedExports > 0 ||
      knipAgg.summary.unusedTypes > 0 ||
+     (knipAgg.summary.unusedExportedTypes || 0) > 0 ||
      knipAgg.summary.unusedEnumMembers > 0 ||
      knipAgg.summary.unusedClassMembers > 0 ||
      knipAgg.summary.unlistedDependencies > 0 ||
@@ -470,6 +565,10 @@ async function main() {
         if ((r.deadCode.unusedTypes || 0) > 0 && Array.isArray(r.deadCode.unusedTypeNames) && r.deadCode.unusedTypeNames.length) {
           dc.unusedTypes = r.deadCode.unusedTypeNames;
         }
+        // unusedExportedTypes → array of names when present
+        if ((r.deadCode.unusedExportedTypes || 0) > 0 && Array.isArray(r.deadCode.unusedExportedTypeNames) && r.deadCode.unusedExportedTypeNames.length) {
+          dc.unusedExportedTypes = r.deadCode.unusedExportedTypeNames;
+        }
         // unusedEnumMembers → array of { enum, members[] } when present
         if ((r.deadCode.unusedEnumMembers || 0) > 0 && Array.isArray(r.deadCode.unusedEnumMemberNames) && r.deadCode.unusedEnumMemberNames.length) {
           dc.unusedEnumMembers = r.deadCode.unusedEnumMemberNames;
@@ -563,6 +662,7 @@ async function main() {
       const sets = {
         unusedExports: toSet(),
         unusedTypes: toSet(),
+        unusedExportedTypes: toSet(),
         unusedEnumMembers: toSet(),
         unusedClassMembers: toSet(),
         unresolvedImports: toSet(),
@@ -573,6 +673,7 @@ async function main() {
         const dc = r.deadCode || {};
         if (Array.isArray(dc.unusedExports) && dc.unusedExports.length) sets.unusedExports.add(file);
         if (Array.isArray(dc.unusedTypes) && dc.unusedTypes.length) sets.unusedTypes.add(file);
+        if (Array.isArray(dc.unusedExportedTypes) && dc.unusedExportedTypes.length) sets.unusedExportedTypes.add(file);
         if (Array.isArray(dc.unusedEnumMembers) && dc.unusedEnumMembers.length) sets.unusedEnumMembers.add(file);
         if (Array.isArray(dc.unusedClassMembers) && dc.unusedClassMembers.length) sets.unusedClassMembers.add(file);
         if (Array.isArray(dc.unresolvedImportSpecifiers) && dc.unresolvedImportSpecifiers.length) sets.unresolvedImports.add(file);
@@ -625,6 +726,18 @@ async function main() {
       const _normFileStrArr = (arr) => Array.isArray(arr)
         ? arr.map(p => _normRepoPath(p))
         : arr;
+
+      // Seed counts from authoritative summary to ensure repo-level visibility without duplicating per-file details
+      const s = knipAgg.summary || {};
+      if ((s.unusedFiles || 0) > 0) knip.unusedFiles = s.unusedFiles;
+      if ((s.unusedExports || 0) > 0) knip.unusedExports = s.unusedExports;
+      if ((s.unusedTypes || 0) > 0) knip.unusedTypes = s.unusedTypes;
+      if ((s.unusedExportedTypes || 0) > 0) knip.unusedExportedTypes = s.unusedExportedTypes;
+      if ((s.unusedEnumMembers || 0) > 0) knip.unusedEnumMembers = s.unusedEnumMembers;
+      if ((s.unusedClassMembers || 0) > 0) knip.unusedClassMembers = s.unusedClassMembers;
+      if ((s.unlistedDependencies || 0) > 0) knip.unlistedDependencies = s.unlistedDependencies;
+      if ((s.unresolvedImports || 0) > 0) knip.unresolvedImports = s.unresolvedImports;
+
       // Deduplicate: exclude files already represented per-file for the same category
       if (Array.isArray(d.unresolvedImports) && d.unresolvedImports.length) {
         const arr = d.unresolvedImports.filter(x => !perFileCategorySets.unresolvedImports.has(x.file));
@@ -646,6 +759,10 @@ async function main() {
         const arr = d.unusedTypes.filter(x => !perFileCategorySets.unusedTypes.has(x.file));
         if (arr.length) knip.unusedTypeDetails = _normFileObjArr(arr);
       }
+      if (Array.isArray(d.unusedExportedTypes) && d.unusedExportedTypes.length) {
+        const arr = d.unusedExportedTypes.filter(x => !perFileCategorySets.unusedExportedTypes.has(x.file));
+        if (arr.length) knip.unusedExportedTypeDetails = _normFileObjArr(arr);
+      }
       if (Array.isArray(d.unusedEnumMembers) && d.unusedEnumMembers.length) {
         const arr = d.unusedEnumMembers.filter(x => !perFileCategorySets.unusedEnumMembers.has(x.file));
         if (arr.length) knip.unusedEnumMemberDetails = _normFileObjArr(arr);
@@ -654,26 +771,23 @@ async function main() {
         const arr = d.unusedClassMembers.filter(x => !perFileCategorySets.unusedClassMembers.has(x.file));
         if (arr.length) knip.unusedClassMemberDetails = _normFileObjArr(arr);
       }
-      // After dedupe, recompute counts from details to keep repo-level counts consistent with what is shown
-      const sumNames = (arr) => Array.isArray(arr) ? arr.reduce((sum, x) => sum + (Array.isArray(x.names) ? x.names.length : 0), 0) : 0;
-      const countFiles = (arr) => Array.isArray(arr) ? arr.length : 0;
-      const unusedFilesCount = countFiles(knip.unusedFileDetails);
-      const unusedExportsCount = sumNames(knip.unusedExportDetails);
-      const unusedTypesCount = sumNames(knip.unusedTypeDetails);
-      const unusedEnumMembersCount = sumNames(knip.unusedEnumMemberDetails);
-      const unusedClassMembersCount = sumNames(knip.unusedClassMemberDetails);
-      const unlistedDependenciesCount = sumNames(knip.unlistedDependencyDetails);
-      const unresolvedImportsCount = sumNames(knip.unresolvedImportDetails);
 
-      if (unusedFilesCount) knip.unusedFiles = unusedFilesCount;
-      if (unusedExportsCount) knip.unusedExports = unusedExportsCount;
-      if (unusedTypesCount) knip.unusedTypes = unusedTypesCount;
-      if (unusedEnumMembersCount) knip.unusedEnumMembers = unusedEnumMembersCount;
-      if (unusedClassMembersCount) knip.unusedClassMembers = unusedClassMembersCount;
-      if (unlistedDependenciesCount) knip.unlistedDependencies = unlistedDependenciesCount;
-      if (unresolvedImportsCount) knip.unresolvedImports = unresolvedImportsCount;
-
-      knip.guidance = 'Remove unused files/exports. Fix unresolved imports (paths/aliases). Add missing deps to package.json or remove usage.';
+      // Build due-diligence guidance with category-specific addenda
+      const gParts = [
+        'Findings are high-confidence but perform minimal due diligence before destructive changes (where delete is uncertain, stop and report).'
+      ];
+      // Avoid redundant analyzer work to save time
+      gParts.push('Do not manually re-run analyzers; focus on applying fixes.');
+      if ((knip.unusedFiles || 0) > 0) gParts.push('Remove files not referenced anywhere; if uncertain, move to a quarantine folder before deletion.');
+      if ((knip.unusedExports || 0) > 0) gParts.push('Remove unused exported symbols or their references. Prefer removing the symbol if truly unused; otherwise, fix the references.');
+      if ((knip.unusedTypes || 0) > 0) gParts.push('Remove truly unused type aliases/interfaces. Ensure no indirect references (e.g., via index barrels) before deletion.');
+      if ((knip.unusedExportedTypes || 0) > 0) gParts.push('These are used internally but not externally. Drop the export keyword; keep the type.');
+      if ((knip.unresolvedImports || 0) > 0) gParts.push('Fix path/alias or tsconfig paths. If a module was removed, delete or replace the import.');
+      if ((knip.unlistedDependencies || 0) > 0) gParts.push('Add missing dependencies to package.json or remove usage; classify as dev or prod appropriately.');
+      if ((knip.unusedEnumMembers || 0) > 0) gParts.push('Remove enum member(s) that are unreferenced.');
+      if ((knip.unusedClassMembers || 0) > 0) gParts.push('Remove class member(s) that are unreferenced or refactor dead code.');
+      // Format guidance as markdown-style bullets over multiple lines
+      knip.guidance = gParts.map(s => `- ${s}`).join('\n');
       repoOut.knip = knip;
     }
     const j = jscpdAgg.summary;
@@ -689,8 +803,14 @@ async function main() {
     // Repo-level actions
     const repoActions = [];
     if (repoOut.tsc && (repoOut.tsc.totalErrors || 0) > 0) repoActions.push('Run project-wide TypeScript check: npx tsc --noEmit and resolve all errors');
-    if (repoOut.knip && (repoOut.knip.unusedFiles || repoOut.knip.unusedExports)) repoActions.push('Delete unused files/exports identified by knip');
-    if (repoOut.knip && (repoOut.knip.unlistedDependencies || repoOut.knip.unresolvedImports)) repoActions.push('Fix unresolved imports and add missing dependencies to package.json');
+    // Lowest-risk first
+    if (repoOut.knip && (repoOut.knip.unusedExportedTypes || 0) > 0) repoActions.push('Make exported type(s) internal (remove export keyword) when only used within file.');
+    if (repoOut.knip && (repoOut.knip.unusedExports || 0) > 0) repoActions.push('Remove unused exported symbols or fix references.');
+    if (repoOut.knip && (repoOut.knip.unusedFiles || 0) > 0) repoActions.push('Remove unused files identified by Knip (quarantine if uncertain).');
+    if (repoOut.knip && (repoOut.knip.unusedTypes || 0) > 0) repoActions.push('Remove truly unused types or inline where clearer.');
+    if (repoOut.knip && ((repoOut.knip.unresolvedImports || 0) > 0 || (repoOut.knip.unlistedDependencies || 0) > 0)) repoActions.push('Fix unresolved imports and add missing dependencies to package.json (classify dev/prod).');
+    if (repoOut.knip && (repoOut.knip.unusedEnumMembers || 0) > 0) repoActions.push('Remove unused enum member(s).');
+    if (repoOut.knip && (repoOut.knip.unusedClassMembers || 0) > 0) repoActions.push('Remove unused class member(s).');
     if (repoOut.jscpd && (repoOut.jscpd.groups || 0) > 0) repoActions.push('Refactor duplicated code groups reported by jscpd');
     if (repoActions.length) repoOut.actions = repoActions;
 
@@ -700,7 +820,7 @@ async function main() {
       payload = {
         generatedAt: new Date().toISOString(),
         args: process.argv.slice(2),
-        options: { concurrency, jscpdMinTokens, jscpdIncludeRoots, porcelainMode, noAutofix, debugMode, tsconfigOverride, skipTsc },
+        options: { concurrency, jscpdMinTokens, jscpdIncludeRoots, porcelainMode, noAutofix, debugMode, tsconfigOverride, tsScope, resolvedTsconfigPath, skipTsc },
         summary: { status: 'fail', message: 'Violations detected. Action required.', totalMs: timing.totalMs, totalHuman: formatMs(timing.totalMs) },
         results: minimalResults,
       };
@@ -709,7 +829,7 @@ async function main() {
       payload = {
         generatedAt: new Date().toISOString(),
         args: process.argv.slice(2),
-        options: { concurrency, jscpdMinTokens, jscpdIncludeRoots, porcelainMode, noAutofix, debugMode, tsconfigOverride, skipTsc },
+        options: { concurrency, jscpdMinTokens, jscpdIncludeRoots, porcelainMode, noAutofix, debugMode, tsconfigOverride, tsScope, resolvedTsconfigPath, skipTsc },
         summary: { status: 'pass', noViolations: true, message: 'No violations detected. No further action required.', totalMs: timing.totalMs, totalHuman: formatMs(timing.totalMs) },
         results: []
       };

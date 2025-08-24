@@ -1,123 +1,21 @@
 {
-  "generatedAt": "2025-08-23T17:48:49.273Z",
+  "generatedAt": "2025-08-24T12:08:58.166Z",
   "args": [],
   "options": {
     "concurrency": 8,
     "porcelainMode": false,
     "noAutofix": false,
     "debugMode": false,
+    "tsScope": "auto",
+    "resolvedTsconfigPath": "c:\\Users\\Jonny\\Code\\shopify-shipping\\.windsurf\\review\\output\\.tmp\\tsc\\tsconfig.runtime.json",
     "skipTsc": false
   },
   "summary": {
-    "status": "fail",
-    "message": "Violations detected. Action required.",
-    "totalMs": 5804,
-    "totalHuman": "0m 05s"
+    "status": "pass",
+    "noViolations": true,
+    "message": "No violations detected. No further action required.",
+    "totalMs": 6097,
+    "totalHuman": "0m 06s"
   },
-  "results": [],
-  "repo": {
-    "knip": {
-      "unusedTypeDetails": [
-        {
-          "file": "context/DeployContext.tsx",
-          "names": [
-            "DeployState"
-          ]
-        },
-        {
-          "file": "types/admin.ts",
-          "names": [
-            "ZoneTariffDTO",
-            "DeploymentExclusionDTO"
-          ]
-        },
-        {
-          "file": "services/progress-reporter.ts",
-          "names": [
-            "ProgressSnapshot"
-          ]
-        },
-        {
-          "file": "services/shopify-target-resolver.ts",
-          "names": [
-            "ResolvedShopifyTarget"
-          ]
-        },
-        {
-          "file": "types/shopify-inputs.ts",
-          "names": [
-            "DeliveryProfileLocationGroupInput",
-            "DeliveryLocationGroupZoneInput",
-            "DeliveryRateDefinitionInput",
-            "DeliveryWeightConditionInput",
-            "WeightInput",
-            "MoneyInput"
-          ]
-        },
-        {
-          "file": "types/api.ts",
-          "names": [
-            "ApiResponse",
-            "ShippingZone",
-            "DeliveryProfile",
-            "CsvRateRow",
-            "BulkOperationResult"
-          ]
-        },
-        {
-          "file": "types/rate-generation.ts",
-          "names": [
-            "GenerationResult",
-            "GenerationStats",
-            "RateGenerationConfig"
-          ]
-        },
-        {
-          "file": "types/shopify-query-responses.ts",
-          "names": [
-            "ShopifyDeliveryProfilesResponse"
-          ]
-        },
-        {
-          "file": "services/shopify-context-resolver-core.ts",
-          "names": [
-            "ShopifyContextMap"
-          ]
-        },
-        {
-          "file": "types/shopify-mutation-responses.ts",
-          "names": [
-            "DeliveryRateCreateResponse"
-          ]
-        },
-        {
-          "file": "types/admin-core.ts",
-          "names": [
-            "ID",
-            "CarrierDTO",
-            "CreateCarrierInput",
-            "UpdateCarrierInput",
-            "ZoneScope",
-            "CarrierServiceDTO",
-            "CreateCarrierServiceInput",
-            "UpdateCarrierServiceInput",
-            "ServiceZoneDTO",
-            "ZoneTariffDTO",
-            "DeploymentExclusionDTO",
-            "EnumsResponse",
-            "CreateZoneTariffInput",
-            "UpdateZoneTariffInput"
-          ]
-        },
-        {
-          "file": "types/shopify-core.ts",
-          "names": [
-            "DeliveryProfile"
-          ]
-        }
-      ],
-      "unusedTypes": 37,
-      "guidance": "Remove unused files/exports. Fix unresolved imports (paths/aliases). Add missing deps to package.json or remove usage."
-    }
-  }
+  "results": []
 }

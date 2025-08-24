@@ -22,6 +22,7 @@ function generateCompactSummary(results, opts = {}) {
       (repo.knip.unusedFiles || 0) > 0 ||
       (repo.knip.unusedExports || 0) > 0 ||
       (repo.knip.unusedTypes || 0) > 0 ||
+      (repo.knip.unusedExportedTypes || 0) > 0 ||
       (repo.knip.unusedEnumMembers || 0) > 0 ||
       (repo.knip.unusedClassMembers || 0) > 0 ||
       (repo.knip.unlistedDependencies || 0) > 0 ||
@@ -123,6 +124,7 @@ function generateCompactSummary(results, opts = {}) {
         if ((k.unusedFiles || 0) > 0) knipParts.push(`unused files ${k.unusedFiles}`);
         if ((k.unusedExports || 0) > 0) knipParts.push(`unused exports ${k.unusedExports}`);
         if ((k.unusedTypes || 0) > 0) knipParts.push(`unused types ${k.unusedTypes}`);
+        if ((k.unusedExportedTypes || 0) > 0) knipParts.push(`unused exported types ${k.unusedExportedTypes}`);
         if ((k.unusedEnumMembers || 0) > 0) knipParts.push(`unused enum members ${k.unusedEnumMembers}`);
         if ((k.unusedClassMembers || 0) > 0) knipParts.push(`unused class members ${k.unusedClassMembers}`);
         if ((k.unlistedDependencies || 0) > 0) knipParts.push(`unlisted dependencies ${k.unlistedDependencies}`);
@@ -153,6 +155,7 @@ function generateCompactSummary(results, opts = {}) {
         if ((k.unusedFiles || 0) > 0) knipParts.push(`unused files ${k.unusedFiles}`);
         if ((k.unusedExports || 0) > 0) knipParts.push(`unused exports ${k.unusedExports}`);
         if ((k.unusedTypes || 0) > 0) knipParts.push(`unused types ${k.unusedTypes}`);
+        if ((k.unusedExportedTypes || 0) > 0) knipParts.push(`unused exported types ${k.unusedExportedTypes}`);
         if ((k.unusedEnumMembers || 0) > 0) knipParts.push(`unused enum members ${k.unusedEnumMembers}`);
         if ((k.unusedClassMembers || 0) > 0) knipParts.push(`unused class members ${k.unusedClassMembers}`);
         if ((k.unlistedDependencies || 0) > 0) knipParts.push(`unlisted dependencies ${k.unlistedDependencies}`);
@@ -208,6 +211,7 @@ function generateBatchSummary(results, opts = {}) {
       (repo.knip.unusedFiles || 0) > 0 ||
       (repo.knip.unusedExports || 0) > 0 ||
       (repo.knip.unusedTypes || 0) > 0 ||
+      (repo.knip.unusedExportedTypes || 0) > 0 ||
       (repo.knip.unusedEnumMembers || 0) > 0 ||
       (repo.knip.unusedClassMembers || 0) > 0 ||
       (repo.knip.unlistedDependencies || 0) > 0 ||
@@ -349,10 +353,10 @@ function generateMinimalSummary(results, opts = {}) {
   const normalizedReportPath = path.normalize(reportPath);
 
   // Compute repo-wide check statuses (knip, jscpd, tsc)
-  const k = (repo && repo.knip) ? repo.knip : { unusedFiles: 0, unusedExports: 0, unusedTypes: 0, unusedEnumMembers: 0, unusedClassMembers: 0, unlistedDependencies: 0, unresolvedImports: 0 };
+  const k = (repo && repo.knip) ? repo.knip : { unusedFiles: 0, unusedExports: 0, unusedTypes: 0, unusedExportedTypes: 0, unusedEnumMembers: 0, unusedClassMembers: 0, unlistedDependencies: 0, unresolvedImports: 0 };
   const j = (repo && repo.jscpd) ? repo.jscpd : { groups: 0, duplicatedLines: 0, percentage: 0 };
   const tsc = (repo && repo.tsc) ? repo.tsc : { totalErrors: 0 };
-  const knipPass = ((k.unusedFiles || 0) === 0) && ((k.unusedExports || 0) === 0) && ((k.unusedTypes || 0) === 0) && ((k.unusedEnumMembers || 0) === 0) && ((k.unusedClassMembers || 0) === 0) && ((k.unlistedDependencies || 0) === 0) && ((k.unresolvedImports || 0) === 0);
+  const knipPass = ((k.unusedFiles || 0) === 0) && ((k.unusedExports || 0) === 0) && ((k.unusedTypes || 0) === 0) && ((k.unusedExportedTypes || 0) === 0) && ((k.unusedEnumMembers || 0) === 0) && ((k.unusedClassMembers || 0) === 0) && ((k.unlistedDependencies || 0) === 0) && ((k.unresolvedImports || 0) === 0);
   const jscpdPass = ((j.groups || 0) === 0) && ((j.duplicatedLines || 0) === 0) && ((j.percentage || 0) === 0);
   const tscPass = ((tsc.totalErrors || 0) === 0);
   const repoChecksTotal = 3;
