@@ -23,7 +23,7 @@ const { runTsc } = require('./components/repo/run-tsc');
 const { applyKnipToResults } = require('./components/merge/knip');
 const { applyJscpdToResults } = require('./components/merge/jscpd');
 
-const { generateCompactSummary, generateBatchSummary, generateMinimalSummary } = require('./components/summaries');
+const { generateMinimalSummary } = require('./components/summaries');
 
 function printUsage() {
   const usage = [
@@ -774,11 +774,11 @@ async function main() {
 
       // Build due-diligence guidance with category-specific addenda
       const gParts = [
-        'Findings are high-confidence but perform minimal due diligence before destructive changes (where delete is uncertain, stop and report).'
+        '*DO NOT SEEK APPROVAL* Findings are high-confidence. Perform minimal due diligence before destructive changes (where delete is uncertain, stop and report).'
       ];
       // Avoid redundant analyzer work to save time
       gParts.push('Do not manually re-run analyzers; focus on applying fixes.');
-      if ((knip.unusedFiles || 0) > 0) gParts.push('Remove files not referenced anywhere; if uncertain, move to a quarantine folder before deletion.');
+      if ((knip.unusedFiles || 0) > 0) gParts.push('Remove files not referenced anywhere.');
       if ((knip.unusedExports || 0) > 0) gParts.push('Remove unused exported symbols or their references. Prefer removing the symbol if truly unused; otherwise, fix the references.');
       if ((knip.unusedTypes || 0) > 0) gParts.push('Remove truly unused type aliases/interfaces. Ensure no indirect references (e.g., via index barrels) before deletion.');
       if ((knip.unusedExportedTypes || 0) > 0) gParts.push('These are used internally but not externally. Drop the export keyword; keep the type.');
@@ -821,7 +821,8 @@ async function main() {
         generatedAt: new Date().toISOString(),
         args: process.argv.slice(2),
         options: { concurrency, jscpdMinTokens, jscpdIncludeRoots, porcelainMode, noAutofix, debugMode, tsconfigOverride, tsScope, resolvedTsconfigPath, skipTsc },
-        summary: { status: 'fail', message: 'Violations detected. Action required.', totalMs: timing.totalMs, totalHuman: formatMs(timing.totalMs) },
+        summary: { status: 'fail', message: 'Violations detected. Action required. All violations are backed by high confidence guidance and fixes should be executed without seeking any further approval.', totalMs: timing.totalMs, totalHuman: formatMs(timing.totalMs) },
+
         results: minimalResults,
       };
       if (Object.keys(repoOut).length > 0) payload.repo = repoOut;

@@ -8,17 +8,12 @@ Key Rules: Mobile-first design principles, Dark theme color palette, Multi-step 
 Avoid: Desktop-first decisions, Deviating from dark theme, Breaking wizard navigation, Non-CSS Modules styling
 -->
 
-<!-- RELATED_DOCS
-Implementation: db-forms.md (Form patterns), react-patterns.md (Component patterns)
-Technical: technical-stack.md (Next.js config), code-structure.md (CSS organization)
-Requirements: feature-requirements.md (UI requirements), business-context.md (User needs)
--->
-
 ## Strategic Overview
 
 This document serves as the authoritative source for all UI/UX design decisions, component patterns, and implementation strategies for the Specification Builder project.
 
 ## Core UI/UX Philosophy
+- Fixed left nav with main sections: <feature 1>, <feature 2>, <feature 3>, Admin
 
 ### Mobile-First Design Philosophy
 
@@ -69,61 +64,25 @@ This document serves as the authoritative source for all UI/UX design decisions,
 
 ### Left-Hand Navigation Panel
 
-- Fixed left nav with main sections: Specifications, Products, New Specification, Admin (admin users only)
+- Fixed left nav with main sections: <feature 1>, <feature 2>, <feature 3>, Admin
 - Collapsible on mobile for maximum screen space
-- Shows progress stats (e.g., "245/600 products reviewed")
 
-## Specifications List View
+## List View
 
 ### Grouped by Status Layout
 
-- Sections: Draft, Published, Needs Revision, Under Review
-- Each section collapsible with count badge
-- Within sections: product title, date, and star rating
+- Within sections: title
 - Swipe actions for quick edit/delete (draft only)
 - Filter system: Product brand (dropdown), Product title (search box)
 
-## Specification Form Layout: Multi-Step Wizard
+## Multi-Step Wizard
 
 ### Wizard Approach
 
-- Multi-step wizard for specification forms
+- Multi-step wizard for complex forms
 - Reduces cognitive load on small screens
 - Clear progress indication
 - Better error handling per step
-
-### Wizard Steps Structure
-
-#### Step 1: Product Selection
-
-- Filter by brand dropdown
-- Type-ahead search box
-- **Excludes products already reviewed by user**
-- Shows product image and name in results
-
-#### Step 2: Product Characteristics 1
-
-- Product type - segmented control
-- Experience level
-- Tobacco types (multi-select)
-
-#### Step 3: Product Characteristics 2
-
-- Cures (multi-select)
-- Grind - segmented control
-- Boolean flags - toggle switches
-
-#### Step 4: Sensory Profile
-
-- Tasting notes (multi-select, minimum 1)
-- Nicotine level - segmented control
-- Moisture level - segmented control
-
-#### Step 5: Review & Rating
-
-- Review text
-- Star rating
-- Rating boost
 
 ### Wizard Navigation Pattern
 
@@ -210,4 +169,3 @@ This document serves as the authoritative source for all UI/UX design decisions,
 - Clear path to fix validation errors
 - Positive feedback for completed sections
 
-Technical Implementation: See db-forms.md for React Hook Form integration, validation patterns, and state management strategies.
