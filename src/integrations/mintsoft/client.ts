@@ -2,25 +2,85 @@ import axios, { AxiosInstance } from 'axios';
 import { z } from 'zod';
 import { env } from '../../config/env';
 import { CourierService, MintsoftOrder, OrderStatus } from './types';
+import { logger } from '../../lib/logger';
 
-const OrderSchema = z.object({
-  OrderId: z.number(),
-  OrderStatusId: z.number(),
-  CourierServiceId: z.number().nullable().optional(),
-  OrderNumber: z.string().optional(),
-  Channel: z.string().nullable().optional(),
-  CustomerName: z.string().nullable().optional(),
-  Address1: z.string().nullable().optional(),
-  Address2: z.string().nullable().optional(),
-  City: z.string().nullable().optional(),
-  Postcode: z.string().nullable().optional(),
-  CountryCode: z.string().nullable().optional(),
-  Weight: z.number().nullable().optional(),
-  CreatedDate: z.string().optional(),
-});
+// Orders: use a lightweight normalizer based on observed Mintsoft payload keys
+function toNumberOrNull(v: unknown): number | null {
+  if (v == null) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
 
-const StatusSchema = z.object({ Id: z.number(), Name: z.string() });
-const CourierSchema = z.object({ Id: z.number(), Name: z.string() });
+function normalizeOrder(raw: any): MintsoftOrder {
+  const id = raw.ID ?? raw.Id ?? raw.OrderID ?? raw.OrderId;
+  const statusId = raw.OrderStatusId ?? raw.StatusId;
+  const courierId = raw.CourierServiceId ?? raw.CourierServiceTypeId ?? null;
+  const channelName = typeof raw.Channel === 'object' && raw.Channel
+    ? (raw.Channel.Name ?? raw.Channel.ExternalName ?? '')
+    : (raw.Channel ?? '');
+  const customerName = raw.CompanyName
+    ? String(raw.CompanyName)
+    : [raw.FirstName, raw.LastName].filter(Boolean).join(' ').trim();
+  const countryCode = raw.Country && typeof raw.Country === 'object'
+    ? (raw.Country.Code ?? raw.Country.ISO ?? '')
+    : (raw.CountryCode ?? '');
+
+  return {
+    OrderId: Number(id),
+    OrderStatusId: Number(statusId),
+    CourierServiceId: courierId != null ? Number(courierId) : null,
+    OrderNumber: raw.OrderNumber ?? undefined,
+    Channel: channelName || undefined,
+    CustomerName: customerName || undefined,
+    Address1: raw.Address1 ?? undefined,
+    Address2: (raw.Address2 ?? raw.Address3) || undefined,
+    City: raw.Town ?? undefined,
+    Postcode: raw.PostCode ?? undefined,
+    CountryCode: countryCode || undefined,
+    Weight: toNumberOrNull(raw.TotalWeight),
+    CreatedDate: raw.OrderDate ?? undefined,
+  } as MintsoftOrder;
+}
+
+// Tolerant schemas: normalize alternative Mintsoft shapes to { Id, Name }
+const StatusRawSchema = z
+  .object({
+    Id: z.number().optional(),
+    StatusId: z.number().optional(),
+    OrderStatusId: z.number().optional(),
+    ID: z.number().optional(),
+    Name: z.string().optional(),
+    StatusName: z.string().optional(),
+    OrderStatusName: z.string().optional(),
+  })
+  .superRefine((obj, ctx) => {
+    if (obj.Id == null && obj.StatusId == null && obj.OrderStatusId == null && obj.ID == null) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Missing Id/StatusId' });
+    }
+    if (obj.Name == null && obj.StatusName == null && obj.OrderStatusName == null) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Missing Name/StatusName' });
+    }
+  })
+  .transform((obj) => ({ Id: (obj.Id ?? obj.StatusId ?? obj.OrderStatusId ?? obj.ID) as number, Name: (obj.Name ?? obj.StatusName ?? obj.OrderStatusName) as string }));
+
+const CourierRawSchema = z
+  .object({
+    Id: z.number().optional(),
+    ServiceId: z.number().optional(),
+    CourierServiceId: z.number().optional(),
+    ID: z.number().optional(),
+    Name: z.string().optional(),
+    ServiceName: z.string().optional(),
+  })
+  .superRefine((obj, ctx) => {
+    if (obj.Id == null && obj.ServiceId == null && obj.CourierServiceId == null && obj.ID == null) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Missing Id/ServiceId' });
+    }
+    if (obj.Name == null && obj.ServiceName == null) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Missing Name/ServiceName' });
+    }
+  })
+  .transform((obj) => ({ Id: (obj.Id ?? obj.ServiceId ?? obj.CourierServiceId ?? obj.ID) as number, Name: (obj.Name ?? obj.ServiceName) as string }));
 
 export class MintsoftClient {
   private http: AxiosInstance;
@@ -38,17 +98,40 @@ export class MintsoftClient {
 
   async getOrders(): Promise<MintsoftOrder[]> {
     const res = await this.http.get('/api/Order/List');
-    const arr = z.array(OrderSchema).parse(res.data);
-    return arr as MintsoftOrder[];
+    if (Array.isArray(res.data) && res.data.length) {
+      try {
+        const first = res.data[0];
+        logger.info(
+          {
+            keys: Object.keys(first),
+            channelType: typeof first.Channel,
+            channelKeys: first.Channel && typeof first.Channel === 'object' ? Object.keys(first.Channel) : undefined,
+          },
+          'Mintsoft Orders sample keys'
+        );
+      } catch {}
+    }
+    const data = Array.isArray(res.data) ? res.data : [];
+    return data.map(normalizeOrder);
   }
 
   async getStatuses(): Promise<OrderStatus[]> {
     const res = await this.http.get('/api/Order/Statuses');
-    return z.array(StatusSchema).parse(res.data) as OrderStatus[];
+    if (Array.isArray(res.data) && res.data.length) {
+      try {
+        logger.info({ keys: Object.keys(res.data[0]) }, 'Mintsoft Statuses sample keys');
+      } catch {}
+    }
+    return z.array(StatusRawSchema).parse(res.data) as OrderStatus[];
   }
 
   async getCourierServices(): Promise<CourierService[]> {
     const res = await this.http.get('/api/Courier/Services');
-    return z.array(CourierSchema).parse(res.data) as CourierService[];
+    if (Array.isArray(res.data) && res.data.length) {
+      try {
+        logger.info({ keys: Object.keys(res.data[0]) }, 'Mintsoft Couriers sample keys');
+      } catch {}
+    }
+    return z.array(CourierRawSchema).parse(res.data) as CourierService[];
   }
 }

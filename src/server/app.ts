@@ -14,6 +14,7 @@ app.set('views', path.join(process.cwd(), 'views'));
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.static('public'));
 
 // Routes
 app.get('/', (_req: Request, res: Response) => res.redirect('/orders'));

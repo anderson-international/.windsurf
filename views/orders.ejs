@@ -1,84 +1,81 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>Mintsoft Orders</title>
-  <style>
-    body { font-family: system-ui, sans-serif; margin: 2rem; }
-    table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
-    th, td { border: 1px solid #ddd; padding: 8px; font-size: 14px; }
-    th { background: #f5f5f5; position: sticky; top: 0; }
-    .filters { display: flex; gap: 1rem; align-items: flex-end; }
-    .filters fieldset { border: 1px solid #ddd; padding: .5rem .75rem; }
-    .actions { margin: 1rem 0; display: flex; gap: 1rem; align-items: center; }
-  </style>
-</head>
-<body>
-  <h1>Mintsoft Orders</h1>
+<%- include('partials/head', { activeNav: 'orders' }) %>
 
-  <form class="filters" method="get" action="/orders">
-    <fieldset>
-      <legend>Status</legend>
-      <select name="status" multiple size="6">
-        <% statuses.forEach(function(s){ %>
-          <option value="<%= s.Id %>" <%= selectedStatus.includes(s.Id) ? 'selected' : '' %>><%= s.Name %></option>
-        <% }) %>
-      </select>
-    </fieldset>
+  <div class="card">
+    <div class="card-header">Filters</div>
+    <form class="filters" method="get" action="/orders">
+      <div>
+        <label>Status</label>
+        <select name="status" multiple>
+          <% statuses.forEach(function(s){ %>
+            <option value="<%= s.Id %>" <%= selectedStatus.includes(s.Id) ? 'selected' : '' %>><%= s.Name %></option>
+          <% }) %>
+        </select>
+      </div>
 
-    <fieldset>
-      <legend>Courier Service</legend>
-      <select name="courier" multiple size="6">
-        <% couriers.forEach(function(c){ %>
-          <option value="<%= c.Id %>" <%= selectedCourier.includes(c.Id) ? 'selected' : '' %>><%= c.Name %></option>
-        <% }) %>
-      </select>
-    </fieldset>
+      <div>
+        <label>Courier Service</label>
+        <select name="courier" multiple>
+          <% couriers.forEach(function(c){ %>
+            <option value="<%= c.Id %>" <%= selectedCourier.includes(c.Id) ? 'selected' : '' %>><%= c.Name %></option>
+          <% }) %>
+        </select>
+      </div>
 
-    <div>
-      <button type="submit">Apply Filters</button>
+      <div>
+        <button class="btn btn-primary" type="submit">Apply Filters</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card mt-2">
+    <div class="flex space-between items-center mb-2">
+      <div class="card-header">Orders</div>
+      <span id="count" class="badge"></span>
     </div>
-  </form>
 
-  <form class="actions" method="post" action="/manifest/submit">
-    <button type="submit">Submit Selected to IOM Manifest</button>
-    <span id="count"></span>
+    <form method="post" action="/manifest/submit">
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="checkAll" /></th>
+              <th>Order ID</th>
+              <th>Order #</th>
+              <th>Status</th>
+              <th>Courier</th>
+              <th>Customer</th>
+              <th>City</th>
+              <th>Postcode</th>
+              <th>Country</th>
+              <th>Weight</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(function(o){ %>
+              <tr>
+                <td><input type="checkbox" name="orderIds" value="<%= o.OrderId %>" class="rowCheck" /></td>
+                <td><%= o.OrderId %></td>
+                <td><%= o.OrderNumber || '' %></td>
+                <td><%= statusMap.get(o.OrderStatusId) || o.OrderStatusId %></td>
+                <td><%= (o.CourierServiceId != null ? (courierMap.get(o.CourierServiceId) || o.CourierServiceId) : '') %></td>
+                <td><%= o.CustomerName || '' %></td>
+                <td><%= o.City || '' %></td>
+                <td><%= o.Postcode || '' %></td>
+                <td><%= o.CountryCode || '' %></td>
+                <td><%= (o.Weight ?? '') %></td>
+                <td><%= o.CreatedDate || '' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th><input type="checkbox" id="checkAll" /></th>
-          <th>Order ID</th>
-          <th>Order #</th>
-          <th>Status</th>
-          <th>Courier</th>
-          <th>Customer</th>
-          <th>City</th>
-          <th>Postcode</th>
-          <th>Country</th>
-          <th>Weight</th>
-          <th>Created</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% orders.forEach(function(o){ %>
-          <tr>
-            <td><input type="checkbox" name="orderIds" value="<%= o.OrderId %>" class="rowCheck" /></td>
-            <td><%= o.OrderId %></td>
-            <td><%= o.OrderNumber || '' %></td>
-            <td><%= statusMap.get(o.OrderStatusId) || o.OrderStatusId %></td>
-            <td><%= (o.CourierServiceId != null ? (courierMap.get(o.CourierServiceId) || o.CourierServiceId) : '') %></td>
-            <td><%= o.CustomerName || '' %></td>
-            <td><%= o.City || '' %></td>
-            <td><%= o.Postcode || '' %></td>
-            <td><%= o.CountryCode || '' %></td>
-            <td><%= (o.Weight ?? '') %></td>
-            <td><%= o.CreatedDate || '' %></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </form>
+      <div class="mt-2">
+        <button class="btn btn-success" type="submit">Submit Selected to IOM Manifest</button>
+      </div>
+    </form>
+  </div>
 
   <script>
     const checkAll = document.getElementById('checkAll');
@@ -98,5 +95,5 @@
     }
     rowChecks.forEach(c => c.addEventListener('change', updateCount));
   </script>
-</body>
-</html>
+
+<%- include('partials/foot') %>
