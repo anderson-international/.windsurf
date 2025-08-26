@@ -98,40 +98,17 @@ export class MintsoftClient {
 
   async getOrders(): Promise<MintsoftOrder[]> {
     const res = await this.http.get('/api/Order/List');
-    if (Array.isArray(res.data) && res.data.length) {
-      try {
-        const first = res.data[0];
-        logger.info(
-          {
-            keys: Object.keys(first),
-            channelType: typeof first.Channel,
-            channelKeys: first.Channel && typeof first.Channel === 'object' ? Object.keys(first.Channel) : undefined,
-          },
-          'Mintsoft Orders sample keys'
-        );
-      } catch {}
-    }
     const data = Array.isArray(res.data) ? res.data : [];
     return data.map(normalizeOrder);
   }
 
   async getStatuses(): Promise<OrderStatus[]> {
     const res = await this.http.get('/api/Order/Statuses');
-    if (Array.isArray(res.data) && res.data.length) {
-      try {
-        logger.info({ keys: Object.keys(res.data[0]) }, 'Mintsoft Statuses sample keys');
-      } catch {}
-    }
     return z.array(StatusRawSchema).parse(res.data) as OrderStatus[];
   }
 
   async getCourierServices(): Promise<CourierService[]> {
     const res = await this.http.get('/api/Courier/Services');
-    if (Array.isArray(res.data) && res.data.length) {
-      try {
-        logger.info({ keys: Object.keys(res.data[0]) }, 'Mintsoft Couriers sample keys');
-      } catch {}
-    }
     return z.array(CourierRawSchema).parse(res.data) as CourierService[];
   }
 }
