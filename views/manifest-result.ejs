@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Manifest Submission Results</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; }
+    table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+    th, td { border: 1px solid #ddd; padding: 8px; font-size: 14px; }
+    th { background: #f5f5f5; }
+    .ok { color: #0a7c2f; font-weight: 600; }
+    .fail { color: #b00020; font-weight: 600; }
+    a { text-decoration: none; color: #0366d6; }
+  </style>
+</head>
+<body>
+  <h1>Manifest Submission Results</h1>
+  <p><a href="/orders">← Back to Orders</a></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Order ID</th>
+        <th>Status</th>
+        <th>Reference</th>
+        <th>Message</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% results.forEach(function(r){ %>
+        <tr>
+          <td><%= r.orderId %></td>
+          <td class="<%= r.success ? 'ok' : 'fail' %>"><%= r.success ? 'Success' : 'Failed' %></td>
+          <td><%= r.reference || '' %></td>
+          <td><%= r.message || '' %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</body>
+</html>
