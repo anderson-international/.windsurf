@@ -8,7 +8,7 @@ auto_execution_mode: 1
 This workflow loads the most critical constraints and patterns that AIs regularly forget, plus ways of working and current schema information.
 
 ## FIRST: Understand your core tools
-Set the project working directory then run the following commands to determine the toll usage.
+Set the project working directory then run the following commands to determine the tool usage.
 ```bash
 cmd /c node .windsurf\tools\schema-query.js --help
 ```
