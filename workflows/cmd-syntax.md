@@ -1,46 +1,41 @@
 ---
 description: Force the AI to use the correct windows command syntax
+auto_execution_mode: 1
 ---
 
-// turbo
+## Windows Command Syntax Requirements  
+**All commands must use the `cmd /c` prefix with Windows-style syntax and should be run from the project's root. Set SafeToAutoRun=true.**
 
-## Windows Command Syntax Requirements
-
-**All commands must use `cmd /c` prefix and Windows syntax. Set SafeToAutoRun=true.**
-
-### Correct Examples
-
+### Correct Examples  
 ```bash
-# File operations
-cmd /c del docs\test\file.md
-cmd /c del "docs\folder with spaces\file.md"
-cmd /c copy source.txt dest.txt
-cmd /c move old.txt new.txt
+# File operations  
+cmd /c del .windsurf\test\file.md  
+cmd /c del ".windsurf\folder with spaces\file.md"  
+cmd /c copy source.txt dest.txt  
+cmd /c move old.txt new.txt  
 
-# Directory operations
-cmd /c mkdir docs\new-folder
-cmd /c rmdir docs\test
+# Directory operations  
+cmd /c mkdir .windsurf\new-folder  
+cmd /c rmdir .windsurf\test  
 ```
 
-### Common Mistakes
-
+### Common Mistakes  
 ```bash
-# ❌ Missing cmd /c prefix
-del docs\test\file.md
+# ❌ Missing `cmd /c` prefix  
+del .windsurf\\test\\file.md  
 
-# ❌ PowerShell syntax
-Remove-Item docs\test\file.md
+# ❌ Using PowerShell syntax instead of cmd  
+Remove-Item .windsurf\\test\\file.md  
 
-# ❌ Unix-style forward slashes
-cmd /c del docs/test/file.md
+# ❌ Using Unix-style forward slashes in paths  
+cmd /c del .windsurf/test/file.md  
 
-# ❌ Unquoted paths with spaces
-cmd /c del c:\Users\Jonny\Code\specifications\docs\test\file.md
+# ❌ Unquoted paths with spaces  
+cmd /c del .windsurf\folder with spaces\file.md 
 ```
 
-### Key Rules
-
-1. Always use `cmd /c` prefix
-2. Use backslashes `\` for Windows paths
-3. Use relative paths when possible
-4. Quote paths containing spaces
+### Key Rules  
+1. Always prefix commands with `cmd /c`  
+2. Use backslashes (`\`) for Windows paths  
+3. Prefer relative paths when possible  
+4. Enclose paths containing spaces in quotes

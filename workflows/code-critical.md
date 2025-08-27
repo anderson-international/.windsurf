@@ -1,5 +1,6 @@
 ---
 description: Essential context refresh for AI conversations
+auto_execution_mode: 1
 ---
 
 # Critical Context Refresh
@@ -7,41 +8,28 @@ description: Essential context refresh for AI conversations
 This workflow loads the most critical constraints and patterns that AIs regularly forget, plus ways of working and current schema information.
 
 ## FIRST: Understand your core tools
-// turbo
+Set the project working directory then run the following commands to determine the tool usage.
+```bash
+cmd /c node .windsurf\tools\schema-query.js --help
+```
 
 ```bash
-cmd /c node docs/scripts/docs-loader.js --help
-cmd /c node docs/scripts/schema-query.js --help
-cmd /c node docs/scripts/code-review-analyzer.js --help
-cmd /c node docs/scripts/code-fix.js --help
+cmd /c node .windsurf\tools\file-delete.js --help
 ```
+
+```bash
+cmd /c npm run --prefix .windsurf\review review:repo -- --help
+```
+
+Note: We invoke the analyzer via the self-contained `.windsurf/review/` package to keep it portable across projects and ensure flags (like `--help`) are passed directly to the inner script.
 
 ## SECOND: Run critical workflows
 **Execute these - do not skip**
 /run cmd-syntax
 /run code-validation
 
-## Load Core Constraints & Patterns
-**Load context directly**
-// turbo
-
-```bash
-cmd /c node docs/scripts/docs-loader.js ai-critical
-```
-
 ## Load Current Schema Index
-// turbo
 
 ```bash
-cmd /c node docs/scripts/schema-query.js --index
+cmd /c node .windsurf\tools\schema-query.js --index
 ```
-
-## FINALLY: Analyze → Report → Seek Approval → Execute
-
-**Core Principles:**
-- **Analyze First**: Thoroughly investigate issues before proposing solutions
-- **Report Findings**: Document all discoveries and provide clear explanations
-- **Seek Explicit Approval**: Never proceed with fixes without user confirmation
-- **Execute Systematically**: Apply fixes methodically, one at a time
-
-EXCEPTION

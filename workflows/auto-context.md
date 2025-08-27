@@ -15,7 +15,7 @@ Choose workflows based on recent tasks and current development focus.
 **CRITICAL: Execute workflows by viewing `.windsurf/workflows/[name].md` and running the commands inside.**
 
 **Example:**
-- For `/tech-react-forms`: View `.windsurf/workflows/tech-react-forms.md` → Execute its `cmd /c node docs/scripts/docs-loader.js` commands
+- For `/tech-react-forms`: View `.windsurf/workflows/tech-react-forms.md` → Execute its `cmd /c node .windsurf\tools\docs-loader.js` commands
 - Never call `docs-loader.js tech-react-forms` directly
 
 ## Step 3: Report Summary

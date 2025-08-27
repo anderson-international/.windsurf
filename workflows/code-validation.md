@@ -1,47 +1,104 @@
 ---
 description: Mandatory code quality for all file operations
+auto_execution_mode: 1
 ---
 
-# Code Quality Validation
+# Continuous Code Validation (During Development)
 
-## FIRST : Methodology: Analyze → Report → Seek Approval → Execute
+Purpose: While developing new code, run the single source-of-truth analyzer `.windsurf/review/code-review.js` regularly to catch and fix issues early. Keep the JSON report current and prevent tech debt from accumulating.
 
-**Core Principles:**
-- **Analyze First**: Thoroughly investigate issues before proposing solutions
-- **Report Findings**: Document all discoveries and provide clear explanations
-- **Seek Explicit Approval**: Never proceed with fixes without user confirmation
-- **Execute Systematically**: Apply fixes methodically, one at a time
+---
+## Enforce Windows command syntax
+/run cmd-syntax
 
-## MANDATORY: Run After Every File Operation
+- Use `cmd /c` for all commands
+- Use backslashes in paths; quote paths with spaces
+- Avoid PowerShell/Unix syntax
 
-### When to Run
-- ✅ **After creating ANY new file**
-- ✅ **After editing ANY existing file** 
-- ✅ **No exceptions** - all changes must be validated
+---
+## Core Principles
+- **Single source of truth**: rely on the analyzer’s minimal summary and JSON report.
+- **Fast loop**: porcelain-by-default for speed; do not use `--report-all` by default.
+- **Fix early**: resolve violations as soon as they appear; don’t defer.
 
-### Command to Execute
+---
+## When to Run the Analyzer
+- After creating files
+- After implementing a feature or refactor
+- After changing dependencies or `tsconfig`
+- Before each commit, before push, and before opening a PR
+
+---
+## Development Loop (Porcelain by default)
+// turbo
 ```bash
-node docs/scripts/code-review-analyzer.js [file-1] [file-2]
+cmd /c npm run --prefix .windsurf\review review:porcelain
 ```
 
-### File Scope
+Interpret results:
+- If the minimal summary shows `REVIEW RESULTS` → `Status: PASS`, continue coding.
+- If `FAIL`, either:
+  - Apply quick targeted fixes and re-run porcelain, or
+  - For broader work, run the unified fix workflow: `/run code-review-fix` (seeks approval once, then iterates autonomously until PASS).
 
-**Review Only**: Production files in `app/`, `components/`, `lib/`, `types/`, `hooks/`  
-**Exclude**: `*.md`, `*.js`, `*.prisma`, `docs/`, `test/`, `.windsurf/workflows/`, `.gitignore` files
+Keep the JSON report current:
+- Re-run porcelain after each small batch to refresh `.windsurf/review/output/code-review-results.json`.
 
-### Rules
-1. **New Files**: Immediately run analyzer on created file
-2. **File Edits**: Immediately run analyzer on modified file  
-3. **Fix Issues Immediately**: Address any violations before proceeding
+---
+## Milestone Checks (cross-file effects, repo-wide)
+// turbo
+```bash
+cmd /c npm run --prefix .windsurf\review review:repo
+```
 
-### Enforcement
-- **Zero tolerance** for skipping validation
-- **BLOCKING**: Script failures must be fixed before proceeding
-- **No workarounds** - address violations, don't ignore them
-- **Stop all work** until analyzer reports clean results
+Use a Full Project Scan when finishing a feature, after large refactors, or before merging.
 
-### Why No Exceptions?
-- Ensures consistent code quality standards
-- Prevents accumulation of technical debt
-- Catches issues early before they compound
-- Maintains project quality baseline
+---
+## Reading Output
+- Minimal summary sections:
+  - `REVIEW: <mode>` (per-file)
+  - `REVIEW: Repo Wide` (knip/jscpd/tsc)
+  - `REVIEW RESULTS` (Status with icon + Total Time)
+- JSON report is always written to `.windsurf/review/output/code-review-results.json`.
+  - Passing files are omitted by default (no `--report-all`).
+
+---
+## Report Discipline
+- Keep `--report-all` OFF for everyday development.
+- Treat FAIL as blocking; don’t proceed with a dirty state.
+- Empty `results` array means clean.
+
+---
+## Optional Diagnostics (advisory only)
+Use for faster iteration while editing, but always confirm with the analyzer:
+```bash
+cmd /c npx tsc --noEmit --project tsconfig.json
+cmd /c npx eslint app/ components/ lib/ types/ hooks/ --max-warnings=0
+```
+
+---
+## Safe File/Directory Deletions
+Use the guarded deletion tool when removing dead code:
+```bash
+cmd /c node .windsurf\tools\file-delete.js path\to\dead-file.ts path\to\stale-dir
+```
+
+- Refuses deletion outside the repo root
+- Logs missing paths as skipped
+- Prints a deletion summary
+
+---
+## Flags Quick Reference
+- Scope & speed: `--porcelain`
+- Disable comment/console cleanup: `--no-autofix`
+- TypeScript control: `--tsconfig <path>`, `--skip-tsc`
+- JSCPD tuning: `--jscpd-include <dirs>`, `--jscpd-min-tokens <n>`
+- Debug timings: `--debug`
+- Full inventory snapshot (verbose JSON): `--report-all` (OFF by default)
+
+---
+## Pre-Commit/Pre-Push Gate (recommended)
+Ensure a clean PASS before committing or pushing:
+```bash
+cmd /c npm run --prefix .windsurf\review review:porcelain
+```
