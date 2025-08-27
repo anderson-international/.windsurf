@@ -1,88 +1,70 @@
 # .windsurf Subtree
 
-Self-contained developer tooling and documentation for Windsurf projects.
+Portable developer tooling and documentation shared across Windsurf projects. The `.windsurf/` folder is managed as a Git subtree pointing to an independent repository so that improvements can be pushed from one project and pulled into others without coupling main project history.
 
-What it includes:
-- Review tooling under `.windsurf/review/` (ESLint, TypeScript, Knip, JSCPD, unified analyzer)
-- Common workflows under `.windsurf/workflows/`
-- Guides and reference docs under `.windsurf/guides/`
-- Utility scripts under `.windsurf/tools/`
+What this contains:
+- `.windsurf/review/`: review tooling (ESLint, TypeScript, Knip, JSCPD, unified analyzer)
+- `.windsurf/workflows/`: common workflows and runbooks
+- `.windsurf/guides/`: guides and reference docs
+- `.windsurf/tools/`: utility scripts
 
-Important policy:
-- Treat `.windsurf/` as a vendored subtree. Prefer upstream changes in the subtree repo rather than direct edits in consumer projects.
-- Consumers typically pull the moving tag `ws-vlatest`, or a specific semantic tag. Semantic tag scheme: `ws-vX.Y.Z`.
+Policy and intent:
+- Treat `.windsurf/` as a portable, shared subtree. Make improvements here, publish them upstream to the subtree repo, and consume them in other projects via subtree pulls.
+- Keep your main project history independent by using `--squash` when adding/pulling.
 
-Repository source:
-- Remote name: `windsurf_repo`
+Repository source (upstream of this subtree):
+- Remote name: `windsurf_subtree`
 - Remote URL: `https://github.com/anderson-international/.windsurf.git`
 
-## Integrate this subtree into your project (Windows)
+## 1) Getting started in a new project (no workflows yet)
 
-Note: New Windsurf projects usually start with an empty `.windsurf/` directory. You must remove any existing local `.windsurf/` folder before adding the subtree.
+If your project does not yet have `.windsurf/`, or you want to rebootstrap it:
 
-1) Add the remote
+1. Add the subtree remote
 ```cmd
-cmd /c git remote add windsurf_repo https://github.com/anderson-international/.windsurf.git
+cmd /c git remote add windsurf_subtree https://github.com/anderson-international/.windsurf.git
 ```
 
-2) Ensure your working tree is clean, then delete any local `.windsurf/`
+2. Ensure your working tree is clean and `.windsurf/` is absent (remove if necessary)
 ```cmd
 cmd /c rmdir /s /q .windsurf
 cmd /c git add -A
 cmd /c git commit -m "Remove local .windsurf to prepare for subtree"
 ```
 
-3) Add the subtree from a released tag (use --squash)
+3. Add the subtree from upstream main (use --squash)
 ```cmd
-cmd /c git fetch windsurf_repo --tags
-cmd /c git subtree add --prefix=.windsurf windsurf_repo ws-vX.Y.Z --squash
+cmd /c git fetch windsurf_subtree
+cmd /c git subtree add --prefix=.windsurf windsurf_subtree main --squash
 ```
 
-4) Verify installation
+4. Quick verification
 ```cmd
 cmd /c node .windsurf\tools\schema-query.js --help
-cmd /c node .windsurf\tools\docs-loader.js --list
-cmd /c npm --prefix .windsurf\review run review:repo -- --help
 ```
 
-## Updating to a newer release
+## 2) Everyday use with workflows
 
-1) Fetch latest tags
-```cmd
-cmd /c git fetch windsurf_repo --tags
-```
+Once the project contains `.windsurf/workflows/`, use these:
 
-2) Pull the desired tag into `.windsurf/` (use --squash)
-```cmd
-cmd /c git subtree pull --prefix=.windsurf windsurf_repo ws-vX.Y.Z --squash
-```
+- Subtree push (publish your local `.windsurf/` improvements upstream)
+  - See: `.windsurf/workflows/subtree-push.md`
+  - Summary of what it runs:
+    ```cmd
+    cmd /c git subtree split --prefix=.windsurf -b windsurf-split
+    cmd /c git push windsurf_subtree windsurf-split:main
+    cmd /c git branch -D windsurf-split
+    ```
 
-## Automation
+- Subtree pull (bring down latest upstream improvements into this project)
+  - See: `.windsurf/workflows/subtree-pull.md`
+  - Summary of what it runs:
+    ```cmd
+    cmd /c git fetch windsurf_subtree
+    cmd /c git subtree pull --prefix=.windsurf windsurf_subtree main --squash
+    ```
 
-For convenience, two Windows cmd scripts are provided at the root of `.windsurf/`:
-
-- Create a new upstream release tag (runs inside the upstream `.windsurf` repo OR targets a nested `.windsurf` clone if present):
-  ```cmd
-  cmd /c .windsurf\create-release.cmd
-  cmd /c .windsurf\create-release.cmd minor
-  cmd /c .windsurf\create-release.cmd patch --no-latest
-  cmd /c .windsurf\create-release.cmd --help
-  ```
-
-- Pull the latest tagged release into your consumer project (no tag required):
-  ```cmd
-  cmd /c .windsurf\pull-latest.cmd
-  cmd /c .windsurf\pull-latest.cmd --help
-  ```
-
-Notes:
-- `create-release.cmd` detects and operates on the upstream `.windsurf` repo (if you're in it) or a nested clone at `.windsurf/` (if you're in a consumer repo). It requires a clean working tree, auto-determines the next `ws-vX.Y.Z` (default bump `patch`, supports `minor`/`major`), and by default also updates the moving tag `ws-vlatest` to the new release (use `--no-latest` to skip updating the moving tag).
-- `pull-latest.cmd` auto-adds the `windsurf_repo` remote if missing, fetches tags, prefers the moving tag `ws-vlatest` when present, and otherwise falls back to the newest `ws-v*` semantic tag. It then performs a `git subtree pull --squash` into `.windsurf/`.
-
-## Notes and troubleshooting
-
-- Existing remote: If `windsurf_repo` already exists, skip the remote add step.
-- Subtree already present: Use the pull command above to update instead of re-adding.
-- Conflicts: Resolve as with any merge, then `cmd /c git add -A` and `cmd /c git commit`.
-- Local edits in `.windsurf/`: These may be overwritten by future subtree pulls. Contribute changes upstream to the `.windsurf` repo when possible.
-- Continuous validation: See `.windsurf/workflows/code-validation.md` and `.windsurf/workflows/code-review-fix.md`.
+Notes and troubleshooting:
+- Conflicts, if any, will be limited to files under `.windsurf/`. Resolve, then `cmd /c git add -A` and `cmd /c git commit`.
+- To keep repos independent, always use `--squash` for `subtree add/pull`.
+- If the upstream main branch is protected, push your split to a feature branch (e.g., `project-<name>`) in the subtree repo and open a PR there.
