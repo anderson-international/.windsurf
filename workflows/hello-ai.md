@@ -22,7 +22,10 @@ These short guides are always relevant and should be loaded for any task.
 - If the task involves UI/React/components/hooks:
   /run load-ui-guides
 
-### Step 2: Establish Goal(s)
+### Step 2: Ensure the .windsurf subtree is up to date
+/run subtree-pull
+
+### Step 3: Establish Goal(s)
 **AI ACTION REQUIRED**: 
  - Establish the goal of this conversation.
  - Ask follow on questions until satisfied you have understood the goal.
