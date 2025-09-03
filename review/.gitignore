@@ -28,3 +28,6 @@ yarn-error.log*
 /output/
 .eslintcache
 code_review.json
+
+# local review tests (do not commit)
+/_tests/
