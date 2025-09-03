@@ -46,6 +46,14 @@ module.exports = (() => {
     'types/**/*.{ts,tsx,js,jsx}',
   ];
 
+  // Dynamically include optional roots if present to avoid false positives
+  const optionalRoots = ['context', 'services'];
+  for (const root of optionalRoots) {
+    if (exists(root)) project.push(`${root}/**/*.{ts,tsx,js,jsx}`);
+    const srcRoot = `src/${root}`;
+    if (exists(srcRoot)) project.push(`${srcRoot}/**/*.{ts,tsx,js,jsx}`);
+  }
+
   // Ignore non-code assets only
   const ignore = ['views/**', 'public/**'];
 

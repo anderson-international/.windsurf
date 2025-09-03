@@ -24,14 +24,9 @@ function stripComments(content) {
     return '';
   });
 
-  // Remove inline comments but preserve code on same line
-  result = result.replace(/^(.+?)\s*\/\/.*$/gm, (match, code) => {
-    if (code.trim()) {
-      removedCount++;
-      return code;
-    }
-    return match;
-  });
+  // NOTE: Do not strip inline trailing // comments anymore because it can
+  // incorrectly truncate valid string/JSX attribute contents such as
+  // URLs (e.g., xmlns="http://www.w3.org/2000/svg").
 
   // Clean up multiple consecutive empty lines (more than 2)
   result = result.replace(/\n\s*\n\s*\n/g, '\n\n');

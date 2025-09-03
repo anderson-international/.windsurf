@@ -81,8 +81,8 @@ function formatMs(ms) {
 
 // Auto-discover reviewable TS/TSX files across valid repo roots
 function discoverReviewableTypeScriptFiles() {
-  const includeRoots = ['app', 'components', 'lib', 'hooks', 'types',
-    'src/app', 'src/components', 'src/lib', 'src/hooks', 'src/types'];
+  const includeRoots = ['app', 'components', 'lib', 'hooks', 'types', 'context', 'services',
+    'src/app', 'src/components', 'src/lib', 'src/hooks', 'src/types', 'src/context', 'src/services'];
   const excludeDirs = new Set(['node_modules', '.git', '.windsurf', 'test']);
   const out = [];
 
