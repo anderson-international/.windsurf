@@ -1,5 +1,6 @@
 ---
 description: Push the .windsurf subtree to the shared subtree repository (no versioning)
+auto_execution_mode: 3
 ---
 
 Prerequisites:

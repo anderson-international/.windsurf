@@ -1,6 +1,6 @@
 ---
 description: Mandatory code quality for all file operations
-auto_execution_mode: 1
+auto_execution_mode: 3
 ---
 
 # Continuous Code Validation (During Development)

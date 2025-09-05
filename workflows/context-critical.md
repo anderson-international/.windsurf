@@ -1,6 +1,6 @@
 ---
 description: Essential context refresh for AI conversations
-auto_execution_mode: 1
+auto_execution_mode: 3
 ---
 
 # Critical Context Refresh

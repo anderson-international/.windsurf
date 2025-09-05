@@ -1,6 +1,6 @@
 ---
 description: Load API/server/auth specific guidance on demand
-auto_execution_mode: 1
+auto_execution_mode: 3
 ---
 
 # Load API Guides

@@ -1,6 +1,6 @@
 ---
 description: Initialize new conversations with goal establishment and approval gating
-auto_execution_mode: 1
+auto_execution_mode: 3
 ---
 
 # Hello AI - A New Chat Conversation Initialization
@@ -22,7 +22,8 @@ These short guides are always relevant and should be loaded for any task.
 - If the task involves UI/React/components/hooks:
   /run load-ui-guides
 
-### Step 2: Ensure the .windsurf subtree is up to date
+### Step 2: Optionally update the .windsurf subtree (requires user approval)
+Ask the user: Would you like me to run /run subtree-pull now? Only proceed if the user approves.
 /run subtree-pull
 
 ### Step 3: Establish Goal(s)

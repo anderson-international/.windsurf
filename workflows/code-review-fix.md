@@ -1,6 +1,6 @@
 ---
 description: Unified code review + fix loop (seek approval once, then iterate to PASS)
-auto_execution_mode: 1
+auto_execution_mode: 3
 ---
 
 ## Unified Code Review + Fix Loop

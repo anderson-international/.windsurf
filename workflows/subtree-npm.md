@@ -1,5 +1,6 @@
 ---
 description: Install npm libraries for .windsurf/review (Windows cmd)
+auto_execution_mode: 3
 ---
 
 This workflow installs the review tooling dependencies located under `.windsurf/review/` using lockfile-accurate installs. It assumes a Git-bootstrapped `.windsurf/` subtree exists.

@@ -1,6 +1,6 @@
 ---
 description: Force the AI to use the correct windows command syntax
-auto_execution_mode: 1
+auto_execution_mode: 3
 ---
 
 ## Windows Command Syntax Requirements  

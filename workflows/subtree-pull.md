@@ -1,5 +1,6 @@
 ---
 description: Bootstrap or pull the latest .windsurf subtree from the shared subtree repository (no versioning)
+auto_execution_mode: 3
 ---
 
 Prerequisites:
