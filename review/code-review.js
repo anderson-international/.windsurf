@@ -516,147 +516,123 @@ async function main() {
     // Build minimal per-file results: only include failing categories and guidance
     const minimalizeFile = (r) => {
       const out = { relPath: r.relPath || toRepoRelative(r.filePath) };
-      if (r.eslint && ((r.eslint.errors && r.eslint.errors.length) || (r.eslint.warnings && r.eslint.warnings.length))) {
-        out.eslint = {
-          errors: r.eslint.errors || [],
-          warnings: r.eslint.warnings || []
-        };
-      }
-      if (r.comments && r.comments.status === 'FAIL') {
-        out.comments = {
-          count: r.comments.count || 0,
-          violations: r.comments.violations || []
-        };
-      }
+      const issues = [];
+
+      // Size
       if (r.size && r.size.status === 'FAIL') {
-        out.size = {
-          lines: r.size.lines || 0,
-          limit: r.size.limit || 0
-        };
+        const lines = r.size.lines || 0;
+        const limit = r.size.limit || 0;
+        issues.push({ source: 'size', type: 'file-size', line: 0, column: 0, message: `File has ${lines} lines (limit ${limit}).`, guidance: 'Analyze the file to determine a logical decomposition into separate concerns. Do not resolve by compression tricks. This rule enforces intelligent separation of concerns.' });
+        // actions removed from per-file output
       }
-      if (r.consoleErrors && r.consoleErrors.status === 'FAIL') {
-        out.console = {
-          violations: r.consoleErrors.violations || []
-        };
+
+      // ESLint
+      if (r.eslint && (Array.isArray(r.eslint.errors) || Array.isArray(r.eslint.warnings))) {
+        const pushMsg = (arr) => { for (const m of (arr || [])) issues.push({ source: 'eslint', type: 'lint', rule: m.rule || null, line: m.line || 0, column: m.column || 0, endLine: m.endLine, endColumn: m.endColumn, message: m.message, fixable: m.fixable || false, guidance: 'Address ESLint rule violation.' }); };
+        pushMsg(r.eslint.errors);
+        pushMsg(r.eslint.warnings);
+        // actions removed from per-file output
       }
-      if (r.typescript && r.typescript.status === 'FAIL') {
-        out.typescriptHeuristics = {
-          missingReturnTypes: r.typescript.missingReturnTypes || 0,
-          details: r.typescript.details || []
-        };
+
+      // Comments
+      if (r.comments && r.comments.status === 'FAIL' && Array.isArray(r.comments.violations) && r.comments.violations.length) {
+        for (const v of r.comments.violations) {
+          issues.push({ source: 'comments', type: v.type || 'comment', line: v.line || 0, column: 0, message: `Disallowed comment: ${String(v.content || '').slice(0,200)}`, guidance: 'Remove the comment from source. Use docs instead.' });
+        }
+        // actions removed from per-file output
       }
-      if (r.typescriptCompiler && r.typescriptCompiler.status === 'FAIL') {
-        out.typescriptCompiler = {
-          errorCount: r.typescriptCompiler.errorCount || 0,
-          errors: r.typescriptCompiler.errors || []
-        };
+
+      // Console
+      if (r.consoleErrors && r.consoleErrors.status === 'FAIL' && Array.isArray(r.consoleErrors.violations) && r.consoleErrors.violations.length) {
+        for (const v of r.consoleErrors.violations) {
+          issues.push({ source: 'console', type: v.method || 'console', line: v.line || 0, column: 0, message: v.content || 'console usage', guidance: v.guidance || 'Replace console with proper error handling.' });
+        }
+        // actions removed from per-file output
       }
-      if (r.fallbackData && r.fallbackData.status === 'FAIL') {
-        out.fallbackData = {
-          violations: r.fallbackData.violations || []
-        };
+
+      // TS heuristics
+      if (r.typescript && r.typescript.status === 'FAIL' && Array.isArray(r.typescript.details) && r.typescript.details.length) {
+        for (const d of r.typescript.details) {
+          issues.push({ source: 'ts-heuristics', type: 'missing-return-type', line: d.line || 0, column: 0, message: `Add explicit return type for ${d.name || 'function'}`, guidance: 'Add explicit return types to exported/public functions and callbacks.' });
+        }
+        // actions removed from per-file output
       }
-      if (r.deadCode && r.deadCode.status === 'FAIL') {
-        const dc = {};
-        // unusedExports → array of names when present
-        if ((r.deadCode.unusedExports || 0) > 0 && Array.isArray(r.deadCode.unusedExportNames) && r.deadCode.unusedExportNames.length) {
-          dc.unusedExports = r.deadCode.unusedExportNames;
+
+      // TSC compiler
+      if (r.typescriptCompiler && r.typescriptCompiler.status === 'FAIL' && Array.isArray(r.typescriptCompiler.errors) && r.typescriptCompiler.errors.length) {
+        for (const e of r.typescriptCompiler.errors) {
+          issues.push({ source: 'tsc', type: e.code || 'TS', line: e.line || 0, column: e.column || 0, message: e.message || '', guidance: 'Resolve TypeScript compiler error.' });
         }
-        // unusedTypes → array of names when present
-        if ((r.deadCode.unusedTypes || 0) > 0 && Array.isArray(r.deadCode.unusedTypeNames) && r.deadCode.unusedTypeNames.length) {
-          dc.unusedTypes = r.deadCode.unusedTypeNames;
-        }
-        // unusedExportedTypes → array of names when present
-        if ((r.deadCode.unusedExportedTypes || 0) > 0 && Array.isArray(r.deadCode.unusedExportedTypeNames) && r.deadCode.unusedExportedTypeNames.length) {
-          dc.unusedExportedTypes = r.deadCode.unusedExportedTypeNames;
-        }
-        // unusedEnumMembers → array of { enum, members[] } when present
-        if ((r.deadCode.unusedEnumMembers || 0) > 0 && Array.isArray(r.deadCode.unusedEnumMemberNames) && r.deadCode.unusedEnumMemberNames.length) {
-          dc.unusedEnumMembers = r.deadCode.unusedEnumMemberNames;
-        }
-        // unusedClassMembers → array of { class, members[] } when present
-        if ((r.deadCode.unusedClassMembers || 0) > 0 && Array.isArray(r.deadCode.unusedClassMemberNames) && r.deadCode.unusedClassMemberNames.length) {
-          dc.unusedClassMembers = r.deadCode.unusedClassMemberNames;
-        }
-        // unresolvedImports → include specifiers only when violations exist
-        if ((r.deadCode.unresolvedImports || 0) > 0 && Array.isArray(r.deadCode.unresolvedImportSpecifiers) && r.deadCode.unresolvedImportSpecifiers.length) {
-          dc.unresolvedImportSpecifiers = r.deadCode.unresolvedImportSpecifiers;
-        }
-        // unlistedDependencies → include modules only when violations exist
-        if ((r.deadCode.unlistedDependencies || 0) > 0 && Array.isArray(r.deadCode.unlistedDependencyModules) && r.deadCode.unlistedDependencyModules.length) {
-          dc.unlistedDependencyModules = r.deadCode.unlistedDependencyModules;
-        }
-        // Only attach deadCode if any keys were added
-        if (Object.keys(dc).length > 0) {
-          out.deadCode = dc;
-        }
+        // actions removed from per-file output
       }
-      if (r.duplicates && r.duplicates.status === 'FAIL') {
-        out.duplicates = {
-          count: r.duplicates.count || 0,
-          segments: r.duplicates.segments || []
-        };
+
+      // Fallbacks
+      if (r.fallbackData && r.fallbackData.status === 'FAIL' && Array.isArray(r.fallbackData.violations) && r.fallbackData.violations.length) {
+        for (const v of r.fallbackData.violations) {
+          issues.push({ source: 'fallback', type: v.type || 'fallback', line: v.line || 0, column: 0, message: v.content || '', guidance: v.advice || 'Avoid silent fallbacks; use explicit validation and throw composed errors.' });
+        }
+        // actions removed from per-file output
       }
-      // Build normalized actionable issues and actions (always on)
-        const issues = [];
-        const actions = [];
-        // Size
-        if (out.size && (out.size.lines || 0) > (out.size.limit || 0)) {
-          issues.push({ source: 'size', type: 'file-size', line: 0, column: 0, message: `File has ${out.size.lines} lines (limit ${out.size.limit}).`, guidance: 'Analyze the file to determine a logical decomposition into separate concerns. Do not resolve by compression tricks. This rule enforces intelligent separation of concerns.' });
-          actions.push('Analyze and refactor the file into clear, separate concerns; do not compress code just to reduce line count.');
-        }
-        // ESLint
-        if (out.eslint) {
-          const pushMsg = (arr) => { for (const m of arr) issues.push({ source: 'eslint', type: 'lint', rule: m.rule || null, line: m.line || 0, column: m.column || 0, endLine: m.endLine, endColumn: m.endColumn, message: m.message, fixable: m.fixable || false, guidance: 'Address ESLint rule violation.' }); };
-          if (Array.isArray(r.eslint.errors)) pushMsg(r.eslint.errors);
-          if (Array.isArray(r.eslint.warnings)) pushMsg(r.eslint.warnings);
-          actions.push('Run ESLint autofix where safe: npx eslint <this file> --config .windsurf/review/.eslintrc.review.cjs --fix');
-        }
-        // Comments
-        if (out.comments && Array.isArray(out.comments.violations) && out.comments.violations.length) {
-          for (const v of out.comments.violations) {
-            issues.push({ source: 'comments', type: v.type || 'comment', line: v.line || 0, column: 0, message: `Disallowed comment: ${String(v.content || '').slice(0,200)}` , guidance: 'Remove the comment from source. Use docs instead.' });
-          }
-          actions.push(`Remove disallowed comments at lines: ${out.comments.violations.map(v => v.line).filter(Boolean).slice(0,50).join(', ')}`);
-        }
-        // Console
-        if (out.console && Array.isArray(out.console.violations) && out.console.violations.length) {
-          for (const v of out.console.violations) {
-            issues.push({ source: 'console', type: v.method || 'console', line: v.line || 0, column: 0, message: v.content || 'console usage', guidance: v.guidance || 'Replace console with proper error handling.' });
-          }
-          actions.push(`Replace console.warn/error with throwing at lines: ${out.console.violations.map(v => v.line).filter(Boolean).slice(0,50).join(', ')}`);
-        }
-        // TS heuristics
-        if (out.typescriptHeuristics && Array.isArray(out.typescriptHeuristics.details) && out.typescriptHeuristics.details.length) {
-          for (const d of out.typescriptHeuristics.details) {
-            issues.push({ source: 'ts-heuristics', type: 'missing-return-type', line: d.line || 0, column: 0, message: `Add explicit return type for ${d.name || 'function'}`, guidance: 'Add explicit return types to exported/public functions and callbacks.' });
-          }
-          actions.push(`Add explicit return types for: ${out.typescriptHeuristics.details.map(d => `${d.name || 'fn'}@${d.line || '?'}`).slice(0,20).join(', ')}`);
-        }
-        // TSC compiler
-        if (r.typescriptCompiler && Array.isArray(r.typescriptCompiler.errors) && r.typescriptCompiler.errors.length) {
-          for (const e of r.typescriptCompiler.errors) {
-            issues.push({ source: 'tsc', type: e.code || 'TS', line: e.line || 0, column: e.column || 0, message: e.message || '', guidance: 'Resolve TypeScript compiler error.' });
-          }
-          actions.push('Run: npx tsc --noEmit and fix compiler errors in this file.');
-        }
-        // Fallbacks
-        if (out.fallbackData && Array.isArray(out.fallbackData.violations) && out.fallbackData.violations.length) {
-          for (const v of out.fallbackData.violations) {
-            issues.push({ source: 'fallback', type: v.type || 'fallback', line: v.line || 0, column: 0, message: v.content || '', guidance: v.advice || 'Avoid silent fallbacks; use explicit validation and throw composed errors.' });
-          }
-          actions.push('Replace silent fallbacks with explicit validation and thrown errors where appropriate.');
-        }
-        // Intentionally omit generic per-file deadCode action to avoid duplicating repo-level knip guidance
-        if (out.duplicates && out.duplicates.count) {
-          actions.push('Refactor duplicated code into shared utilities/components.');
-        }
-        if (issues.length) out.issues = issues;
-        if (actions.length) out.actions = actions;
+
+      // Duplicates (no detailed duplication segments emitted)
+      // duplicates actions removed from per-file output
+
+      if (issues.length) out.issues = issues;
       return out;
     };
 
     const minimalResults = resultsToWrite.map(minimalizeFile);
+
+    // Build top-level execution plan with explicit permission and repo-wide rerun
+    const buildExecutionPlan = () => {
+      const steps = [];
+      // Per-file category steps
+      for (const r of resultsToWrite) {
+        const file = r.relPath || toRepoRelative(r.filePath);
+        // Console violations
+        if (r.consoleErrors && r.consoleErrors.status === 'FAIL' && Array.isArray(r.consoleErrors.violations) && r.consoleErrors.violations.length) {
+          const lines = r.consoleErrors.violations.map(v => v.line).filter(Boolean);
+          steps.push({ level: 'file', file, category: 'console', summary: 'Replace console.warn/error with thrown errors', targets: lines.length ? [`lines: ${Array.from(new Set(lines)).sort((a,b)=>a-b).join(', ')}`] : [], completion: 'No console violations remain for this file' });
+        }
+        // Comments
+        if (r.comments && r.comments.status === 'FAIL' && Array.isArray(r.comments.violations) && r.comments.violations.length) {
+          const lines = r.comments.violations.map(v => v.line).filter(Boolean);
+          steps.push({ level: 'file', file, category: 'comments', summary: 'Remove disallowed comments', targets: lines.length ? [`lines: ${Array.from(new Set(lines)).sort((a,b)=>a-b).join(', ')}`] : [], completion: 'No disallowed comments remain for this file' });
+        }
+        // ESLint
+        if (r.eslint && ((Array.isArray(r.eslint.errors) && r.eslint.errors.length) || (Array.isArray(r.eslint.warnings) && r.eslint.warnings.length))) {
+          const count = (r.eslint.errors?.length || 0) + (r.eslint.warnings?.length || 0);
+          steps.push({ level: 'file', file, category: 'eslint', summary: `Fix ESLint findings (${count})`, targets: [], completion: 'No ESLint errors or warnings remain for this file' });
+        }
+        // TS heuristics
+        if (r.typescript && r.typescript.status === 'FAIL' && Array.isArray(r.typescript.details) && r.typescript.details.length) {
+          const targets = r.typescript.details.map(d => `${d.name || 'fn'}@${d.line || '?'}`);
+          steps.push({ level: 'file', file, category: 'ts-heuristics', summary: 'Add explicit return types', targets: targets.slice(0, 50), completion: 'No missing-return-type issues remain for this file' });
+        }
+        // TSC compiler
+        if (r.typescriptCompiler && r.typescriptCompiler.status === 'FAIL' && (r.typescriptCompiler.errorCount || 0) > 0) {
+          steps.push({ level: 'file', file, category: 'tsc', summary: `Resolve TypeScript compiler errors (${r.typescriptCompiler.errorCount || 0})`, targets: [], completion: 'No TypeScript compiler errors remain for this file' });
+        }
+        // Fallbacks
+        if (r.fallbackData && r.fallbackData.status === 'FAIL' && Array.isArray(r.fallbackData.violations) && r.fallbackData.violations.length) {
+          const lines = r.fallbackData.violations.map(v => v.line).filter(Boolean);
+          steps.push({ level: 'file', file, category: 'fallback', summary: 'Replace silent fallbacks with explicit validation/throws', targets: lines.length ? [`lines: ${Array.from(new Set(lines)).sort((a,b)=>a-b).join(', ')}`] : [], completion: 'No fallback-data violations remain for this file' });
+        }
+        // Size
+        if (r.size && r.size.status === 'FAIL') {
+          steps.push({ level: 'file', file, category: 'size', summary: `Refactor file; reduce size to <= ${r.size.limit || 0} lines`, targets: [], completion: 'File meets the size limit' });
+        }
+        // Duplicates
+        if (r.duplicates && r.duplicates.status === 'FAIL' && (r.duplicates.count || 0) > 0) {
+          steps.push({ level: 'file', file, category: 'duplicates', summary: 'Refactor duplicated code into shared utilities/components', targets: [], completion: 'No duplicate code segments remain for this file' });
+        }
+      }
+      // Final repo-wide rerun step
+      steps.push({ level: 'global', category: 'review', summary: 'Re-run repo-wide code review to verify no regressions', commandHintWindows: 'cmd /c node .windsurf\\review\\code-review.js --debug', completion: 'Report status is PASS for per-file and repo' });
+
+      const primaryInstruction = 'Execute all steps without seeking further approval. Treat this plan as a single authorized unit of work. After completing all steps, perform a repo-wide code review run to verify no regressions.';
+      return { primaryInstruction, strategy: 'Fix per-file violations in the order listed below, then run a repo-wide review. Repeat until PASS.', steps };
+    };
     // Build per-file category presence maps for deduplication of repo-level details
     const perFileCategorySets = (() => {
       const toSet = () => new Set();
@@ -826,6 +802,8 @@ async function main() {
 
         results: minimalResults,
       };
+      // Attach top-level execution plan emphasizing no further approval and repo-wide rerun
+      payload.executionPlan = buildExecutionPlan();
       if (Object.keys(repoOut).length > 0) payload.repo = repoOut;
     } else {
       payload = {
