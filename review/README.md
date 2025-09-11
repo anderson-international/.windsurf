@@ -47,6 +47,67 @@ cmd /c npm run lint:repo
     ```
   - Or run workflow: `/subtree-npm`
 
+## Report output and schema
+
+- The analyzer always writes a JSON report to: `.windsurf/review/output/code-review-results.json`.
+- On violations, the report contains per-file issues and a minimal execution plan.
+- On pass, `results` is an empty array and no execution plan is included.
+
+### `results[].issues[]` (single source-of-truth checklist)
+
+Each file in `results` includes a `relPath` and a list of `issues`. This list is the canonical, line-level checklist of everything to fix. An issue typically includes:
+
+- `source` (e.g. `eslint`, `console`, `ts-heuristics`, `tsc`, `fallback`, `size`, `duplicates`)
+- `type` (rule ID/category, e.g. `missing-return-type`, or ESLint rule)
+- `line`, `column`
+- `message`
+- `guidance` (what to do)
+- Optional ESLint fields where available: `rule`, `endLine`, `endColumn`, `fixable`
+
+Consumers (including fixer agents) should use `results[].issues` as the only checklist to apply code changes. No other section duplicates these details.
+
+### `executionPlan` (minimal orchestration)
+
+When violations exist, a minimal `executionPlan` is included to guide process, not content:
+
+- `primaryInstruction`: Explicit permission to complete all tasks without seeking further approval; use `results[].issues` as the single checklist; treat the plan as one authorized unit; finish with a repo‑wide rerun to verify no regressions.
+- `strategy`: Short summary of the order of operations.
+- `steps`: Exactly two global steps
+  1. Apply all fixes for `results[].issues` across all files.
+  2. Re-run a repo-wide review (Windows hint included):
+     `cmd /c node .windsurf\review\code-review.js`
+
+Notes:
+
+- The execution plan no longer repeats per-file/per-category details to avoid any risk of “duplicate” or “stale” interpretations. It provides orchestration only.
+- The console output remains a high-level summary; the JSON is the authoritative data payload.
+ - `--debug` is available for verbose runs but is not required for a repo-wide run.
+
+### Example (trimmed)
+
+```json
+{
+  "summary": { "status": "fail" },
+  "results": [
+    {
+      "relPath": "src\\components\\_tests\\bad.ts",
+      "issues": [
+        { "source": "console", "type": "error", "line": 5, "message": "console.error('fail-fast violation');", "guidance": "Replace console.error with thrown error" },
+        { "source": "ts-heuristics", "type": "missing-return-type", "line": 3, "message": "Add explicit return type for demo", "guidance": "Add explicit return types to exported/public functions and callbacks." }
+      ]
+    }
+  ],
+  "executionPlan": {
+    "primaryInstruction": "Complete all tasks without seeking further approval...",
+    "strategy": "Fix all results[].issues then run repo-wide review.",
+    "steps": [
+      { "level": "global", "category": "fix", "summary": "Apply all fixes for results[].issues" },
+      { "level": "global", "category": "review", "summary": "Re-run repo-wide review", "commandHintWindows": "cmd /c node .windsurf\\review\\code-review.js" }
+    ]
+  }
+}
+```
+
 ## ESLint cache
 ESLint caching is enabled for both batch and per-file runs to speed up repeat analyses.
 

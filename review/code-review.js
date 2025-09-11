@@ -583,55 +583,26 @@ async function main() {
 
     const minimalResults = resultsToWrite.map(minimalizeFile);
 
-    // Build top-level execution plan with explicit permission and repo-wide rerun
+    // Build top-level execution plan with explicit permission and repo-wide rerun (minimal orchestration)
     const buildExecutionPlan = () => {
-      const steps = [];
-      // Per-file category steps
-      for (const r of resultsToWrite) {
-        const file = r.relPath || toRepoRelative(r.filePath);
-        // Console violations
-        if (r.consoleErrors && r.consoleErrors.status === 'FAIL' && Array.isArray(r.consoleErrors.violations) && r.consoleErrors.violations.length) {
-          const lines = r.consoleErrors.violations.map(v => v.line).filter(Boolean);
-          steps.push({ level: 'file', file, category: 'console', summary: 'Replace console.warn/error with thrown errors', targets: lines.length ? [`lines: ${Array.from(new Set(lines)).sort((a,b)=>a-b).join(', ')}`] : [], completion: 'No console violations remain for this file' });
+      const primaryInstruction = 'Complete all tasks without seeking further approval. Use results[].issues as the single source-of-truth checklist. Treat this plan as one authorized unit of work. After completing all fixes, perform a repo-wide code review run to verify no regressions.';
+      const strategy = 'Fix all issues listed under results[].issues across all files, then run a repo-wide review. Repeat until PASS.';
+      const steps = [
+        {
+          level: 'global',
+          category: 'fix',
+          summary: 'Apply all fixes for results[].issues (across all files) until no issues remain in this report',
+          completion: 'All issues in results[].issues have been addressed'
+        },
+        {
+          level: 'global',
+          category: 'review',
+          summary: 'Re-run repo-wide code review to verify no regressions',
+          commandHintWindows: 'cmd /c node .windsurf\\review\\code-review.js',
+          completion: 'Report status is PASS for per-file and repo'
         }
-        // Comments
-        if (r.comments && r.comments.status === 'FAIL' && Array.isArray(r.comments.violations) && r.comments.violations.length) {
-          const lines = r.comments.violations.map(v => v.line).filter(Boolean);
-          steps.push({ level: 'file', file, category: 'comments', summary: 'Remove disallowed comments', targets: lines.length ? [`lines: ${Array.from(new Set(lines)).sort((a,b)=>a-b).join(', ')}`] : [], completion: 'No disallowed comments remain for this file' });
-        }
-        // ESLint
-        if (r.eslint && ((Array.isArray(r.eslint.errors) && r.eslint.errors.length) || (Array.isArray(r.eslint.warnings) && r.eslint.warnings.length))) {
-          const count = (r.eslint.errors?.length || 0) + (r.eslint.warnings?.length || 0);
-          steps.push({ level: 'file', file, category: 'eslint', summary: `Fix ESLint findings (${count})`, targets: [], completion: 'No ESLint errors or warnings remain for this file' });
-        }
-        // TS heuristics
-        if (r.typescript && r.typescript.status === 'FAIL' && Array.isArray(r.typescript.details) && r.typescript.details.length) {
-          const targets = r.typescript.details.map(d => `${d.name || 'fn'}@${d.line || '?'}`);
-          steps.push({ level: 'file', file, category: 'ts-heuristics', summary: 'Add explicit return types', targets: targets.slice(0, 50), completion: 'No missing-return-type issues remain for this file' });
-        }
-        // TSC compiler
-        if (r.typescriptCompiler && r.typescriptCompiler.status === 'FAIL' && (r.typescriptCompiler.errorCount || 0) > 0) {
-          steps.push({ level: 'file', file, category: 'tsc', summary: `Resolve TypeScript compiler errors (${r.typescriptCompiler.errorCount || 0})`, targets: [], completion: 'No TypeScript compiler errors remain for this file' });
-        }
-        // Fallbacks
-        if (r.fallbackData && r.fallbackData.status === 'FAIL' && Array.isArray(r.fallbackData.violations) && r.fallbackData.violations.length) {
-          const lines = r.fallbackData.violations.map(v => v.line).filter(Boolean);
-          steps.push({ level: 'file', file, category: 'fallback', summary: 'Replace silent fallbacks with explicit validation/throws', targets: lines.length ? [`lines: ${Array.from(new Set(lines)).sort((a,b)=>a-b).join(', ')}`] : [], completion: 'No fallback-data violations remain for this file' });
-        }
-        // Size
-        if (r.size && r.size.status === 'FAIL') {
-          steps.push({ level: 'file', file, category: 'size', summary: `Refactor file; reduce size to <= ${r.size.limit || 0} lines`, targets: [], completion: 'File meets the size limit' });
-        }
-        // Duplicates
-        if (r.duplicates && r.duplicates.status === 'FAIL' && (r.duplicates.count || 0) > 0) {
-          steps.push({ level: 'file', file, category: 'duplicates', summary: 'Refactor duplicated code into shared utilities/components', targets: [], completion: 'No duplicate code segments remain for this file' });
-        }
-      }
-      // Final repo-wide rerun step
-      steps.push({ level: 'global', category: 'review', summary: 'Re-run repo-wide code review to verify no regressions', commandHintWindows: 'cmd /c node .windsurf\\review\\code-review.js --debug', completion: 'Report status is PASS for per-file and repo' });
-
-      const primaryInstruction = 'Execute all steps without seeking further approval. Treat this plan as a single authorized unit of work. After completing all steps, perform a repo-wide code review run to verify no regressions.';
-      return { primaryInstruction, strategy: 'Fix per-file violations in the order listed below, then run a repo-wide review. Repeat until PASS.', steps };
+      ];
+      return { primaryInstruction, strategy, steps };
     };
     // Build per-file category presence maps for deduplication of repo-level details
     const perFileCategorySets = (() => {
