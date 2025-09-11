@@ -3,7 +3,7 @@ const { promisify } = require('util');
 const execAsync = promisify(exec);
 const fs = require('fs');
 const path = require('path');
-const { ROOT_DIR } = require('../utils/paths');
+const { ROOT_DIR, OUTPUT_DIR } = require('../utils/paths');
 
 function runEslint(filePath) {
   try {
@@ -148,7 +148,10 @@ async function runEslintSubtreeBatch(filePaths) {
   const configPath = path.join(reviewDir, '.eslintrc.review.cjs');
   const q = (s) => `"${String(s).replace(/"/g, '\\"')}"`;
   const quoted = files.map(fp => q(fp)).join(' ');
-  const cmd = `npx --prefix ${q(reviewDir)} eslint --format json --no-ignore --max-warnings=0 --cache --cache-location ${q(path.join(reviewDir, '.eslintcache.subtree'))} --config ${q(configPath)} --resolve-plugins-relative-to ${q(reviewDir)} ${quoted}`;
+  const cacheDir = path.join(OUTPUT_DIR, '.tmp', 'eslint');
+  try { fs.mkdirSync(cacheDir, { recursive: true }); } catch (_) {}
+  const cachePath = path.join(cacheDir, 'subtree.cache');
+  const cmd = `npx --prefix ${q(reviewDir)} eslint --format json --no-ignore --no-error-on-unmatched-pattern --max-warnings=0 --cache --cache-location ${q(cachePath)} --config ${q(configPath)} --resolve-plugins-relative-to ${q(reviewDir)} ${quoted}`;
   try {
     const { stdout, stderr } = await execAsync(cmd, { cwd: ROOT_DIR, maxBuffer: 64 * 1024 * 1024 });
     const raw = String(stdout || stderr || '[]');
@@ -165,9 +168,14 @@ async function runEslintProjectBatch(filePaths) {
   if (files.length === 0) return resultMap;
   const normalized = files.map(fp => path.resolve(fp));
   for (const abs of normalized) resultMap[abs] = { errors: [], warnings: [] };
+  const reviewDir = path.join(ROOT_DIR, '.windsurf', 'review');
   const q = (s) => `"${String(s).replace(/"/g, '\\"')}"`;
   const quoted = files.map(fp => q(fp)).join(' ');
-  const cmd = `npx eslint --format json --max-warnings=0 --cache --cache-location ${q(path.join(ROOT_DIR, '.windsurf', 'review', '.eslintcache.project'))} ${quoted}`;
+  const cacheDir = path.join(OUTPUT_DIR, '.tmp', 'eslint');
+  try { fs.mkdirSync(cacheDir, { recursive: true }); } catch (_) {}
+  const cachePath = path.join(cacheDir, 'project.cache');
+  // Use subtree's eslint binary for stability, but resolve plugins relative to project root and do not force a config
+  const cmd = `npx --prefix ${q(reviewDir)} eslint --format json --no-error-on-unmatched-pattern --max-warnings=0 --cache --cache-location ${q(cachePath)} --resolve-plugins-relative-to ${q(ROOT_DIR)} ${quoted}`;
   try {
     const { stdout, stderr } = await execAsync(cmd, { cwd: ROOT_DIR, maxBuffer: 64 * 1024 * 1024 });
     const raw = String(stdout || stderr || '[]');
