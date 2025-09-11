@@ -32,6 +32,33 @@ cmd /c npm run tsc
 cmd /c npm run lint:repo
 ```
 
+## ESLint modes
+
+The analyzer can run ESLint using the project config, the subtree (review) config, or both in parallel and merge the findings.
+
+- Default mode: `union` (strictest). Runs both project and subtree ESLint in parallel and unions results.
+- Other modes:
+  - `project` – use repository ESLint config as resolved by ESLint (mirrors CI/Next.js behavior).
+  - `subtree` – use `.windsurf/review/.eslintrc.review.cjs` only (portable strict policy).
+
+Run examples (Windows cmd):
+
+```cmd
+cmd /c node .windsurf\review\code-review.js --eslint-mode=union     // default
+cmd /c node .windsurf\review\code-review.js --eslint-mode=project
+cmd /c node .windsurf\review\code-review.js --eslint-mode=subtree
+```
+
+Details:
+
+- Parallel execution: in `union` mode, project and subtree ESLint runs are launched concurrently for performance.
+- Caching: separate caches avoid contention and maximize reuse
+  - Project cache: `.windsurf/review/.eslintcache.project`
+  - Subtree cache: `.windsurf/review/.eslintcache.subtree`
+- Ignore behavior:
+  - Project run honors your repo’s standard ignore resolution (including `.eslintignore`).
+  - Subtree run uses `--no-ignore` intentionally to surface policy violations that may otherwise be ignored.
+
 ### Troubleshooting
 - **Error: `npm error Missing script: "review:repo"`**
   - Cause: running from repo root without `--prefix`.
