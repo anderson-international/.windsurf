@@ -32,32 +32,25 @@ cmd /c npm run tsc
 cmd /c npm run lint:repo
 ```
 
-## ESLint modes
+## ESLint (project configuration only)
 
-The analyzer can run ESLint using the project config, the subtree (review) config, or both in parallel and merge the findings.
+The review tool now uses your repository's ESLint configuration exclusively. This mirrors CI/Netlify behavior and prevents configuration drift.
 
-- Default mode: `union` (strictest). Runs both project and subtree ESLint in parallel and unions results.
-- Other modes:
-  - `project` – use repository ESLint config as resolved by ESLint (mirrors CI/Next.js behavior).
-  - `subtree` – use `.windsurf/review/.eslintrc.review.cjs` only (portable strict policy).
+- Invocation: ESLint is executed in batch across analyzed files using your project config resolution (no forced `--config`).
+- Ignores: Your `.eslintignore` and normal ignore resolution are honored (we do not pass `--no-ignore`).
+- Scope: TypeScript focus via `--ext .ts,.tsx`.
+- Cache: `.windsurf/review/output/.tmp/eslint/project.cache`.
 
-Run examples (Windows cmd):
+Missing project ESLint config
 
-```cmd
-cmd /c node .windsurf\review\code-review.js --eslint-mode=union     // default
-cmd /c node .windsurf\review\code-review.js --eslint-mode=project
-cmd /c node .windsurf\review\code-review.js --eslint-mode=subtree
-```
+- If no project ESLint config is found (e.g., no `.eslintrc.*`, `eslint.config.*`, or `eslintConfig` in `package.json`), linting is skipped:
+  - A stdout message is printed: `Project ESLint config not found; ESLint step skipped.`
+  - The JSON report includes a repo warning with the same text.
+  - The review run does not fail solely due to missing ESLint configuration.
 
-Details:
+Failure handling
 
-- Parallel execution: in `union` mode, project and subtree ESLint runs are launched concurrently for performance.
-- Caching: separate caches avoid contention and maximize reuse
-  - Project cache: `.windsurf/review/.eslintcache.project`
-  - Subtree cache: `.windsurf/review/.eslintcache.subtree`
-- Ignore behavior:
-  - Project run honors your repo’s standard ignore resolution (including `.eslintignore`).
-  - Subtree run uses `--no-ignore` intentionally to surface policy violations that may otherwise be ignored.
+- If ESLint batch execution fails (non-zero exit outside normal lint errors) or the JSON is unparsable, the review fails and reports the ESLint error. There is no per-file fallback.
 
 ### Troubleshooting
 - **Error: `npm error Missing script: "review:repo"`**

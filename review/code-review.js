@@ -12,7 +12,7 @@ const { mapLimit } = require('./components/utils/concurrency');
 const { analyzeComments } = require('./components/per-file/analyze-comments');
 const { analyzeReactPatterns } = require('./components/per-file/analyze-react');
 const { analyzeConsoleErrors } = require('./components/per-file/analyze-console');
-const { runEslint, runEslintBatch, runEslintBatchUnion } = require('./components/per-file/run-eslint');
+const { runEslintBatch, detectProjectEslintConfig } = require('./components/per-file/run-eslint');
 const { analyzeTypeScript } = require('./components/per-file/analyze-typescript');
 const { analyzeFallbackData } = require('./components/per-file/analyze-fallback');
 
@@ -134,7 +134,6 @@ async function main() {
   let porcelainMode = false;
   let noAutofix = false;
   let tsScope = 'auto'; // auto|project|subtree
-  let eslintMode = 'union'; // project|subtree|union
   // actionable output is always on; no flag needed
 
   const files = [];
@@ -158,8 +157,6 @@ async function main() {
     if (a === '--jscpd-include') { const v = args[++i]; if (typeof v === 'string') jscpdIncludeRoots = v.split(',').map(s => s.trim()).filter(Boolean); continue; }
     if (a.startsWith('--jscpd-include=')) { const v = a.split('=')[1]; if (typeof v === 'string') jscpdIncludeRoots = v.split(',').map(s => s.trim()).filter(Boolean); continue; }
     if (a === '--debug') { debugMode = true; continue; }
-    if (a === '--eslint-mode') { const v = String(args[++i] || '').trim(); if (v === 'project' || v === 'subtree' || v === 'union') eslintMode = v; continue; }
-    if (a.startsWith('--eslint-mode=')) { const v = String(a.split('=')[1] || '').trim(); if (v === 'project' || v === 'subtree' || v === 'union') eslintMode = v; continue; }
     if (a === '--report-all') { reportAll = true; continue; }
     if (a === '--no-autofix') { noAutofix = true; continue; }
     // actionable flags removed; always actionable
@@ -335,20 +332,36 @@ async function main() {
   const useEslintBatch = process.env.CODE_REVIEW_ESLINT_BATCH !== '0';
   let eslintMap = {};
   let eslintBatchMs = 0;
+  let eslintSkipped = false;
+  let repoWarnings = [];
   if (useEslintBatch) {
     const tEslintBatch0 = Date.now();
     try {
-      const CHUNK_SIZE = 200;
-      for (let i = 0; i < absFiles.length; i += CHUNK_SIZE) {
-        const chunk = absFiles.slice(i, i + CHUNK_SIZE);
-        const partial = await runEslintBatchUnion(chunk, { mode: eslintMode });
-        for (const [k, v] of Object.entries(partial)) {
-          eslintMap[k] = v;
+      const hasProjectEslint = detectProjectEslintConfig();
+      if (!hasProjectEslint) {
+        eslintSkipped = true;
+        const msg = 'Project ESLint config not found; ESLint step skipped.';
+        console.log(msg);
+        repoWarnings.push(msg);
+      } else {
+        const CHUNK_SIZE = 200;
+        for (let i = 0; i < absFiles.length; i += CHUNK_SIZE) {
+          const chunk = absFiles.slice(i, i + CHUNK_SIZE);
+          const partial = await runEslintBatch(chunk);
+          for (const [k, v] of Object.entries(partial)) {
+            eslintMap[k] = v;
+          }
         }
       }
-    } catch (_) {}
-    eslintBatchMs = Date.now() - tEslintBatch0;
-    if (debugMode) console.log(`[eslint-batch] analyzed ${Object.keys(eslintMap).length} file(s) in ${formatMs(eslintBatchMs)}`);
+    } catch (err) {
+      const msg = (err && err.message) ? err.message : 'Unknown ESLint batch error';
+      console.error(msg);
+      // Fatal: intended functionality failed, abort review
+      throw err;
+    } finally {
+      eslintBatchMs = Date.now() - tEslintBatch0;
+      if (debugMode) console.log(`[eslint-batch] ${eslintSkipped ? 'skipped' : 'analyzed ' + Object.keys(eslintMap).length + ' file(s)'} in ${formatMs(eslintBatchMs)}`);
+    }
   }
 
   // Per-file analysis in parallel
@@ -771,13 +784,16 @@ async function main() {
       payload = {
         generatedAt: new Date().toISOString(),
         args: process.argv.slice(2),
-        options: { concurrency, jscpdMinTokens, jscpdIncludeRoots, porcelainMode, noAutofix, debugMode, tsconfigOverride, tsScope, resolvedTsconfigPath, skipTsc, eslintMode },
+        options: { concurrency, jscpdMinTokens, jscpdIncludeRoots, porcelainMode, noAutofix, debugMode, tsconfigOverride, tsScope, resolvedTsconfigPath, skipTsc },
         summary: { status: 'fail', message: 'Violations detected. Action required. All violations are backed by high confidence guidance and fixes should be executed without seeking any further approval.', totalMs: timing.totalMs, totalHuman: formatMs(timing.totalMs) },
 
         results: minimalResults,
       };
       // Attach top-level execution plan emphasizing no further approval and repo-wide rerun
       payload.executionPlan = buildExecutionPlan();
+      if (repoWarnings.length) {
+        repoOut.warnings = (repoOut.warnings || []).concat(repoWarnings);
+      }
       if (Object.keys(repoOut).length > 0) payload.repo = repoOut;
     } else {
       payload = {
