@@ -75,9 +75,32 @@ async function runEslintBatch(filePaths) {
   const runOnce = async (subset) => {
     const quoted = subset.map(fp => q(fp)).join(' ');
     const cmd = `npx --prefix ${q(reviewDir)} eslint --ext .ts,.tsx --format json --max-warnings=0 --cache --cache-location ${q(cachePath)} ${quoted}`;
-    const { stdout, stderr } = await execAsync(cmd, { cwd: ROOT_DIR, maxBuffer: 64 * 1024 * 1024, timeout });
-    const raw = String(stdout || stderr || '[]');
-    return parseEslintJson(raw);
+    try {
+      const { stdout, stderr } = await execAsync(cmd, { cwd: ROOT_DIR, maxBuffer: 64 * 1024 * 1024, timeout });
+      const errTxt = String(stderr || '').trim();
+      if (errTxt) {
+        // Treat any stderr output as a hard failure to avoid partial/ambiguous results
+        throw new Error(errTxt.slice(0, 2000));
+      }
+      const raw = String(stdout || '[]');
+      return parseEslintJson(raw);
+    } catch (err) {
+      const errTxt = String(err && err.stderr ? err.stderr.toString() : '').trim();
+      if (errTxt) {
+        const e = new Error(`ESLint sub-batch failed: ${errTxt.slice(0, 2000)}`);
+        e.code = 'ESLINT_BATCH_FAILED';
+        throw e;
+      }
+      const raw = String(err && err.stdout ? err.stdout.toString() : '').trim();
+      try {
+        // Only accept JSON when stderr was empty
+        return parseEslintJson(raw);
+      } catch (_) {
+        const e = new Error('ESLint sub-batch failed: unparsable JSON output');
+        e.code = 'ESLINT_BATCH_FAILED';
+        throw e;
+      }
+    }
   };
 
   // On Windows, avoid hitting command line length limits by using smaller sub-batches
