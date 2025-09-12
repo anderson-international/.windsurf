@@ -10,7 +10,11 @@ function runEslint(filePath) {
     const reviewDir = path.join(ROOT_DIR, '.windsurf', 'review');
     const configPath = path.join(reviewDir, '.eslintrc.review.cjs');
     const q = (s) => `"${String(s).replace(/"/g, '\\"')}"`;
-    const cmd = `npx --prefix ${q(reviewDir)} eslint --ext .ts,.tsx --config ${q(configPath)} --resolve-plugins-relative-to ${q(reviewDir)} --cache --cache-location ${q(path.join(reviewDir, '.eslintcache'))} --max-warnings=0 --no-ignore ${q(filePath)}`;
+    // Use the same cache path as subtree batch for warm caches across phases
+    const cacheDir = path.join(OUTPUT_DIR, '.tmp', 'eslint');
+    try { fs.mkdirSync(cacheDir, { recursive: true }); } catch (_) {}
+    const cachePath = path.join(cacheDir, 'subtree.cache');
+    const cmd = `npx --prefix ${q(reviewDir)} eslint --ext .ts,.tsx --config ${q(configPath)} --resolve-plugins-relative-to ${q(reviewDir)} --cache --cache-location ${q(cachePath)} --max-warnings=0 --no-ignore ${q(filePath)}`;
     execSync(cmd, { stdio: 'pipe', cwd: ROOT_DIR });
     return { errors: [], warnings: [] };
   } catch (error) {
@@ -142,26 +146,52 @@ async function runEslintSubtreeBatch(filePaths) {
   const resultMap = {};
   const files = Array.isArray(filePaths) ? filePaths.filter(Boolean) : [];
   if (files.length === 0) return resultMap;
+
+  // Pre-seed map to avoid per-file fallback when batch returns no findings
   const normalized = files.map(fp => path.resolve(fp));
   for (const abs of normalized) resultMap[abs] = { errors: [], warnings: [] };
+
   const reviewDir = path.join(ROOT_DIR, '.windsurf', 'review');
   const configPath = path.join(reviewDir, '.eslintrc.review.cjs');
   const q = (s) => `"${String(s).replace(/"/g, '\\"')}"`;
-  const quoted = files.map(fp => q(fp)).join(' ');
   const cacheDir = path.join(OUTPUT_DIR, '.tmp', 'eslint');
   try { fs.mkdirSync(cacheDir, { recursive: true }); } catch (_) {}
   const cachePath = path.join(cacheDir, 'subtree.cache');
-  const cmd = `npx --prefix ${q(reviewDir)} eslint --ext .ts,.tsx --format json --no-ignore --no-error-on-unmatched-pattern --max-warnings=0 --cache --cache-location ${q(cachePath)} --config ${q(configPath)} --resolve-plugins-relative-to ${q(reviewDir)} ${quoted}`;
-  if (process.env.CODE_REVIEW_DEBUG_ESLINT === '1') console.log(`[eslint-subtree] files=${files.length} cache=${cachePath}`);
-  try {
-    const timeout = parseInt(process.env.CODE_REVIEW_ESLINT_TIMEOUT_MS || '180000', 10);
-    const { stdout, stderr } = await execAsync(cmd, { cwd: ROOT_DIR, maxBuffer: 64 * 1024 * 1024, timeout });
-    const raw = String(stdout || stderr || '[]');
-    return parseEslintJson(raw);
-  } catch (err) {
-    const raw = String((err && (err.stdout?.toString() || err.stderr?.toString())) || '[]');
-    try { return parseEslintJson(raw); } catch { return resultMap; }
+
+  // Helper to run eslint once on a sub-batch and return a map
+  const runOnce = async (sub) => {
+    if (!sub.length) return {};
+    const quoted = sub.map(fp => q(fp)).join(' ');
+    const cmd = `npx --prefix ${q(reviewDir)} eslint --ext .ts,.tsx --format json --no-ignore --no-error-on-unmatched-pattern --max-warnings=0 --cache --cache-location ${q(cachePath)} --config ${q(configPath)} --resolve-plugins-relative-to ${q(reviewDir)} ${quoted}`;
+    if (process.env.CODE_REVIEW_DEBUG_ESLINT === '1') console.log(`[eslint-subtree] sub-batch files=${sub.length} cache=${cachePath}`);
+    try {
+      const timeout = parseInt(process.env.CODE_REVIEW_ESLINT_TIMEOUT_MS || '180000', 10);
+      const { stdout, stderr } = await execAsync(cmd, { cwd: ROOT_DIR, maxBuffer: 64 * 1024 * 1024, timeout });
+      const raw = String(stdout || stderr || '[]');
+      return parseEslintJson(raw);
+    } catch (err) {
+      const raw = String((err && (err.stdout?.toString() || err.stderr?.toString())) || '[]');
+      try { return parseEslintJson(raw); } catch { return {}; }
+    }
+  };
+
+  // On Windows, keep sub-batches smaller to avoid CLI arg limits; else use whole list
+  const WIN = process.platform === 'win32';
+  const SUB_BATCH = WIN ? 60 : files.length; // conservative on Windows
+  if (process.env.CODE_REVIEW_DEBUG_ESLINT === '1') console.log(`[eslint-subtree] files=${files.length} subBatch=${SUB_BATCH} cache=${cachePath}`);
+  if (files.length <= SUB_BATCH) {
+    const partial = await runOnce(files);
+    return Object.keys(partial).length ? partial : resultMap;
   }
+  // Run multiple sub-batches in parallel and merge
+  const promises = [];
+  for (let i = 0; i < files.length; i += SUB_BATCH) {
+    promises.push(runOnce(files.slice(i, i + SUB_BATCH)));
+  }
+  const maps = await Promise.all(promises);
+  let merged = {};
+  for (const m of maps) merged = mergeResultMaps(merged, m);
+  return Object.keys(merged).length ? merged : resultMap;
 }
 
 async function runEslintProjectBatch(filePaths) {
