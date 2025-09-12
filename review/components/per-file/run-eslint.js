@@ -66,16 +66,48 @@ async function runEslintBatch(filePaths) {
 
   const reviewDir = path.join(ROOT_DIR, '.windsurf', 'review');
   const q = (s) => `"${String(s).replace(/"/g, '\\"')}"`;
-  const quoted = files.map(fp => q(fp)).join(' ');
   const cacheDir = path.join(OUTPUT_DIR, '.tmp', 'eslint');
   try { fs.mkdirSync(cacheDir, { recursive: true }); } catch (_) {}
   const cachePath = path.join(cacheDir, 'project.cache');
-  const cmd = `npx --prefix ${q(reviewDir)} eslint --ext .ts,.tsx --format json --max-warnings=0 --cache --cache-location ${q(cachePath)} ${quoted}`;
   const timeout = 180000;
-  try {
+
+  // Helper to run a single ESLint invocation for a subset of files
+  const runOnce = async (subset) => {
+    const quoted = subset.map(fp => q(fp)).join(' ');
+    const cmd = `npx --prefix ${q(reviewDir)} eslint --ext .ts,.tsx --format json --max-warnings=0 --cache --cache-location ${q(cachePath)} ${quoted}`;
     const { stdout, stderr } = await execAsync(cmd, { cwd: ROOT_DIR, maxBuffer: 64 * 1024 * 1024, timeout });
     const raw = String(stdout || stderr || '[]');
     return parseEslintJson(raw);
+  };
+
+  // On Windows, avoid hitting command line length limits by using smaller sub-batches
+  const isWin = process.platform === 'win32';
+  const SUB_BATCH = isWin ? 60 : files.length;
+  if (files.length <= SUB_BATCH) {
+    try {
+      return await runOnce(files);
+    } catch (err) {
+      const raw = String((err && (err.stdout?.toString() || err.stderr?.toString())) || '').trim();
+      const msg = raw ? raw.slice(0, 2000) : String(err && err.message || 'ESLint execution failed');
+      const e = new Error(`ESLint batch failed: ${msg}`);
+      e.code = 'ESLINT_BATCH_FAILED';
+      throw e;
+    }
+  }
+
+  // Run multiple sub-batches and merge
+  const promises = [];
+  for (let i = 0; i < files.length; i += SUB_BATCH) {
+    const subset = files.slice(i, i + SUB_BATCH);
+    promises.push(runOnce(subset));
+  }
+  try {
+    const maps = await Promise.all(promises);
+    const merged = {};
+    for (const m of maps) {
+      for (const [k, v] of Object.entries(m)) merged[k] = v;
+    }
+    return merged;
   } catch (err) {
     const raw = String((err && (err.stdout?.toString() || err.stderr?.toString())) || '').trim();
     const msg = raw ? raw.slice(0, 2000) : String(err && err.message || 'ESLint execution failed');
