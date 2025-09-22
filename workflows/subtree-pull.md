@@ -5,7 +5,7 @@ auto_execution_mode: 3
 
 Prerequisites:
 - Remote `windsurf_subtree` points to `https://github.com/anderson-international/.windsurf.git`.
-- Commit or stash any local changes under `.windsurf/` to avoid conflicts.
+- This workflow will auto-stash and restore local changes if needed.
 
 Choose one path:
 - If this is a new project without `.windsurf/`, use the Bootstrap section below, then stop.
@@ -39,13 +39,21 @@ Update existing installation:
 // turbo
 cmd /c git status --porcelain
 
-2) Fetch the subtree remote
+2) Conditionally stash local changes (only if changes exist)
+// turbo
+cmd /c (git diff --quiet && git diff --cached --quiet) || git stash push -u -k -m windsurf_subtree_autostash
+
+3) Fetch the subtree remote
 // turbo
 cmd /c git fetch windsurf_subtree
 
-3) Pull updates into `.windsurf/` using subtree with squash
+4) Pull updates into `.windsurf/` using subtree with squash
 // turbo
 cmd /c git subtree pull --prefix=.windsurf windsurf_subtree main --squash
+
+5) Conditionally pop the stash (only if our marker stash exists)
+// turbo
+cmd /c (git stash list | findstr windsurf_subtree_autostash >nul) && git stash pop || echo no-stash-to-pop
 
 Notes:
 - `--squash` keeps the main repo history clean while updating only `.windsurf/` files.
