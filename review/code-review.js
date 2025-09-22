@@ -633,8 +633,9 @@ async function main() {
           const tokens = typeof seg.tokens === 'number' ? seg.tokens : 0;
           const message = `Duplicate block with ${other}:${oStart}-${oEnd} (${lines} lines${tokens ? ", " + tokens + " tokens" : ''})`;
           const target = suggestPath(thisFile, other);
-          const guidance = `Extract the duplicated logic to '${target}' as a pure function and replace both occurrences with a call. Keep naming stable and add minimal unit coverage if public.`;
-          issues.push({ source: 'jscpd', type: 'duplicate-block', line: start, endLine: end, otherFile: other, otherStartLine: oStart, otherEndLine: oEnd, lines, tokens, message, guidance, suggestedModulePath: target });
+          const guidanceRef = 'repo.jscpd.details.playbook.similarBlocks';
+          const guidance = `See centralized playbook at ${guidanceRef} for how to refactor similar duplicate blocks.`;
+          issues.push({ source: 'jscpd', type: 'duplicate-block', line: start, endLine: end, otherFile: other, otherStartLine: oStart, otherEndLine: oEnd, lines, tokens, message, guidance, guidanceRef, suggestedModulePath: target });
         }
       }
 
@@ -808,6 +809,15 @@ async function main() {
       };
       if (typeof j.percentage === 'number' && Number.isFinite(j.percentage)) {
         jscpdOut.percentage = j.percentage;
+      }
+      if (j.details && (j.details.topGroups || j.details.playbook)) {
+        jscpdOut.details = {};
+        if (Array.isArray(j.details.topGroups) && j.details.topGroups.length) {
+          jscpdOut.details.topGroups = j.details.topGroups;
+        }
+        if (j.details.playbook) {
+          jscpdOut.details.playbook = j.details.playbook;
+        }
       }
       repoOut.jscpd = jscpdOut;
     }

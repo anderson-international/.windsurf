@@ -91,7 +91,18 @@ function applyJscpdToResults(results, jscpdData) {
     groups: totalStats.clones || 0,
     duplicatedLines: totalStats.duplicatedLines || 0,
     details: {
-      topGroups: groups.slice(0, 5)
+      topGroups: groups.slice(0, 5),
+      playbook: {
+        similarBlocks: [
+          'Refactor similar (not identical) duplicate blocks by extracting the shared “load-and-map” or scaffold pattern into a reusable function or hook.',
+          'Parameterize the differing parts (URL builder(s), number of requests, response mapping, error messages). Keep shared concerns internal: loading/error toggles, try/catch, Promise.all orchestration.',
+          'Suggested targets: lib/utils/fetching.ts (or nearest common directory).',
+          'Function signature example: loadWithParams<T>({ buildUrls: () => string[], map: (payloads:any[]) => T, onError?: (e:unknown)=>string }): Promise<T>.',
+          'Hook signature example: useFetchMapped<T>({ deps:any[], buildRequests: () => Promise<Response>[], map: (payloads:any[]) => T }).',
+          'Acceptance criteria: identical behavior for success/error/empty cases; type-safety preserved (generics); both sites replaced to import the shared utility; smoke tests for 1 vs 2 request scenarios.',
+          'Skip extraction when the shared block is very small (<10 lines) or context-heavy such that abstraction reduces clarity.'
+        ].join('\n')
+      }
     }
   };
   const summary = (typeof totalStats.percentage === 'number' && Number.isFinite(totalStats.percentage))
