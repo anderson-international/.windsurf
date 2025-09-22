@@ -50,11 +50,53 @@ function applyJscpdToResults(results, jscpdData) {
   }
 
   const totalStats = (jscpdData && (jscpdData.statistics?.total || jscpdData.statistic?.total)) || {};
-  const summary = {
+  // Build repo-level top groups (prioritize by lines desc)
+  const normalize = (p) => String(p || '').replace(/\\/g, '/');
+  const split = (p) => normalize(p).split('/').filter(Boolean);
+  const join = (arr) => arr.join('/');
+  const commonDir = (a, b) => {
+    const A = split(a); const B = split(b); const out = [];
+    for (let i = 0; i < Math.min(A.length, B.length); i++) {
+      if (A[i] === B[i]) out.push(A[i]); else break;
+    }
+    return join(out);
+  };
+  const suggestPath = (a, b) => {
+    const cd = commonDir(a, b);
+    const base = cd && cd.length ? cd : 'lib';
+    const targetDir = base.startsWith('lib') ? base : `lib/${base}`;
+    return `${targetDir}/utils/shared-extracted.ts`;
+  };
+
+  const groups = dups.map(dup => {
+    const a = toRepoRelative((dup.firstFile && dup.firstFile.name) || '');
+    const b = toRepoRelative((dup.secondFile && dup.secondFile.name) || '');
+    const lines = typeof dup.lines === 'number' ? dup.lines : 0;
+    const tokens = typeof dup.tokens === 'number' ? dup.tokens : 0;
+    const startA = dup.firstFile?.start || 0;
+    const endA = dup.firstFile?.end || startA;
+    const startB = dup.secondFile?.start || 0;
+    const endB = dup.secondFile?.end || startB;
+    return {
+      files: [a, b],
+      lines,
+      tokens,
+      a: { startLine: startA, endLine: endA },
+      b: { startLine: startB, endLine: endB },
+      suggestedModulePath: suggestPath(a, b)
+    };
+  }).sort((x, y) => (y.lines || 0) - (x.lines || 0));
+
+  const summaryBase = {
     groups: totalStats.clones || 0,
     duplicatedLines: totalStats.duplicatedLines || 0,
-    percentage: totalStats.percentage || 0
+    details: {
+      topGroups: groups.slice(0, 5)
+    }
   };
+  const summary = (typeof totalStats.percentage === 'number' && Number.isFinite(totalStats.percentage))
+    ? { ...summaryBase, percentage: totalStats.percentage }
+    : summaryBase;
   return { summary };
 }
 

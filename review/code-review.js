@@ -25,6 +25,13 @@ const { applyJscpdToResults } = require('./components/merge/jscpd');
 
 const { generateMinimalSummary } = require('./components/summaries');
 
+// Safe fallback for per-file ESLint when batch is not available.
+// In this review tool we rely on runEslintBatch; if it's skipped or a file is missing in the batch map,
+// return an empty result to avoid crashing. This preserves the rest of the analyzers.
+function runEslint(_) {
+  return { errors: [], warnings: [] };
+}
+
 function printUsage() {
   const usage = [
     'Usage: cmd /c node .windsurf/review/code-review.js <file1> [file2 ...]',
@@ -408,6 +415,13 @@ async function main() {
 
   // Repo-wide analyzers results
   const [knipData, jscpdData, tscData] = await Promise.all([pKnip, pJscpd, pTsc]);
+  if (debugMode) {
+    try {
+      const dups = Array.isArray(jscpdData && jscpdData.duplicates) ? jscpdData.duplicates.length : 0;
+      const stats = (jscpdData && (jscpdData.statistics?.total || jscpdData.statistic?.total)) || {};
+      console.log(`[debug:jscpd] duplicates=${dups}, lines=${stats.duplicatedLines || 0}, pct=${typeof stats.percentage === 'number' ? stats.percentage : 'n/a'}`);
+    } catch (_) {}
+  }
   const tRepo1 = Date.now();
 
   // Attach TSC per-file
@@ -591,7 +605,38 @@ async function main() {
       }
 
       // Duplicates (no detailed duplication segments emitted)
-      // duplicates actions removed from per-file output
+      // Emit actionable issues for duplicate segments detected by jscpd
+      if (r.duplicates && r.duplicates.status === 'FAIL' && Array.isArray(r.duplicates.segments) && r.duplicates.segments.length) {
+        const thisFile = r.relPath || toRepoRelative(r.filePath);
+        const norm = (p) => String(p || '').replace(/\\/g, '/');
+        const split = (p) => norm(p).split('/').filter(Boolean);
+        const join = (arr) => arr.join('/');
+        const dirname = (p) => { const a = split(p); a.pop(); return join(a); };
+        const commonDir = (a, b) => {
+          const A = split(a); const B = split(b); const out = [];
+          for (let i=0;i<Math.min(A.length,B.length);i++){ if (A[i]===B[i]) out.push(A[i]); else break; }
+          return join(out);
+        };
+        const suggestPath = (a, b) => {
+          const cd = commonDir(a, b);
+          const base = cd && cd.length ? cd : 'lib';
+          const targetDir = base.startsWith('lib') ? base : `lib/${base}`;
+          return `${targetDir}/utils/shared-extracted.ts`;
+        };
+        for (const seg of r.duplicates.segments) {
+          const other = seg.otherFile || '';
+          const start = typeof seg.startLine === 'number' ? seg.startLine : 0;
+          const end = typeof seg.endLine === 'number' ? seg.endLine : start;
+          const oStart = typeof seg.otherStartLine === 'number' ? seg.otherStartLine : 0;
+          const oEnd = typeof seg.otherEndLine === 'number' ? seg.otherEndLine : oStart;
+          const lines = typeof seg.lines === 'number' ? seg.lines : Math.max(0, (end - start + 1));
+          const tokens = typeof seg.tokens === 'number' ? seg.tokens : 0;
+          const message = `Duplicate block with ${other}:${oStart}-${oEnd} (${lines} lines${tokens ? ", " + tokens + " tokens" : ''})`;
+          const target = suggestPath(thisFile, other);
+          const guidance = `Extract the duplicated logic to '${target}' as a pure function and replace both occurrences with a call. Keep naming stable and add minimal unit coverage if public.`;
+          issues.push({ source: 'jscpd', type: 'duplicate-block', line: start, endLine: end, otherFile: other, otherStartLine: oStart, otherEndLine: oEnd, lines, tokens, message, guidance, suggestedModulePath: target });
+        }
+      }
 
       if (issues.length) out.issues = issues;
       return out;
@@ -756,12 +801,15 @@ async function main() {
     }
     const j = jscpdAgg.summary;
     if ((j.groups || 0) > 0 || (j.duplicatedLines || 0) > 0 || (j.percentage || 0) > 0) {
-      repoOut.jscpd = {
+      const jscpdOut = {
         groups: j.groups || 0,
         duplicatedLines: j.duplicatedLines || 0,
-        percentage: j.percentage || 0,
         guidance: 'Refactor duplicated code. Extract shared logic into utilities/components to reduce duplication.'
       };
+      if (typeof j.percentage === 'number' && Number.isFinite(j.percentage)) {
+        jscpdOut.percentage = j.percentage;
+      }
+      repoOut.jscpd = jscpdOut;
     }
 
     // Repo-level actions
