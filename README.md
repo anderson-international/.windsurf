@@ -14,7 +14,7 @@ Policy and intent:
 
 Repository source (upstream of this subtree):
 - Remote name: `windsurf_subtree`
-- Remote URL: `https://github.com/anderson-international/.windsurf.git`
+- Remote URL: `https://github.com/zantha-im/.windsurf.git`
 
 ## Quick start
 
@@ -29,7 +29,7 @@ Repository source (upstream of this subtree):
 
 Manual bootstrap:
 ```cmd
-cmd /c git remote add windsurf_subtree https://github.com/anderson-international/.windsurf.git
+cmd /c git remote add windsurf_subtree https://github.com/zantha-im/.windsurf.git
 cmd /c git fetch windsurf_subtree
 cmd /c git subtree add --prefix=.windsurf windsurf_subtree main --squash
 cmd /c npm --prefix .windsurf\review ci

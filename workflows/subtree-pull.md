@@ -4,7 +4,7 @@ auto_execution_mode: 3
 ---
 
 Prerequisites:
-- Remote `windsurf_subtree` points to `https://github.com/anderson-international/.windsurf.git`.
+- Remote `windsurf_subtree` points to `https://github.com/zantha-im/.windsurf.git`.
 - This workflow will auto-stash and restore local changes if needed.
 
 Choose one path:
@@ -18,7 +18,7 @@ cmd /c git status --porcelain
 
 2) Ensure the subtree remote exists (no-op if already present)
 // turbo
-cmd /c git remote get-url windsurf_subtree || git remote add windsurf_subtree https://github.com/anderson-international/.windsurf.git
+cmd /c git remote get-url windsurf_subtree || git remote add windsurf_subtree https://github.com/zantha-im/.windsurf.git
 
 3) Fetch the subtree remote
 // turbo
