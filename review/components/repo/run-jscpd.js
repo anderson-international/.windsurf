@@ -40,7 +40,7 @@ async function runJscpd(apiOpts = {}) {
     '    path: searchPaths,',
     '    pattern: "**/*.{ts,tsx,js}",',
     '    languages: ["javascript","typescript","tsx"],',
-    '    ignore: ["**/{.next,node_modules,dist,build}/**"],',
+    '    ignore: ["**/{.next,node_modules,dist,build}/**","prisma/**"],',
     '    minTokens: minTokens,',
     '    absolute: true,',
     '    gitignore: false,',
