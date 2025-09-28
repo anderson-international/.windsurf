@@ -1,5 +1,6 @@
 const { execSync } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 const { ROOT_DIR } = require('./paths');
 const { isReviewablePath } = require('./filters');
 
@@ -13,14 +14,21 @@ function collectPorcelainFiles() {
       if (!t || t.length < 3) continue;
       const xy = t.slice(0, 2);
       const rest = t.slice(3);
+      // Skip deletions (staged or unstaged): 'D ' or ' D'
+      if (xy[0] === 'D' || xy[1] === 'D') {
+        continue;
+      }
       if (xy[0] === 'R' || xy[0] === 'C') {
         const next = tokens[i + 1];
         const newPath = (typeof next === 'string' && next.length > 0) ? next : rest;
-        if (isReviewablePath(newPath)) rels.push(newPath.trim());
+        const trimmed = String(newPath || '').trim();
+        const abs = path.join(ROOT_DIR, trimmed);
+        if (isReviewablePath(trimmed) && fs.existsSync(abs)) rels.push(trimmed);
         if (typeof next === 'string' && next.length > 0) i += 1;
       } else {
         const p = rest.trim();
-        if (isReviewablePath(p)) rels.push(p);
+        const abs = path.join(ROOT_DIR, p);
+        if (isReviewablePath(p) && fs.existsSync(abs)) rels.push(p);
       }
     }
     const uniqueAbs = Array.from(new Set(rels)).map(r => path.join(ROOT_DIR, r));

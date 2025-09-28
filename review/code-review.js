@@ -209,7 +209,15 @@ async function main() {
 
   // Normalize to absolute paths and filter reviewable TS/TSX
   const absFilesIn = files.map(fp => path.isAbsolute(fp) ? fp : path.join(ROOT_DIR, fp));
-  const absFiles = absFilesIn.filter(p => isReviewablePath(path.relative(ROOT_DIR, p).replace(/\\/g, '/')));
+  let absFiles = absFilesIn.filter(p => isReviewablePath(path.relative(ROOT_DIR, p).replace(/\\/g, '/')));
+  // Filter out paths that no longer exist (e.g., deleted files present in porcelain output)
+  absFiles = absFiles.filter((p) => {
+    try {
+      return fs.existsSync(p);
+    } catch (_) {
+      return false;
+    }
+  });
 
   // Optional autofix
   const autofix = { enabled: !noAutofix && process.env.CODE_REVIEW_NO_AUTOFIX !== '1', filesProcessed: 0, commentsRemoved: 0, consolesRemoved: 0, errors: 0 };
