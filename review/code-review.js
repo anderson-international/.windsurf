@@ -275,6 +275,11 @@ async function main() {
     let include = includeUnion.map(ensurePrefixed);
     include = uniq(include);
     if (!include.length) include = [ensurePrefixed('**/*.ts'), ensurePrefixed('**/*.tsx')];
+    // O1: Ensure both ts and tsx are included when either is present
+    const hasTsGlob = include.some((p) => String(p).endsWith('**/*.ts'));
+    const hasTsxGlob = include.some((p) => String(p).endsWith('**/*.tsx'));
+    if (hasTsGlob && !hasTsxGlob) include.push(ensurePrefixed('**/*.tsx'));
+    if (hasTsxGlob && !hasTsGlob) include.push(ensurePrefixed('**/*.ts'));
 
     // Excludes: union(project, subtree) plus enforced minimum set
     const projectExclude = Array.isArray(baseJson?.exclude) ? baseJson.exclude : [];
@@ -371,6 +376,15 @@ async function main() {
     repoBreakdown.tscMs = Date.now() - s;
     return d;
   })();
+  // O2: Project-tsconfig TSC gate in parallel
+  const pTscProject = (async () => {
+    const s = Date.now();
+    const projectTsPath = path.join(ROOT_DIR, 'tsconfig.json');
+    const exists = (() => { try { return fs.existsSync(projectTsPath); } catch (_) { return false; } })();
+    const d = await runTsc(exists ? projectTsPath : undefined);
+    repoBreakdown.tscProjectMs = Date.now() - s;
+    return d;
+  })();
 
   // Optional ESLint batch (single run) to speed up per-file phase
   const useEslintBatch = process.env.CODE_REVIEW_ESLINT_BATCH !== '0';
@@ -452,7 +466,7 @@ async function main() {
   const tFiles1 = Date.now();
 
   // Repo-wide analyzers results
-  const [knipData, jscpdData, tscData] = await Promise.all([pKnip, pJscpd, pTsc]);
+  const [knipData, jscpdData, tscData, tscProjectData] = await Promise.all([pKnip, pJscpd, pTsc, pTscProject]);
   if (debugMode) {
     try {
       const dups = Array.isArray(jscpdData && jscpdData.duplicates) ? jscpdData.duplicates.length : 0;
@@ -480,9 +494,12 @@ async function main() {
   const tscByFile = (tscData && tscData.byFile) ? tscData.byFile : {};
   const filteredByFile = tscByFile;
   const filteredTotalErrors = Object.values(filteredByFile).reduce((a, arr) => a + ((Array.isArray(arr) ? arr.length : 0)), 0);
+  // Project gate totals
+  const projectByFile = (tscProjectData && tscProjectData.byFile) ? tscProjectData.byFile : {};
+  const projectTotalErrors = Object.values(projectByFile).reduce((a, arr) => a + ((Array.isArray(arr) ? arr.length : 0)), 0);
 
   // Repo-wide violation detection and summary
-  const repoViolation = (filteredTotalErrors > 0) ||
+  const repoViolation = (filteredTotalErrors > 0) || (projectTotalErrors > 0) ||
     (knipAgg.summary.unusedFiles > 0 ||
      knipAgg.summary.unusedExports > 0 ||
      knipAgg.summary.unusedTypes > 0 ||
@@ -498,7 +515,8 @@ async function main() {
   const repoSummary = {
     knip: knipAgg.summary,
     jscpd: jscpdAgg.summary,
-    tsc: { totalErrors: filteredTotalErrors, tsconfigPath: (tscData.tsconfigPath ? String(tscData.tsconfigPath).replace(/\\/g, '/') : null) }
+    tsc: { totalErrors: filteredTotalErrors, tsconfigPath: (tscData.tsconfigPath ? String(tscData.tsconfigPath).replace(/\\/g, '/') : null) },
+    tscProject: { totalErrors: projectTotalErrors, tsconfigPath: (tscProjectData && tscProjectData.tsconfigPath ? String(tscProjectData.tsconfigPath).replace(/\\/g, '/') : null) }
   };
 
   // Summaries and result JSON (with timing)
