@@ -357,42 +357,6 @@ async function main() {
         }
       }
 
-      // Dead code / Knip (explicit unused file deletion guidance and related items)
-      if (r.deadCode && r.deadCode.status === 'FAIL') {
-        // Unused file
-        if (r.deadCode.unusedFile) {
-          issues.push({
-            source: 'knip',
-            type: 'unused-file',
-            line: 0,
-            column: 0,
-            message: 'File appears unused (Knip).',
-            guidance: 'Investigate thoroughly (dynamic imports, runtime requires, configs/tests/tooling). If truly unused, delete the file rather than archiving or excluding it.'
-          });
-        }
-        // Unresolved imports
-        if (Array.isArray(r.deadCode.unresolvedImportSpecifiers) && r.deadCode.unresolvedImportSpecifiers.length) {
-          for (const spec of r.deadCode.unresolvedImportSpecifiers) {
-            issues.push({ source: 'knip', type: 'unresolved-import', line: 0, column: 0, message: `Unresolved import: ${spec}`, guidance: 'Fix path/alias or tsconfig paths.' });
-          }
-        }
-        // Unlisted dependencies
-        if (Array.isArray(r.deadCode.unlistedDependencyModules) && r.deadCode.unlistedDependencyModules.length) {
-          for (const mod of r.deadCode.unlistedDependencyModules) {
-            issues.push({ source: 'knip', type: 'unlisted-dependency', line: 0, column: 0, message: `Unlisted dependency: ${mod}`, guidance: 'Remove usage or add to package.json appropriately.' });
-          }
-        }
-        // Unused exports/types (summarized)
-        if ((r.deadCode.unusedExports || 0) > 0) {
-          issues.push({ source: 'knip', type: 'unused-exports', line: 0, column: 0, message: `Unused exports: ${r.deadCode.unusedExports}`, guidance: 'Remove unused exports or their references.' });
-        }
-        if ((r.deadCode.unusedTypes || 0) > 0) {
-          issues.push({ source: 'knip', type: 'unused-types', line: 0, column: 0, message: `Unused types: ${r.deadCode.unusedTypes}`, guidance: 'Remove unused types or inline where needed.' });
-        }
-        if ((r.deadCode.unusedExportedTypes || 0) > 0) {
-          issues.push({ source: 'knip', type: 'unused-exported-types', line: 0, column: 0, message: `Unused exported types: ${r.deadCode.unusedExportedTypes}`, guidance: 'Make exported type(s) non-exported if only used internally.' });
-        }
-      }
     } catch (err) {
       const msg = (err && err.message) ? err.message : 'Unknown ESLint batch error';
       console.error(msg);
