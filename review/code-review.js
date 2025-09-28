@@ -58,7 +58,6 @@ function printUsage() {
     '  --report-all               Include all files in JSON report if report is written',
     '  --tsconfig <path>          Use a specific tsconfig.json (default: repo root tsconfig.json)',
     '  --ts-scope <auto|project|subtree>  Control TSC config source (default auto: synthesize by merging project + subtree)',
-    '  --skip-tsc                 Skip TypeScript compiler checks',
     '',
     'Default behavior:',
     '  • If no files are specified (and not in --porcelain mode), all valid TypeScript files are analyzed',
@@ -137,7 +136,6 @@ async function main() {
   let debugMode = false;
   let reportAll = false;
   let tsconfigOverride = undefined;
-  let skipTsc = false;
   let porcelainMode = false;
   let noAutofix = false;
   let tsScope = 'auto'; // auto|project|subtree
@@ -171,7 +169,7 @@ async function main() {
     if (a.startsWith('--tsconfig=')) { const v = a.split('=')[1]; if (typeof v === 'string') tsconfigOverride = path.isAbsolute(v) ? v : path.join(ROOT_DIR, v); continue; }
     if (a === '--ts-scope') { const v = String(args[++i] || '').trim(); if (v === 'auto' || v === 'project' || v === 'subtree') tsScope = v; continue; }
     if (a.startsWith('--ts-scope=')) { const v = String(a.split('=')[1] || '').trim(); if (v === 'auto' || v === 'project' || v === 'subtree') tsScope = v; continue; }
-    if (a === '--skip-tsc') { skipTsc = true; continue; }
+    // removed --skip-tsc and --suppress-tsc-unused to preserve PASS => build success guarantee
     if (a === '--porcelain') { porcelainMode = true; continue; }
     files.push(a);
     hadExplicitFiles = true;
@@ -328,9 +326,7 @@ async function main() {
   })();
   const pTsc = (async () => {
     const s = Date.now();
-    const d = skipTsc
-      ? { byFile: {}, totalErrors: 0, tsconfigPath: (resolvedTsconfigPath || path.join(ROOT_DIR, 'tsconfig.json')) }
-      : await runTsc(resolvedTsconfigPath);
+    const d = await runTsc(resolvedTsconfigPath);
     repoBreakdown.tscMs = Date.now() - s;
     return d;
   })();
@@ -358,6 +354,43 @@ async function main() {
           for (const [k, v] of Object.entries(partial)) {
             eslintMap[k] = v;
           }
+        }
+      }
+
+      // Dead code / Knip (explicit unused file deletion guidance and related items)
+      if (r.deadCode && r.deadCode.status === 'FAIL') {
+        // Unused file
+        if (r.deadCode.unusedFile) {
+          issues.push({
+            source: 'knip',
+            type: 'unused-file',
+            line: 0,
+            column: 0,
+            message: 'File appears unused (Knip).',
+            guidance: 'Investigate thoroughly (dynamic imports, runtime requires, configs/tests/tooling). If truly unused, delete the file rather than archiving or excluding it.'
+          });
+        }
+        // Unresolved imports
+        if (Array.isArray(r.deadCode.unresolvedImportSpecifiers) && r.deadCode.unresolvedImportSpecifiers.length) {
+          for (const spec of r.deadCode.unresolvedImportSpecifiers) {
+            issues.push({ source: 'knip', type: 'unresolved-import', line: 0, column: 0, message: `Unresolved import: ${spec}`, guidance: 'Fix path/alias or tsconfig paths.' });
+          }
+        }
+        // Unlisted dependencies
+        if (Array.isArray(r.deadCode.unlistedDependencyModules) && r.deadCode.unlistedDependencyModules.length) {
+          for (const mod of r.deadCode.unlistedDependencyModules) {
+            issues.push({ source: 'knip', type: 'unlisted-dependency', line: 0, column: 0, message: `Unlisted dependency: ${mod}`, guidance: 'Remove usage or add to package.json appropriately.' });
+          }
+        }
+        // Unused exports/types (summarized)
+        if ((r.deadCode.unusedExports || 0) > 0) {
+          issues.push({ source: 'knip', type: 'unused-exports', line: 0, column: 0, message: `Unused exports: ${r.deadCode.unusedExports}`, guidance: 'Remove unused exports or their references.' });
+        }
+        if ((r.deadCode.unusedTypes || 0) > 0) {
+          issues.push({ source: 'knip', type: 'unused-types', line: 0, column: 0, message: `Unused types: ${r.deadCode.unusedTypes}`, guidance: 'Remove unused types or inline where needed.' });
+        }
+        if ((r.deadCode.unusedExportedTypes || 0) > 0) {
+          issues.push({ source: 'knip', type: 'unused-exported-types', line: 0, column: 0, message: `Unused exported types: ${r.deadCode.unusedExportedTypes}`, guidance: 'Make exported type(s) non-exported if only used internally.' });
         }
       }
     } catch (err) {
@@ -438,29 +471,9 @@ async function main() {
   const knipAgg = await applyKnipToResults(results, knipData || {}, { concurrency });
   const jscpdAgg = applyJscpdToResults(results, jscpdData || {});
 
-  // Compute suppression of TSC errors for files Knip marks as unused
-  const knipUnusedSet = new Set(
-    Array.isArray(knipAgg.details?.unusedFiles)
-      ? knipAgg.details.unusedFiles.map((p) => {
-          let s = String(p || '').replace(/\\/g, '/');
-          if (s.startsWith('./')) s = s.slice(2);
-          if (s.startsWith('.windsurf/review/')) s = s.slice('.windsurf/review/'.length);
-          return s;
-        })
-      : []
-  );
+  // Compute TSC errors (unsuppressed; align review PASS with build success)
   const tscByFile = (tscData && tscData.byFile) ? tscData.byFile : {};
-  const filteredByFile = {};
-  const suppressed = [];
-  for (const [file, errs] of Object.entries(tscByFile)) {
-    const norm = String(file || '').replace(/\\/g, '/');
-    if (knipUnusedSet.has(norm)) {
-      const count = Array.isArray(errs) ? errs.length : 0;
-      if (count > 0) suppressed.push({ file: norm, count });
-      continue;
-    }
-    filteredByFile[file] = errs;
-  }
+  const filteredByFile = tscByFile;
   const filteredTotalErrors = Object.values(filteredByFile).reduce((a, arr) => a + ((Array.isArray(arr) ? arr.length : 0)), 0);
 
   // Repo-wide violation detection and summary
@@ -519,7 +532,6 @@ async function main() {
       : (reportAll ? results : []);
 
     // Ensure TSC-only repo failures still surface error details in results
-    // Use UNSUPPRESSED error count; if all errors are suppressed, do NOT emit synthetic entry
     if (hasViolations && resultsToWrite.length === 0 && (filteredTotalErrors || 0) > 0) {
       // Flatten filteredByFile errors to represent unsuppressed diagnostics
       const flatErrors = [];

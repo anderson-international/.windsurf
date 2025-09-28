@@ -94,6 +94,23 @@ function applyKnipToResults(results, knipData, opts = {}) {
   const workers = Array.from({ length: Math.min(concurrency, filesToAnalyze.length) }, () => worker());
   // Run bounded workers synchronously (await all)
   return Promise.all(workers).then(() => {
+    // Pre-mark per-file results for files Knip reports as unused
+    if (Array.isArray(details.unusedFiles) && details.unusedFiles.length) {
+      for (const rel of details.unusedFiles) {
+        const r = byFile.get(rel);
+        if (r) {
+          if (!r.deadCode) r.deadCode = { recommendations: [] };
+          r.deadCode.unusedFile = true;
+          r.deadCode.status = 'FAIL';
+          const delGuidance = 'Candidate for deletion. Investigate thoroughly (check dynamic imports, runtime requires, config/test/tooling references). If truly unused, delete the file rather than archiving or excluding it.';
+          if (!Array.isArray(r.deadCode.recommendations)) r.deadCode.recommendations = [];
+          // Prepend deletion guidance if not already present
+          if (!r.deadCode.recommendations.includes(delGuidance)) {
+            r.deadCode.recommendations.unshift(delGuidance);
+          }
+        }
+      }
+    }
     for (const item of issues) {
       const fileKey = toRepoRelative(item.file || '');
       const countsBase = {
@@ -131,6 +148,11 @@ function applyKnipToResults(results, knipData, opts = {}) {
         if (countsBase.unlistedDependencies > 0) recs.push('Remove unlisted dependency usage or add to package.json appropriately.');
         if (countsBase.unresolvedImports > 0) recs.push('Fix unresolved import(s): verify path/alias/tsconfig paths.');
 
+        // If the whole file is unused, ensure strong deletion guidance is present
+        if (Array.isArray(details.unusedFiles) && details.unusedFiles.includes(fileKey)) {
+          recs.unshift('Candidate for deletion. Investigate thoroughly; if truly unused, delete the file.');
+        }
+
         const unresolvedListRaw = Array.isArray(item.unresolved) ? item.unresolved.slice() : [];
         const unresolvedList = unresolvedListRaw.map(u => (u && typeof u === 'object' && 'name' in u) ? u.name : String(u));
         const unlistedList = Array.isArray(item.unlisted) ? item.unlisted.slice() : [];
@@ -156,7 +178,8 @@ function applyKnipToResults(results, knipData, opts = {}) {
           dc.unusedClassMemberNames = classes.filter(c => c.members.length > 0);
         }
 
-        r.deadCode = dc;
+        // Merge with any previously set deadCode (e.g., from unused file pre-mark)
+        r.deadCode = { ...(r.deadCode || {}), ...dc };
       }
 
       // Always record repo-level details, even if the file wasn't part of the per-file result set
