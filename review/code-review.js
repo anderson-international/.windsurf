@@ -711,6 +711,8 @@ async function main() {
 
     // Build minimal repo-level failures only
     const repoOut = {};
+    // Currently, no suppression rules are applied; keep placeholder array for future use
+    const suppressed = [];
     if ((filteredTotalErrors || 0) > 0 || suppressed.length > 0) {
       const tscOut = {
         totalErrors: filteredTotalErrors || 0,
@@ -859,7 +861,7 @@ async function main() {
       payload = {
         generatedAt: new Date().toISOString(),
         args: process.argv.slice(2),
-        options: { concurrency, jscpdMinTokens, jscpdIncludeRoots, porcelainMode, noAutofix, debugMode, tsconfigOverride, tsScope, resolvedTsconfigPath, skipTsc },
+        options: { concurrency, jscpdMinTokens, jscpdIncludeRoots, porcelainMode, noAutofix, debugMode, tsconfigOverride, tsScope, resolvedTsconfigPath },
         summary: { status: 'fail', message: 'Violations detected. Action required. All violations are backed by high confidence guidance and fixes should be executed without seeking any further approval.', totalMs: timing.totalMs, totalHuman: formatMs(timing.totalMs) },
 
         results: minimalResults,
@@ -874,7 +876,7 @@ async function main() {
       payload = {
         generatedAt: new Date().toISOString(),
         args: process.argv.slice(2),
-        options: { concurrency, jscpdMinTokens, jscpdIncludeRoots, porcelainMode, noAutofix, debugMode, tsconfigOverride, tsScope, resolvedTsconfigPath, skipTsc },
+        options: { concurrency, jscpdMinTokens, jscpdIncludeRoots, porcelainMode, noAutofix, debugMode, tsconfigOverride, tsScope, resolvedTsconfigPath },
         summary: { status: 'pass', noViolations: true, message: 'No violations detected. No further action required.', totalMs: timing.totalMs, totalHuman: formatMs(timing.totalMs) },
         results: []
       };
