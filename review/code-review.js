@@ -90,8 +90,8 @@ function formatMs(ms) {
 
 // Auto-discover reviewable TS/TSX files across valid repo roots
 function discoverReviewableTypeScriptFiles() {
-  const includeRoots = ['app', 'components', 'lib', 'hooks', 'types', 'context', 'services',
-    'src/app', 'src/components', 'src/lib', 'src/hooks', 'src/types', 'src/context', 'src/services'];
+  const includeRoots = ['app', 'components', 'lib', 'hooks', 'types', 'context', 'services', 'pages',
+    'src/app', 'src/components', 'src/lib', 'src/hooks', 'src/types', 'src/context', 'src/services', 'src/pages'];
   const excludeDirs = new Set(['node_modules', '.git', '.windsurf', 'test']);
   const out = [];
 
@@ -370,6 +370,54 @@ async function main() {
     repoBreakdown.jscpdMs = Date.now() - s;
     return d;
   })();
+  // Repo-wide ESLint gate across authored roots (mirrors project linting scope without generated/vendor noise)
+  const pEslintRepo = (async () => {
+    const s = Date.now();
+    try {
+      const hasProjectEslint = detectProjectEslintConfig();
+      if (!hasProjectEslint) {
+        repoWarnings.push('Project ESLint config not found; repo-wide ESLint gate skipped.');
+        repoBreakdown.eslintRepoMs = Date.now() - s;
+        return { totalErrors: 0, totalWarnings: 0, files: [] };
+      }
+      const roots = ['app','components','lib','hooks','types','pages','src/app','src/components','src/lib','src/hooks','src/types','src/pages'];
+      const patterns = roots.map(r => `${r.replace(/\\/g,'/')}/**/*.{js,jsx,ts,tsx}`);
+      const ignore = ['.next','dist','build','.windsurf','external','lib/generated'];
+      const reviewDir = path.join(ROOT_DIR, '.windsurf', 'review');
+      const ignoreFlags = ignore.map(p => `--ignore-pattern "${p}"`).join(' ');
+      const filesArg = patterns.map(p => `"${p}"`).join(' ');
+      const cmd = `npx --prefix "${reviewDir}" eslint -f json ${ignoreFlags} ${filesArg}`;
+      const { stdout } = await execAsync(cmd, { cwd: ROOT_DIR, maxBuffer: 64 * 1024 * 1024 });
+      const report = JSON.parse(stdout || '[]');
+      let totalErrors = 0; let totalWarnings = 0;
+      for (const f of report) {
+        for (const m of (f.messages || [])) {
+          if (m.severity === 2) totalErrors++; else if (m.severity === 1) totalWarnings++;
+        }
+      }
+      repoBreakdown.eslintRepoMs = Date.now() - s;
+      return { totalErrors, totalWarnings, files: report };
+    } catch (err) {
+      // If ESLint exits non-zero, it may include the JSON on stdout; attempt to parse; otherwise return fatal marker
+      try {
+        const out = String(err && err.stdout) || '';
+        const report = out ? JSON.parse(out) : [];
+        let totalErrors = 0; let totalWarnings = 0;
+        for (const f of report) {
+          for (const m of (f.messages || [])) {
+            if (m.severity === 2) totalErrors++; else if (m.severity === 1) totalWarnings++;
+          }
+        }
+        repoBreakdown.eslintRepoMs = Date.now() - s;
+        return { totalErrors, totalWarnings, files: report };
+      } catch (_) {
+        repoBreakdown.eslintRepoMs = Date.now() - s;
+        // Surface as a warning, don't crash the whole review
+        repoWarnings.push(`Repo-wide ESLint gate error: ${err && err.message ? err.message : 'unknown error'}`);
+        return { totalErrors: 0, totalWarnings: 0, files: [] };
+      }
+    }
+  })();
   const pTsc = (async () => {
     const s = Date.now();
     const d = await runTsc(resolvedTsconfigPath);
@@ -466,7 +514,7 @@ async function main() {
   const tFiles1 = Date.now();
 
   // Repo-wide analyzers results
-  const [knipData, jscpdData, tscData, tscProjectData] = await Promise.all([pKnip, pJscpd, pTsc, pTscProject]);
+  const [knipData, jscpdData, tscData, tscProjectData, eslintRepoData] = await Promise.all([pKnip, pJscpd, pTsc, pTscProject, pEslintRepo]);
   if (debugMode) {
     try {
       const dups = Array.isArray(jscpdData && jscpdData.duplicates) ? jscpdData.duplicates.length : 0;
@@ -499,7 +547,7 @@ async function main() {
   const projectTotalErrors = Object.values(projectByFile).reduce((a, arr) => a + ((Array.isArray(arr) ? arr.length : 0)), 0);
 
   // Repo-wide violation detection and summary
-  const repoViolation = (filteredTotalErrors > 0) || (projectTotalErrors > 0) ||
+  const repoViolation = (filteredTotalErrors > 0) || (projectTotalErrors > 0) || (eslintRepoData && (eslintRepoData.totalErrors || 0) > 0) ||
     (knipAgg.summary.unusedFiles > 0 ||
      knipAgg.summary.unusedExports > 0 ||
      knipAgg.summary.unusedTypes > 0 ||
@@ -516,7 +564,8 @@ async function main() {
     knip: knipAgg.summary,
     jscpd: jscpdAgg.summary,
     tsc: { totalErrors: filteredTotalErrors, tsconfigPath: (tscData.tsconfigPath ? String(tscData.tsconfigPath).replace(/\\/g, '/') : null) },
-    tscProject: { totalErrors: projectTotalErrors, tsconfigPath: (tscProjectData && tscProjectData.tsconfigPath ? String(tscProjectData.tsconfigPath).replace(/\\/g, '/') : null) }
+    tscProject: { totalErrors: projectTotalErrors, tsconfigPath: (tscProjectData && tscProjectData.tsconfigPath ? String(tscProjectData.tsconfigPath).replace(/\\/g, '/') : null) },
+    eslintRepo: { totalErrors: (eslintRepoData && eslintRepoData.totalErrors) || 0, totalWarnings: (eslintRepoData && eslintRepoData.totalWarnings) || 0 }
   };
 
   // Summaries and result JSON (with timing)
@@ -862,6 +911,7 @@ async function main() {
     // Repo-level actions
     const repoActions = [];
     if (repoOut.tsc && (repoOut.tsc.totalErrors || 0) > 0) repoActions.push('Run project-wide TypeScript check: npx tsc --noEmit and resolve all errors');
+    if ((eslintRepoData && (eslintRepoData.totalErrors || 0) > 0)) repoActions.push('Fix ESLint errors across authored roots (app, components, lib, hooks, types, pages).');
     // Lowest-risk first
     if (repoOut.knip && (repoOut.knip.unusedExportedTypes || 0) > 0) repoActions.push('Make exported type(s) internal (remove export keyword) when only used within file.');
     if (repoOut.knip && (repoOut.knip.unusedExports || 0) > 0) repoActions.push('Remove unused exported symbols or fix references.');

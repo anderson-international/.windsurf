@@ -55,6 +55,10 @@ cmd /c git subtree pull --prefix=.windsurf windsurf_subtree main --squash
 // turbo
 cmd /c (git stash list | findstr windsurf_subtree_autostash >nul) && git stash pop || echo no-stash-to-pop
 
+6) If the subtree's review dependencies changed, reinstall them (Windows)
+// turbo
+cmd /c (git diff --name-only HEAD~1 HEAD | findstr /I ".windsurf/review/package.json" >nul) && npm install --prefix .windsurf\review || echo no-review-deps-change
+
 Notes:
 - `--squash` keeps the main repo history clean while updating only `.windsurf/` files.
 - If merge conflicts occur, they will be confined to files under `.windsurf/`. Resolve and commit as usual.
