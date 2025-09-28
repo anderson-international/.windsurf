@@ -74,7 +74,7 @@ async function runEslintBatch(filePaths) {
   // Helper to run a single ESLint invocation for a subset of files
   const runOnce = async (subset) => {
     const quoted = subset.map(fp => q(fp)).join(' ');
-    const cmd = `npx --prefix ${q(reviewDir)} eslint --ext .ts,.tsx --format json --max-warnings=0 --cache --cache-location ${q(cachePath)} ${quoted}`;
+    const cmd = `npx --prefix ${q(reviewDir)} eslint --ext .ts,.tsx --format json --cache --cache-location ${q(cachePath)} ${quoted}`;
     try {
       const { stdout, stderr } = await execAsync(cmd, { cwd: ROOT_DIR, maxBuffer: 64 * 1024 * 1024, timeout });
       const errTxt = String(stderr || '').trim();
@@ -85,21 +85,20 @@ async function runEslintBatch(filePaths) {
       const raw = String(stdout || '[]');
       return parseEslintJson(raw);
     } catch (err) {
-      const errTxt = String(err && err.stderr ? err.stderr.toString() : '').trim();
-      if (errTxt) {
-        const e = new Error(`ESLint sub-batch failed: ${errTxt.slice(0, 2000)}`);
-        e.code = 'ESLINT_BATCH_FAILED';
-        throw e;
+      const stdoutTxt = String(err && err.stdout ? err.stdout.toString() : '').trim();
+      const stderrTxt = String(err && err.stderr ? err.stderr.toString() : '').trim();
+      // Even if eslint exits non-zero, it typically prints valid JSON to stdout. Prefer parsing it.
+      if (stdoutTxt) {
+        try {
+          return parseEslintJson(stdoutTxt);
+        } catch (_) {
+          // fall through to throw with stderr context
+        }
       }
-      const raw = String(err && err.stdout ? err.stdout.toString() : '').trim();
-      try {
-        // Only accept JSON when stderr was empty
-        return parseEslintJson(raw);
-      } catch (_) {
-        const e = new Error('ESLint sub-batch failed: unparsable JSON output');
-        e.code = 'ESLINT_BATCH_FAILED';
-        throw e;
-      }
+      const snippet = (stderrTxt || (err && err.message) || 'ESLint execution failed').toString().slice(0, 2000);
+      const e = new Error(`ESLint sub-batch failed: ${snippet}`);
+      e.code = 'ESLINT_BATCH_FAILED';
+      throw e;
     }
   };
 

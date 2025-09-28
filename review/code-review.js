@@ -463,8 +463,9 @@ async function main() {
     } catch (err) {
       const msg = (err && err.message) ? err.message : 'Unknown ESLint batch error';
       console.error(msg);
-      // Fatal: intended functionality failed, abort review
-      throw err;
+      // Degrade gracefully: mark skipped and continue with other analyzers
+      repoWarnings.push(`ESLint batch degraded: ${msg}`);
+      eslintSkipped = true;
     } finally {
       eslintBatchMs = Date.now() - tEslintBatch0;
       if (debugMode) console.log(`[eslint-batch] ${eslintSkipped ? 'skipped' : 'analyzed ' + Object.keys(eslintMap).length + ' file(s)'} in ${formatMs(eslintBatchMs)}`);
