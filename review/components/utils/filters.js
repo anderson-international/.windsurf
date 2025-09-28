@@ -28,7 +28,7 @@ function isReviewablePath(relPath) {
   try {
     const n = String(relPath || '').replace(/\\/g, '/').replace(/^\.\/+/, '');
     // Allow top-level or src/ prefixed common roots, plus services/repositories
-    if (!/^(?:src\/)?(?:app|components|lib|hooks|types|services|repositories)\//.test(n)) return false;
+    if (!/^(?:src\/)?(?:app|components|lib|hooks|types|services|repositories|pages)\//.test(n)) return false;
     if (/^test\//.test(n)) return false;
     if(/^\.windsurf\//.test(n)) return false;
     if (/node_modules\//.test(n)) return false;
