@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 const path = require('path');
 const fs = require('fs');
+const { exec } = require('child_process');
+const { promisify } = require('util');
+const execAsync = promisify(exec);
 const { applyAutofix } = require('./components/autofix/apply');
 
 const { ROOT_DIR, OUTPUT_DIR, RESULTS_FILE, toRepoRelative, ensureDir } = require('./components/utils/paths');
@@ -308,6 +311,44 @@ async function main() {
     return undefined;
   }
   const resolvedTsconfigPath = resolveTsconfigPath();
+
+  // Preflight: ensure review TypeScript version matches project TypeScript version
+  async function getTsVersion(cmd, cwd) {
+    try {
+      const { stdout, stderr } = await execAsync(cmd, { cwd });
+      const out = String(stdout || stderr || '');
+      const m = out.match(/Version\s+(\d+\.\d+\.\d+)/i);
+      return m ? m[1] : null;
+    } catch (_) {
+      return null;
+    }
+  }
+  function versionsEqual(a, b) {
+    if (!a || !b) return false;
+    return String(a).trim() === String(b).trim();
+  }
+  const reviewDir = path.join(ROOT_DIR, '.windsurf', 'review');
+  const projectTsCmd = 'npx tsc -v';
+  const reviewTsCmd = `npx --prefix "${reviewDir}" tsc -v`;
+  const PROJECT_TS_VERSION = await getTsVersion(projectTsCmd, ROOT_DIR);
+  const REVIEW_TS_VERSION = await getTsVersion(reviewTsCmd, ROOT_DIR);
+  const tsconfigMsg = resolvedTsconfigPath ? toRepoRelative(resolvedTsconfigPath) : '(none)';
+  console.log(`[tsc] project=${PROJECT_TS_VERSION || 'unknown'} review=${REVIEW_TS_VERSION || 'unknown'} tsconfig=${tsconfigMsg}`);
+  if (!versionsEqual(PROJECT_TS_VERSION, REVIEW_TS_VERSION)) {
+    console.error([
+      'TypeScript version mismatch detected between project and review environment.',
+      `  Project tsc: ${PROJECT_TS_VERSION || 'unknown'}`,
+      `  Review  tsc: ${REVIEW_TS_VERSION || 'unknown'}`,
+      `  Tsconfig : ${tsconfigMsg}`,
+      '',
+      'To align, run:',
+      `  cmd /c npm i --prefix .windsurf\\review typescript@${PROJECT_TS_VERSION || '<project_version>'}`,
+      '',
+      'Re-run the review after alignment:',
+      '  cmd /c npm run --prefix .windsurf\\review review:repo'
+    ].join('\n'));
+    process.exit(1);
+  }
 
   // Start repo-wide analyzers concurrently right after autofix (they will run in parallel with ESLint batch and per-file work)
   const tRepo0 = Date.now();
