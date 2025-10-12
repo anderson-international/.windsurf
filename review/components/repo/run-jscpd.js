@@ -18,7 +18,7 @@ async function runJscpd(apiOpts = {}) {
     : ["app", "components", "lib", "hooks", "types"]; // default project roots only
   const minTokens = typeof apiOpts.minTokens === 'number' && !Number.isNaN(apiOpts.minTokens)
     ? apiOpts.minTokens
-    : 30; // default threshold (capture obvious duplicates while limiting noise)
+    : 60; // default threshold (filters boilerplate patterns like routes while catching meaningful duplication)
   const scriptSource = [
     "const path = require('path');",
     "const fs = require('fs');",

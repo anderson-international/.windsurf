@@ -54,7 +54,7 @@ function printUsage() {
     'Flags:',
     '  --porcelain                Auto-select changed TS/TSX files via git porcelain (if no changed files are detected, per-file analyzers are skipped but repo-wide analyzers still run)',
     '  --concurrency <n>          Limit per-file parallelism (default 8)',
-    '  --jscpd-min-tokens <n>     Set JSCPD min tokens (default 50)',
+    '  --jscpd-min-tokens <n>     Set JSCPD min tokens (default 60)',
     '  --jscpd-include <dirs>     Comma-separated include roots (default: app,components,lib,hooks,types and their src/* variants; use "." for repo)',
     '  --no-autofix               Disable default auto-fix of comments/console lines',
     '  --debug                    Print extra debug details; summaries always include total time',
