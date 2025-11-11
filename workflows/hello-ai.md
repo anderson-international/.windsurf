@@ -12,22 +12,17 @@ This workflow establishes conversation goals, loads critical context files and s
 - Set the project working directory
 /run context-critical
 
-## Step 1b - Load Core Engineering Guides (Always)
+## Step 2- Load Core Engineering Guides (Always)
 These short guides are always relevant and should be loaded for any task.
 /run load-core-guides
 
-## Step 1c - Load Task-Specific Guides (Choose one or both as needed)
-- If the task involves API/server/auth/networking:
+## Step 3 - Load Task-Specific Guides
+- API/server/auth/networking:
   /run load-api-guides
-- If the task involves UI/React/components/hooks:
+- UI/React/components/hooks:
   /run load-ui-guides
-
-### Step 2: Optionally update the .windsurf subtree (requires user approval)
-Ask the user: Would you like me to run /run subtree-pull now? Only proceed if the user approves.
-/run subtree-pull
 
 ### Step 3: Establish Goal(s)
 **AI ACTION REQUIRED**: 
  - Establish the goal of this conversation.
- - Ask follow on questions until satisfied you have understood the goal.
- - **Important**: Questions should be asked one at a time.
+
