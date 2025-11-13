@@ -41,7 +41,7 @@ cmd /c git status --porcelain
 
 2) Conditionally stash local changes (only if changes exist)
 // turbo
-cmd /c (git diff --quiet && git diff --cached --quiet) || git stash push -u -k -m windsurf_subtree_autostash
+cmd /c (git status --porcelain | findstr /R /C:".*" >nul) && git stash push -u -k -m windsurf_subtree_autostash || echo no-worktree-changes
 
 3) Fetch the subtree remote
 // turbo
