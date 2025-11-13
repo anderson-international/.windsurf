@@ -15,11 +15,13 @@
     "@jscpd/finder": "^4.0.1",
     "@typescript-eslint/eslint-plugin": "7.18.0",
     "@typescript-eslint/parser": "7.18.0",
+    "dotenv": "^16.4.5",
     "eslint": "8.57.0",
     "eslint-plugin-react": "7.35.0",
     "eslint-plugin-react-hooks": "4.6.0",
     "jscpd": "^4.0.5",
     "knip": "5.27.0",
+    "pg": "^8.13.0",
     "typescript": "5.8.3"
   }
 }

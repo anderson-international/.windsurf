@@ -10,9 +10,31 @@
  * Respects 7,800 byte output limit with automatic pagination.
  */
 
-const { Client } = require('pg')
 const fs = require('fs')
-require('dotenv').config({ quiet: true })
+const path = require('path')
+const { createRequire } = require('module')
+
+const reviewPackagePath = path.join(__dirname, '..', 'review', 'package.json')
+let scopedRequire = require
+try {
+  scopedRequire = createRequire(reviewPackagePath)
+} catch {}
+
+const loadModule = (name) => {
+  try {
+    return scopedRequire(name)
+  } catch (error) {
+    if (scopedRequire !== require) {
+      try {
+        return require(name)
+      } catch {}
+    }
+    throw new Error(`Failed to load "${name}". Install .windsurf review dependencies via npm --prefix .windsurf/review ci. Original error: ${error.message}`)
+  }
+}
+
+const { Client } = loadModule('pg')
+loadModule('dotenv').config({ quiet: true })
 
 // Configuration
 const MAX_OUTPUT_BYTES = 7800
