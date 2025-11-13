@@ -22,7 +22,7 @@ cmd /c git subtree pull --prefix=.windsurf windsurf_subtree main --squash
 
 4) If the subtree's review dependencies changed, reinstall them (Windows)
 // turbo
-cmd /c (git diff --name-only HEAD~1 HEAD | findstr /I /C:".windsurf/review/package.json" >nul) && npm install --prefix .windsurf\review || echo no-review-deps-change
+cmd /c (git diff --name-only HEAD~1 HEAD | findstr /I /C:.windsurf/review/package.json >nul) && npm install --prefix .windsurf\review || echo no-review-deps-change
 
 Notes:
 - `--squash` keeps the main repo history clean while updating only `.windsurf/` files.
